@@ -1,0 +1,43 @@
+{
+ "communities": [
+  {
+   "id": "grandoaks-1b",
+   "name": "Grand Oaks at Green Meadows \u2014 Phase 1B",
+   "short": "Grand Oaks Ph 1B",
+   "city": "Celina, TX",
+   "lots": 179,
+   "status": "active",
+   "data": "data/grandoaks-1b.json"
+  },
+  {
+   "id": "grandoaks-1a",
+   "name": "Grand Oaks at Green Meadows \u2014 Phase 1A",
+   "short": "Grand Oaks Ph 1A",
+   "city": "Celina, TX",
+   "lots": 178,
+   "status": "active",
+   "data": "data/grandoaks-1a.json",
+   "note": "Built out. 6 OCH lots \u2014 1 model, 5 specs \u2014 all surveyed."
+  },
+  {
+   "id": "sherley-farms",
+   "name": "Sherley Farms",
+   "short": "Sherley Farms",
+   "city": "\u2014",
+   "lots": null,
+   "status": "pending",
+   "data": null,
+   "note": "Awaiting plat and grading xref."
+  },
+  {
+   "id": "heights-uptown",
+   "name": "The Heights at Uptown",
+   "short": "Heights at Uptown",
+   "city": "\u2014",
+   "lots": null,
+   "status": "pending",
+   "data": null,
+   "note": "Awaiting plat and grading xref."
+  }
+ ]
+}
