@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lot Fit Check — Olivia Clarke Homes</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=Inter:wght@400;500&family=IBM+Plex+Mono:wght@500&display=swap');
+:root{--paper:#EDEFF1;--ink:#16232E;--slate:#5B6B76;--line:#C7CDD1;--structural:#2E4A63;
+ --pass:#2F7D5A;--pass-bg:#E7F2EC;--warn:#B8791E;--warn-bg:#F6ECDA}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:Inter,sans-serif;line-height:1.55}
+.wrap{max-width:880px;margin:0 auto;padding:44px 22px 70px}
+h1{font-family:'Space Grotesk',sans-serif;font-size:28px;margin:0 0 4px}
+.sub{color:var(--slate);font-size:14px;margin-bottom:34px}
+h3{font-family:'Space Grotesk',sans-serif;font-size:12px;text-transform:uppercase;letter-spacing:.07em;
+ color:var(--structural);margin:36px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+a.card{display:flex;justify-content:space-between;align-items:center;gap:16px;background:#fff;
+ border:1px solid var(--line);border-radius:6px;padding:16px 19px;margin-bottom:10px;
+ text-decoration:none;color:inherit;transition:.12s}
+a.card:hover{border-color:var(--structural);transform:translateY(-1px)}
+a.card h2{font-family:'Space Grotesk',sans-serif;font-size:16.5px;margin:0 0 2px;color:var(--structural)}
+a.card p{margin:0;font-size:13px;color:var(--slate)}
+div.card{display:flex;justify-content:space-between;align-items:center;gap:16px;background:#fff;
+ border:1px dashed var(--line);border-radius:6px;padding:16px 19px;margin-bottom:10px;opacity:.72}
+div.card h2{font-family:'Space Grotesk',sans-serif;font-size:16.5px;margin:0 0 2px;color:var(--slate)}
+div.card p{margin:0;font-size:13px;color:var(--slate)}
+.pill{font-family:'IBM Plex Mono',monospace;font-size:10.5px;font-weight:600;padding:3px 8px;
+ border-radius:3px;white-space:nowrap}
+.p-live{background:var(--pass-bg);color:var(--pass)}
+.p-soon{background:var(--warn-bg);color:var(--warn)}
+ul{margin:0;padding-left:18px;font-size:13.5px}
+li{margin-bottom:5px}
+.note{background:#fff;border-left:3px solid var(--warn);padding:12px 15px;font-size:13px;margin-top:14px}
+code{font-family:'IBM Plex Mono',monospace;font-size:12.5px;background:#E7E9EA;padding:1px 5px;border-radius:3px}
+</style></head><body><div class="wrap">
+<h1>Lot Fit Check</h1>
+<div class="sub">Olivia Clarke Homes &middot; lot planning, driveway grade compliance, plan fit and monotony tracking</div>
+
+<h3>Communities</h3>
+<div id="list"></div>
+
+<h3>General tools</h3>
+<a class="card" href="tools/plan-fit-check.html">
+  <div><h2>Plan-to-Lot Fit Check</h2>
+  <p>Checks a plan footprint against setbacks, easements, coverage limits, grading and access.
+     Community parameter sets, site sketch, saved check log.</p></div>
+  <span class="pill p-live">ready</span>
+</a>
+
+<a class="card" href="tools/driveway-grade-check.html">
+  <div><h2>Driveway Grade Check</h2>
+  <p>Standalone calculator &mdash; any lot, any community. Single lot or batch paste.</p></div>
+  <span class="pill p-live">ready</span>
+</a>
+
+<h3>Reference</h3>
+<ul>
+  <li><a href="reference/OCH_Plan_Library.xlsx">Plan Library workbook</a> &mdash; plans, offerings, community standards, lot constraints, map base geometry</li>
+  <li><a href="reference/Community_Setup_Standard.xlsx">Community Setup Standard</a> &mdash; what to gather for a new community, validation gates, constants, method</li>
+  <li><a href="reference/GrandOaks_1B_PLAT_lot_table.csv">1B plat lot table</a> &middot; <a href="reference/GrandOaks_1B_driveway_worksheet.csv">1B worksheet</a> &middot; <a href="reference/GrandOaks_1A_PLAT_lot_table.csv">1A plat lot table</a> &middot; <a href="reference/GrandOaks_1A_driveway_worksheet.csv">1A worksheet</a> &middot; <a href="reference/GrandOaks_1A_lot_area_audit.csv">1A area audit</a></li>
+</ul>
+
+<div class="note" id="caveats"></div>
+</div>
+<script>
+fetch('data/communities.json',{cache:'no-store'}).then(r=>r.json()).then(reg=>{
+  document.getElementById('list').innerHTML=reg.communities.map(c=>{
+    const meta=[c.city&&c.city!=='—'?c.city:null,c.lots?c.lots+' residential lots':null]
+      .filter(Boolean).join(' · ');
+    if(c.status==='active'&&c.data){
+      const rec=/Built out/.test(c.note||'');
+      return `<a class="card" href="tools/lot-map.html?c=${c.id}">
+        <div><h2>${c.name}</h2><p>${meta}${c.note?' · '+c.note:''}</p></div>
+        <span class="pill ${rec?'p-soon':'p-live'}">${rec?'record':'live'}</span></a>`;
+    }
+    return `<div class="card"><div><h2>${c.name}</h2>
+      <p>${c.note||'Not yet set up.'}</p></div><span class="pill p-soon">pending</span></div>`;
+  }).join('');
+}).catch(e=>{
+  document.getElementById('list').innerHTML='<div class="card"><div><h2>Could not load community list</h2><p>'+e.message+'</p></div></div>';
+});
+fetch('data/grandoaks-1b.json',{cache:'no-store'}).then(r=>r.json()).then(d=>{
+  if(!d.meta||!d.meta.caveats)return;
+  document.getElementById('caveats').innerHTML='<b>Before relying on the numbers.</b><br>'+
+    d.meta.caveats.map(c=>'&bull; '+c).join('<br>');
+}).catch(()=>{document.getElementById('caveats').style.display='none'});
+</script>
+</body></html>
