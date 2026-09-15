@@ -106,7 +106,7 @@ tr.no td{opacity:.4}
       <button onclick="togglePick()" id="pickBtn">select lots</button>
       <button onclick="toggleHide()" id="hideBtn">excluded: shown</button>
     </div>
-    <div class="searchbox"><input id="q" placeholder="find e.g. A-12" oninput="doSearch()" onkeydown="searchKey(event)"></div>
+    <div class="searchbox"><input id="q" placeholder="find e.g. A-12 or 530 Callum" oninput="doSearch()" onkeydown="searchKey(event)"></div>
     <div class="legendbox" id="legend"></div>
   </div>
   <div class="side" id="side"></div>
@@ -160,6 +160,38 @@ const PLANS=[
  {id:'ross_b',n:'Ross B',coll:"MR 50' FE",lot:60,w:50,d:65.5,gar:'Front'},
  {id:'ross_c',n:'Ross C',coll:"MR 50' FE",lot:60,w:50,d:65.5,gar:'Front'}
 ];
+/* Heights at Uptown — rear-entry cottage plans.
+   Finish-face dimensions from the plan sheets, via the workbook (9/3/26).
+   Holland measured 9/14/26 (A 76'-6", B 77'-6", C 76'-6" — B is deeper).
+   Parker resolved 9/15/26 at 34'-10" x 83'-0". Its sheet shows both 83'-0" and
+   88'-0" (~2.5 ft extra at each end = roof overhang). Settled against the built
+   record: Parker stands on N-13, N-4 and P-17, all 110 ft deep — 83'-0" clears
+   by ~2 ft, 88'-0" would have made all three impossible. */
+PLANS.push(
+ {id:'addison_a',n:'Addison A',coll:"MR 35' RE",lot:45,w:34.833,d:84.5,gar:'Rear'},
+ {id:'addison_b',n:'Addison B',coll:"MR 35' RE",lot:45,w:34.833,d:84.5,gar:'Rear'},
+ {id:'addison_c',n:'Addison C',coll:"MR 35' RE",lot:45,w:34.833,d:84.5,gar:'Rear'},
+ {id:'carmichael_a',n:'Carmichael A',coll:"MR 35' RE",lot:45,w:34.833,d:82.5,gar:'Rear'},
+ {id:'carmichael_b',n:'Carmichael B',coll:"MR 35' RE",lot:45,w:34.833,d:82.5,gar:'Rear'},
+ {id:'carmichael_c',n:'Carmichael C',coll:"MR 35' RE",lot:45,w:34.833,d:82.5,gar:'Rear'},
+ {id:'crowder_a',n:'Crowder A',coll:"MR 30' RE",lot:45,w:30.0,d:80.0,gar:'Rear'},
+ {id:'crowder_b',n:'Crowder B',coll:"MR 30' RE",lot:45,w:30.0,d:80.0,gar:'Rear'},
+ {id:'crowder_c',n:'Crowder C',coll:"MR 30' RE",lot:45,w:30.0,d:80.0,gar:'Rear'},
+ {id:'holland_a',n:'Holland A',coll:"MR 35' RE",lot:45,w:34.833,d:76.5,gar:'Rear'},
+ {id:'holland_b',n:'Holland B',coll:"MR 35' RE",lot:45,w:34.833,d:77.5,gar:'Rear'},
+ {id:'holland_c',n:'Holland C',coll:"MR 35' RE",lot:45,w:34.833,d:76.5,gar:'Rear'},
+ {id:'knox_a',n:'Knox A',coll:"MR 35' RE",lot:45,w:34.917,d:74.5,gar:'Rear'},
+ {id:'knox_b',n:'Knox B',coll:"MR 35' RE",lot:45,w:34.917,d:74.5,gar:'Rear'},
+ {id:'knox_c',n:'Knox C',coll:"MR 35' RE",lot:45,w:34.917,d:77.5,gar:'Rear'},
+ {id:'parker_a',n:'Parker A',coll:"MR 35' RE",lot:45,w:34.833,d:83.0,gar:'Rear'},
+ {id:'parker_b',n:'Parker B',coll:"MR 35' RE",lot:45,w:34.833,d:83.0,gar:'Rear'},
+ {id:'parker_c',n:'Parker C',coll:"MR 35' RE",lot:45,w:34.833,d:83.0,gar:'Rear'},
+ {id:'pearl_a',n:'Pearl A',coll:"MR 30' RE",lot:45,w:29.917,d:79.917,gar:'Rear'},
+ {id:'thompson_a',n:'Thompson A (retired)',coll:"MR 35' RE",lot:45,w:null,d:null,gar:'Rear'},
+ {id:'thompson_b',n:'Thompson B (retired)',coll:"MR 35' RE",lot:45,w:null,d:null,gar:'Rear'},
+ {id:'logan_a',n:'Logan A (retired)',coll:"MR 35' RE",lot:45,w:null,d:null,gar:'Rear'},
+ {id:'logan_c',n:'Logan C (retired)',coll:"MR 35' RE",lot:45,w:null,d:null,gar:'Rear'}
+);
 const PLAN=Object.fromEntries(PLANS.map(p=>[p.id,p]));
 const rearShiftOf=p=>Math.max(0,PAD_DEPTH-p.d);
 
@@ -276,11 +308,20 @@ let RES=[]; let byId={};
 
 const MRULES={
  r4:{n:'4 intervening residences',desc:'Same plan may not repeat unless at least 4 other homes sit between them along the street. Across-street not tested.',span:5,across:false},
+ r3:{n:'3 intervening, both sides',desc:'Heights DCCR §3.12(l): the same plan and elevation may not repeat unless at least 3 other homes sit between them along the street, nor directly across the street. A DIFFERENT ELEVATION counts as sufficient dissimilarity — this follows the built record, where OCH built Addison A and Addison C two doors apart with City and HOA approval.',span:4,across:true,byElev:true},
  r2:{n:'2 lots either direction + across',desc:'Same plan may not repeat within 2 lots either side, nor directly across the street.',span:2,across:true},
  off:{n:'off',desc:'No monotony test applied.',span:0,across:false}
 };
 function setRule(v){monoRule=v;paint();renderSide();pushSetting('mono_rule',v);}
-function planFamily(pid){return pid?PLAN[pid].n.split(' ')[0]:null;}   // Campbell A/B/C -> Campbell
+/* What counts as "the same home" for monotony differs by community.
+   Grand Oaks compares the plan family: Campbell A/B/C all count as Campbell.
+   The Heights compares plan AND elevation: its DCCR requires "sufficient
+   dissimilarity", and the built record shows a different elevation satisfies
+   that (Addison A and Addison C sit two doors apart, City- and HOA-approved). */
+function planFamily(pid){
+  if(!pid)return null;
+  return MRULES[monoRule].byElev ? pid : PLAN[pid].n.split(' ')[0];
+}
 function walk(i,dir,steps){const out=[];let cur=i;
   for(let s=0;s<steps;s++){const nx=(MAP.adj[cur]||{})[dir]; if(nx===null||nx===undefined)break; out.push(nx); cur=nx;}
   return out;}
@@ -290,11 +331,15 @@ function monoNeighbors(i){
   if(R.across){const a=(MAP.adj[i]||{}).A; if(a!==null&&a!==undefined)n.push(a);}
   return n;
 }
+/* confidence of this lot's across-street pairing, when the data records it */
+function acrossConf(i){ return (MAP.adj[i]||{}).aConf || null; }
+function acrossIs(i,j){ return (MAP.adj[i]||{}).A===j; }
 function monoConflict(i,pid){
   if(!pid)return [];
   const fam=planFamily(pid);
   return monoNeighbors(i).filter(j=>A[j]&&planFamily(A[j])===fam)
-    .map(j=>({i:j,lot:byId[j].b+'-'+byId[j].l,plan:PLAN[A[j]].n}));
+    .map(j=>({i:j,lot:byId[j].b+'-'+byId[j].l,plan:PLAN[A[j]].n,
+              across:acrossIs(i,j), conf:acrossIs(i,j)?acrossConf(i):null}));
 }
 /* ---------- analysis ---------- */
 function lotProduct(l){return l.prod||null;}
@@ -318,6 +363,11 @@ function planVerdict(l,p){
 }
 function evalLot(l,pid){
   const p=pid?PLAN[pid]:null;
+  /* Heights plans have no measured depth and rear-alley lots carry no
+     front-spot elevation. Depth-based fit maths cannot run — return null
+     rather than compute with missing values. */
+  if(p&&(p.d===null||p.d===undefined))return null;
+  if(l.fs===undefined||l.fs===null||l.shift===undefined)return null;
   const maxShift=p?rearShiftOf(p):0;
   const run=BASE_RUN+ (p? Math.min(maxShift, Math.max(0,l.shift)) :0);
   const rise=l.fp+SLAB-l.fs;
@@ -336,6 +386,11 @@ function evalLot(l,pid){
 }
 function statusOf(l){
   const pid=A[l.i];
+  if(pid&&monoConflict(l.i,pid).length)return 'fail';
+  if(l.fs===undefined||l.fs===null){          /* rear-alley community */
+    if(l.sl21===undefined||l.sl21===null)return 'warn';
+    return l.sl21>MAXG?'fail':'pass';
+  }
   if(pid){
     if(monoConflict(l.i,pid).length)return 'fail';
     const e=evalLot(l,pid);
@@ -493,7 +548,8 @@ function doSearch(){
   paint();
   const qq=q.trim().toUpperCase();
   if(!qq){return;}
-  const hits=RES.filter(l=>(l.b+'-'+l.l).toUpperCase().includes(qq));
+  const hits=RES.filter(l=>(l.b+'-'+l.l).toUpperCase().includes(qq)
+    || (l.addr && l.addr.toUpperCase().includes(qq)));
   if(hits.length===1){select(hits[0].i);}          // unique -> open it
   else if(hits.length>1){sel=null;paint();renderSide(hits);}
   else {sel=null;paint();renderSide([]);}
@@ -501,7 +557,8 @@ function doSearch(){
 function searchKey(e){
   if(e.key!=='Enter')return;
   const qq=document.getElementById('q').value.trim().toUpperCase();
-  const hits=RES.filter(l=>(l.b+'-'+l.l).toUpperCase().includes(qq));
+  const hits=RES.filter(l=>(l.b+'-'+l.l).toUpperCase().includes(qq)
+    || (l.addr && l.addr.toUpperCase().includes(qq)));
   if(hits.length){select(hits[0].i);}
 }
 
@@ -530,25 +587,54 @@ function renderSide(hits){
   const e=pid?evalLot(l,pid):null;
   const st=statusOf(l);
   let h=`<div style="display:flex;justify-content:space-between;align-items:baseline">
-      <h2 style="font-size:22px">Block ${l.b} · Lot ${l.l}</h2>
+      <h2 style="font-size:22px">${l.addr ? l.addr : 'Block '+l.b+' · Lot '+l.l}</h2>
       <span class="muted">${l.a.toLocaleString()} sf · ${l.prod?l.prod+"' product":(l.lw?l.lw.toFixed(0)+"ft wide":'')}</span></div>`;
+  if(l.addr)h+=`<div class="muted" style="margin-top:-4px;font-size:12px">Block ${l.b} · Lot ${l.l}</div>`;
   h+=`<div style="margin:8px 0"><label style="font-size:13px;cursor:pointer">
       <input type="checkbox" ${isOurs(l)?'checked':''} onchange="toggleOwn(${l.i})" style="vertical-align:-2px;margin-right:6px">
       OCH will build this lot</label></div>`;
   if(!isOurs(l))h+=`<div class="remedy" style="border-left-color:var(--slate)"><b>Excluded from the program.</b> Left out of all counts.</div>`;
   if(l.conf!=='OK')h+=`<div class="remedy" style="border-left-color:var(--warn)"><b>Verify this lot.</b><br>${l.note||'Flagged CHECK.'}</div>`;
   if(!l.prod)h+=`<div class="remedy" style="border-left-color:var(--warn)"><b>Lot product not set.</b><br>Measured ${l.lw?l.lw.toFixed(0)+' ft':'?'} wide — set 50/60/70 in the workbook. Every plan is listed below until it is.</div>`;
+  /* Slope may be unknown: 18 of 48 Heights OCH lots have no rear grade in the
+     construction set, so there is no estimate. Show "—", never a fake number. */
+  const slopeVal = e ? e.slope : (l.sl21!=null ? l.sl21 : null);
   h+=`<div class="card2" style="margin-top:12px"><div style="display:flex;justify-content:space-between;align-items:flex-end">
       <div><div class="muted" style="font-size:11px;text-transform:uppercase;letter-spacing:.5px">Driveway slope @ ${e?e.run.toFixed(1):BASE_RUN} ft</div>
-      <div class="big" style="color:${(e?e.slope:l.sl21)<=10?'var(--pass)':'var(--fail)'}">${(e?e.slope:l.sl21).toFixed(1)}%</div></div>
-      <div>${st==='pass'?pill('pass','OK'):st==='warn'?pill('warn','NEEDS WORK'):pill('fail','PROBLEM')}</div></div></div>`;
-  h+=`<h3 class="sh">Elevations</h3><div class="kv">
+      <div class="big" style="color:${slopeVal==null?'var(--slate)':(slopeVal<=MAXG?'var(--pass)':'var(--fail)')}">${slopeVal==null?'—':slopeVal.toFixed(1)+'%'}</div></div>
+      <div>${st==='pass'?pill('pass','OK'):st==='warn'?pill('warn','NEEDS WORK'):pill('fail','PROBLEM')}</div></div>
+      ${slopeVal==null?`<div class="muted" style="font-size:11px;margin-top:6px">No rear grade recorded for this lot — slope cannot be estimated.</div>`:''}</div>`;
+  /* Front-entry communities carry apron + front-spot elevations. Rear-alley
+     communities (The Heights) do not — they have pad, rear grade and drop only.
+     Branch rather than assume; the fields are genuinely absent, not zero. */
+  const rearEntry = (l.ap===undefined||l.ap===null);
+  if(!rearEntry){
+    h+=`<h3 class="sh">Elevations</h3><div class="kv">
       <span class="k">Pad (FP)</span><span class="v">${l.fp.toFixed(2)}</span>
       <span class="k">Top of slab (+0.83)</span><span class="v">${(l.fp+SLAB).toFixed(2)}</span>
       <span class="k">Garage apron</span><span class="v">${l.ap.toFixed(2)}</span>
       <span class="k">Front spot at ROW</span><span class="v">${l.fs.toFixed(2)}</span>
       <span class="k">Driveway drop</span><span class="v">${l.drop.toFixed(2)} ft</span></div>`;
-  h+=`<h3 class="sh">To reach 10%</h3><div class="kv">
+  } else {
+    h+=`<h3 class="sh">Elevations</h3><div class="kv">
+      <span class="k">Finished pad (FP)</span><span class="v">${l.fp!=null?l.fp.toFixed(1):'—'}</span>
+      <span class="k">Rear grade at alley</span><span class="v">${l.dg!=null?l.dg.toFixed(1):'—'}</span>
+      <span class="k">Pad → rear drop</span><span class="v">${l.drop!=null?l.drop.toFixed(1)+' ft':'—'}</span></div>`;
+    if(l.wall){
+      const exp = (l.wexp!=null)?l.wexp:((l.tw!=null&&l.bw!=null)?(l.tw-l.bw):null);
+      h+=`<h3 class="sh">Retaining wall</h3><div class="kv">
+        <span class="k">Top of wall (TW)</span><span class="v">${l.tw!=null?l.tw.toFixed(1):'—'}</span>
+        <span class="k">Bottom of wall (BW)</span><span class="v">${l.bw!=null?l.bw.toFixed(1):'—'}</span>
+        <span class="k">Exposed height</span><span class="v">${exp!=null?exp.toFixed(1)+' ft':'not recorded'}</span></div>`;
+      if(exp!=null&&exp>4)
+        h+=`<div class="remedy" style="border-left-color:var(--warn)"><b>Engineered wall required.</b><br>
+          Exposed height ${exp.toFixed(1)} ft exceeds 4 ft (Celina §9.05). Build around the existing wall.</div>`;
+    }
+    if(l.sl21!=null&&l.sl21>MAXG)
+      h+=`<div class="remedy" style="border-left-color:var(--fail)"><b>Estimated driveway slope ${l.sl21.toFixed(1)}% exceeds ${MAXG}%.</b><br>
+        Estimate only — (pad − rear grade) ÷ ${BASE_RUN} ft apron. Verify against the alley profile before relying on it.</div>`;
+  }
+  if(!rearEntry) h+=`<h3 class="sh">To reach 10%</h3><div class="kv">
       <span class="k">Required driveway length</span><span class="v">${l.need.toFixed(1)} ft</span>
       <span class="k">Shift home back</span><span class="v">${l.shift>0?l.shift.toFixed(1)+' ft':'—'}</span>
       <span class="k">Drop garage if not</span><span class="v">${l.dg>0?'+'+l.dg.toFixed(2)+' ft':'—'}</span></div>`;
@@ -556,11 +642,44 @@ function renderSide(hits){
   h+=`<h3 class="sh">Plan fit</h3>`;
   h+=`<select id="assign" onchange="assignPlan(${l.i},this.value)" style="width:100%;padding:7px;font-family:'IBM Plex Mono';font-size:12px;border:1px solid var(--line);border-radius:4px">
       <option value="">— no plan assigned —</option>`;
-  PLANS.forEach(p=>{h+=`<option value="${p.id}" ${pid===p.id?'selected':''}>${p.n} · ${p.coll}</option>`});
+  /* only offer plans that match the community's entry type */
+  const wantRear = rearEntry;
+  const retired = (MAP.meta&&MAP.meta.retiredPlans)||[];
+  PLANS.filter(p=>(wantRear ? p.gar==='Rear' : p.gar!=='Rear'))
+       .filter(p=>!retired.includes(p.id) || pid===p.id)   /* retired plans stay visible only where already built */
+       .forEach(p=>{h+=`<option value="${p.id}" ${pid===p.id?'selected':''}>${p.n} · ${p.coll}</option>`});
   h+='</select>';
+  /* Rear-alley depth fit, calibrated against the built record 9/15/26:
+       lot depth >= plan depth + front BL + rear-to-alley - porch encroachment
+     The porch may encroach into the front building line, so it does not consume
+     buildable depth. All 22 built Heights homes pass; the tightest (Addison B at
+     713 Lincoln Mews) clears by 0.6 ft. Without the porch credit, 10 of them
+     would read as impossible — which is how the credit was discovered. */
+  if(pid&&rearEntry&&PLAN[pid]){
+    const P=PLAN[pid], M=(MAP.meta||{});
+    const fbl=M.frontBL!=null?M.frontBL:10, rear=M.rearBL!=null?M.rearBL:20,
+          porch=M.porchEncroach!=null?M.porchEncroach:5;
+    if(P.d!=null && l.ld!=null){
+      const need=P.d+fbl+rear-porch, marg=l.ld-need;
+      const cls = marg<0?'fail':(marg<2?'warn':'pass');
+      h+=`<h3 class="sh">Depth fit</h3><div class="kv">
+        <span class="k">Lot depth</span><span class="v">${l.ld.toFixed(0)}'</span>
+        <span class="k">Plan depth</span><span class="v">${P.d.toFixed(1)}'</span>
+        <span class="k">Front BL + rear to alley</span><span class="v">${fbl}' + ${rear}'</span>
+        <span class="k">Porch encroachment credit</span><span class="v">−${porch}'</span>
+        <span class="k">Required</span><span class="v">${need.toFixed(1)}'</span>
+        <span class="k">Margin</span><span class="v" style="color:var(--${cls})">${marg>=0?'+':''}${marg.toFixed(1)}'</span></div>`;
+      if(marg<0)h+=`<div class="remedy" style="border-left-color:var(--fail)"><b>Does not fit on depth.</b><br>
+        Short by ${Math.abs(marg).toFixed(1)} ft. Lot depth is derived from the plat polygon, so verify against survey before ruling it out.</div>`;
+      else if(marg<2)h+=`<div class="remedy" style="border-left-color:var(--warn)"><b>Tight — ${marg.toFixed(1)} ft margin.</b><br>
+        Within the tolerance of a plat-derived lot depth. Confirm against survey.</div>`;
+    } else if(P.d==null){
+      h+=`<div class="remedy" style="border-left-color:var(--warn)"><b>Depth fit unavailable.</b><br>${P.n} has no measured depth on file.</div>`;
+    }
+  }
   if(e){
     h+=`<div class="card2" style="margin-top:10px"><div class="kv">
-      <span class="k">Plan depth / max rear shift</span><span class="v">${PLAN[pid].d.toFixed(1)}' / ${e.maxShift.toFixed(1)}'</span>
+      <span class="k">Plan depth / max rear shift</span><span class="v">${PLAN[pid].d!=null?PLAN[pid].d.toFixed(1):'not measured'}' / ${e.maxShift.toFixed(1)}'</span>
       <span class="k">Home shifted back</span><span class="v">${e.setback.toFixed(1)} ft</span>
       <span class="k">Resulting driveway length</span><span class="v">${e.run.toFixed(1)} ft</span>
       <span class="k">Resulting slope</span><span class="v" style="color:${e.pass?'var(--pass)':'var(--fail)'}">${e.slope.toFixed(1)}%</span>
@@ -569,7 +688,7 @@ function renderSide(hits){
       </div></div>`;
     const mc=monoConflict(l.i,pid);
     if(mc.length)h+=`<div class="remedy" style="border-left-color:var(--fail)"><b>Monotony conflict.</b><br>
-      ${PLAN[pid].n.split(' ')[0]} also at ${mc.map(x=>'<b>'+x.lot+'</b> ('+x.plan+')').join(', ')}.<br>
+      ${PLAN[pid].n.split(' ')[0]} also at ${mc.map(x=>'<b>'+(byId[x.i]&&byId[x.i].addr?byId[x.i].addr:x.lot)+'</b> ('+x.plan+(x.across?', across the street':'')+')').join(', ')}.<br>
       <span class="muted">Rule in force: ${MRULES[monoRule].n}</span></div>`;
     else if(monoRule!=='off')h+=`<div class="remedy" style="border-left-color:var(--pass)"><b>Monotony clear</b> under “${MRULES[monoRule].n}”.
       <span class="muted">Checked ${monoNeighbors(l.i).length} neighboring lots.</span></div>`;
