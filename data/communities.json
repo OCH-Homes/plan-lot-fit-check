@@ -7,7 +7,8 @@
    "city": "Celina, TX",
    "lots": 179,
    "status": "active",
-   "data": "data/grandoaks-1b.json"
+   "data": "data/grandoaks-1b.json",
+   "note": "179 residential lots. Lot availability pending developer split."
   },
   {
    "id": "grandoaks-1a",
@@ -15,7 +16,7 @@
    "short": "Grand Oaks Ph 1A",
    "city": "Celina, TX",
    "lots": 178,
-   "status": "active",
+   "status": "record",
    "data": "data/grandoaks-1a.json",
    "note": "Built out. 6 OCH lots \u2014 1 model, 5 specs \u2014 all surveyed."
   },
@@ -33,11 +34,11 @@
    "id": "heights-uptown",
    "name": "The Heights at Uptown",
    "short": "Heights at Uptown",
-   "city": "\u2014",
-   "lots": null,
-   "status": "pending",
-   "data": null,
-   "note": "Awaiting plat and grading xref."
+   "city": "Celina, TX",
+   "lots": 227,
+   "status": "active",
+   "data": "data/heights-uptown.json",
+   "note": "48 OCH lots \u2014 26 built, 22 to build. Rear alley entry."
   }
  ]
 }
