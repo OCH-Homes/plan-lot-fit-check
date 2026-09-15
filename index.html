@@ -66,8 +66,10 @@ fetch('data/communities.json',{cache:'no-store'}).then(r=>r.json()).then(reg=>{
   document.getElementById('list').innerHTML=reg.communities.map(c=>{
     const meta=[c.city&&c.city!=='—'?c.city:null,c.lots?c.lots+' residential lots':null]
       .filter(Boolean).join(' · ');
-    if(c.status==='active'&&c.data){
-      const rec=/Built out/.test(c.note||'');
+    /* 'record' = built out, kept for reference; still browsable.
+       Driven by status, not by regex-matching the note text. */
+    if((c.status==='active'||c.status==='record')&&c.data){
+      const rec=c.status==='record'||/Built out/.test(c.note||'');
       return `<a class="card" href="tools/lot-map.html?c=${c.id}">
         <div><h2>${c.name}</h2><p>${meta}${c.note?' · '+c.note:''}</p></div>
         <span class="pill ${rec?'p-soon':'p-live'}">${rec?'record':'live'}</span></a>`;
