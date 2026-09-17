@@ -192,6 +192,30 @@ PLANS.push(
  {id:'logan_a',n:'Logan A (retired)',coll:"MR 35' RE",lot:45,w:null,d:null,gar:'Rear'},
  {id:'logan_c',n:'Logan C (retired)',coll:"MR 35' RE",lot:45,w:null,d:null,gar:'Rear'}
 );
+/* Grand Oaks 60' front-entry plans — offered per the Community Offerings matrix
+   but NEVER MEASURED: no width or depth exists in the plan library for any of
+   them. They are listed so they can be assigned and coloured; fit checks report
+   "not measured" rather than passing silently. Same for Campbell A/B.
+   TO FIX: extract dimensions from the plan sheets, as was done for the 40' family. */
+PLANS.push(
+ {id:'ellis_a',n:'Ellis A',coll:"MR 50' FE",lot:60,w:null,d:null,gar:'Front'},
+ {id:'ellis_b',n:'Ellis B',coll:"MR 50' FE",lot:60,w:null,d:null,gar:'Front'},
+ {id:'ellis_d',n:'Ellis D',coll:"MR 50' FE",lot:60,w:null,d:null,gar:'Front'},
+ {id:'ellis_e',n:'Ellis E',coll:"MR 50' FE",lot:60,w:null,d:null,gar:'Front'},
+ {id:'marshall_a',n:'Marshall A',coll:"MR 50' FE",lot:60,w:null,d:null,gar:'Front'},
+ {id:'marshall_b',n:'Marshall B',coll:"MR 50' FE",lot:60,w:null,d:null,gar:'Front'},
+ {id:'marshall_c',n:'Marshall C',coll:"MR 50' FE",lot:60,w:null,d:null,gar:'Front'},
+ {id:'meredith_a',n:'Meredith A',coll:"MR 50' FE",lot:60,w:null,d:null,gar:'Front'},
+ {id:'meredith_b',n:'Meredith B',coll:"MR 50' FE",lot:60,w:null,d:null,gar:'Front'},
+ {id:'meredith_c',n:'Meredith C',coll:"MR 50' FE",lot:60,w:null,d:null,gar:'Front'},
+ {id:'tyler_a',n:'Tyler A',coll:"MR 50' FE",lot:60,w:null,d:null,gar:'Front'},
+ {id:'tyler_b',n:'Tyler B',coll:"MR 50' FE",lot:60,w:null,d:null,gar:'Front'},
+ {id:'tyler_c',n:'Tyler C',coll:"MR 50' FE",lot:60,w:null,d:null,gar:'Front'},
+ {id:'bradley_a',n:'Bradley A',coll:"MR 50' FE",lot:60,w:null,d:null,gar:'Front'},
+ {id:'bradley_b',n:'Bradley B',coll:"MR 50' FE",lot:60,w:null,d:null,gar:'Front'},
+ {id:'campbell_a',n:'Campbell A',coll:"MR 40' FE",lot:50,w:null,d:null,gar:'Front'},
+ {id:'campbell_b',n:'Campbell B',coll:"MR 40' FE",lot:50,w:null,d:null,gar:'Front'}
+);
 const PLAN=Object.fromEntries(PLANS.map(p=>[p.id,p]));
 const rearShiftOf=p=>Math.max(0,PAD_DEPTH-p.d);
 
@@ -436,18 +460,57 @@ function colorOf(l){
   const pid=A[l.i];
   if(!pid)return '#E8EBED';
   if(monoConflict(l.i,pid).length)return '#A6392E';
-  const PC={Campbell:'#4E79A7',Cooper:'#F28E2B',Renner:'#59A14F',Shelby:'#B07AA1',
-            Webber:'#76B7B2',Dakota:'#EDC948',Ross:'#9C755F'};
-  return PC[planFamily(pid)]||'#8A959C';
+  return planColors()[planBase(pid)]||'#8A959C';
+}
+/* Plan family for DISPLAY. Deliberately separate from planFamily(), which is
+   rule-dependent (Heights compares plan+elevation). Map colour must never
+   change just because the monotony rule changed. */
+function planBase(pid){ return pid&&PLAN[pid] ? PLAN[pid].n.split(' ')[0] : null; }
+
+/* Colours are assigned to whichever plans this community actually uses, not
+   to a hard-coded list. Heights is rear-entry (Addison, Carmichael, ...),
+   Grand Oaks front-entry (Campbell, Cooper, ...) — one list cannot serve both. */
+const PALETTE=['#4E79A7','#F28E2B','#59A14F','#B07AA1','#76B7B2','#EDC948','#9C755F',
+               '#2E4A63','#B8791E','#7FA86B','#8C6BB1','#D95F6B'];
+let _pcCache=null;
+/* Which plans a community offers comes from the Community Offerings matrix in
+   the plan library, carried in meta.offers — NOT inferred from garage type.
+   Offerings are keyed by lot product where a community has several (Grand Oaks
+   50'/60'/70'), or a flat list where every lot is one product (The Heights 45').
+   Falls back to garage type only if a community has no offers recorded. */
+function offeredFor(l){
+  const o=(MAP.meta||{}).offers;
+  if(!o) {
+    const rear=MAP.lots.some(x=>x.ap===undefined||x.ap===null);
+    return PLANS.filter(p=>rear ? p.gar==='Rear' : p.gar!=='Rear').map(p=>p.id);
+  }
+  if(Array.isArray(o)) return o;
+  const pr=l?lotProduct(l):null;
+  if(pr!=null && o[String(pr)]) return o[String(pr)];
+  return Object.values(o).flat();
+}
+function communityFamilies(){
+  const seen=[];
+  offeredFor(null).forEach(id=>{
+    const p=PLAN[id]; if(!p)return;
+    const f=p.n.split(' ')[0];
+    if(!seen.includes(f))seen.push(f);
+  });
+  return seen;
+}
+function planColors(){
+  if(_pcCache)return _pcCache;
+  _pcCache={};
+  communityFamilies().forEach((f,i)=>{_pcCache[f]=PALETTE[i%PALETTE.length];});
+  return _pcCache;
 }
 const LEGENDS=[
- ['Driveway slope @ 21 ft run',[['#2F7D5A','under 8%'],['#7FA86B','8–10%'],['#B8791E','10–12%'],['#A6392E','over 12%']]],
+ ['Driveway slope @ {RUN} ft run',[['#2F7D5A','under 8%'],['#7FA86B','8–10%'],['#B8791E','10–12%'],['#A6392E','over 12%']]],
  ['Remedy needed',[['#2F7D5A','none — passes'],['#9CBE7A','set back ≤2 ft'],['#D9C15C','2–4 ft'],['#B8791E','4–15.5 ft'],['#A6392E','drop garage only']]],
  ['Lot product',[['#4E79A7',"50' product"],['#59A14F',"60' product"],['#B07AA1',"70' product"]]],
  ['Restricted driveway side',[['#4E79A7','must be LEFT'],['#B8791E','must be RIGHT'],['#DCE0E2','unrestricted']]],
  ['Data confidence',[['#2F7D5A','OK'],['#B8791E','CHECK — verify']]],
- ['Assigned plan',[['#4E79A7','Campbell'],['#F28E2B','Cooper'],['#59A14F','Renner'],['#B07AA1','Shelby'],
-   ['#76B7B2','Webber'],['#EDC948','Dakota'],['#9C755F','Ross'],['#A6392E','monotony conflict'],['#E8EBED','unassigned']]]
+ ['Assigned plan',null]   /* built at render time from this community's plans */
 ];
 const LEGENDS_RECORD=[
  ['OCH ownership',[['#2E4A63','model home'],['#2F7D5A','OCH spec'],['#E8EBED','not an OCH lot']]],
@@ -456,7 +519,15 @@ const LEGENDS_RECORD=[
  ['Plan built',[['#4E79A7','Marshall C'],['#76B7B2','Marshall B'],['#F28E2B','Ellis D'],['#EDC948','Ellis B'],['#9C755F','Dakota A'],['#E8EBED','not an OCH lot']]]
 ];
 function drawLegend(){
-  const [t,rows]=(RECORD?LEGENDS_RECORD:LEGENDS)[colorMode];
+  let [t,rows]=(RECORD?LEGENDS_RECORD:LEGENDS)[colorMode];
+  /* BASE_RUN is set from community meta after this table is defined,
+     so substitute at render time, not at parse time. */
+  t=t.replace('{RUN}', BASE_RUN);
+  if(rows===null){
+    const pc=planColors();
+    rows=communityFamilies().map(f=>[pc[f],f])
+      .concat([['#A6392E','monotony conflict'],['#E8EBED','unassigned']]);
+  }
   document.getElementById('legend').innerHTML='<b>'+t+'</b>'+
     rows.map(r=>`<i style="background:${r[0]}"></i>${r[1]}`).join('<br>');
 }
@@ -643,11 +714,11 @@ function renderSide(hits){
   h+=`<select id="assign" onchange="assignPlan(${l.i},this.value)" style="width:100%;padding:7px;font-family:'IBM Plex Mono';font-size:12px;border:1px solid var(--line);border-radius:4px">
       <option value="">— no plan assigned —</option>`;
   /* only offer plans that match the community's entry type */
-  const wantRear = rearEntry;
+  const offered = offeredFor(l);
   const retired = (MAP.meta&&MAP.meta.retiredPlans)||[];
-  PLANS.filter(p=>(wantRear ? p.gar==='Rear' : p.gar!=='Rear'))
-       .filter(p=>!retired.includes(p.id) || pid===p.id)   /* retired plans stay visible only where already built */
-       .forEach(p=>{h+=`<option value="${p.id}" ${pid===p.id?'selected':''}>${p.n} · ${p.coll}</option>`});
+  PLANS.filter(p=>offered.includes(p.id) || pid===p.id)   /* an already-assigned plan stays visible even if withdrawn */
+       .filter(p=>!retired.includes(p.id) || pid===p.id)
+       .forEach(p=>{h+=`<option value="${p.id}" ${pid===p.id?'selected':''}>${p.n} · ${p.coll}${p.d==null?' · dims not measured':''}</option>`});
   h+='</select>';
   /* Rear-alley depth fit, calibrated against the built record 9/15/26:
        lot depth >= plan depth + front BL + rear-to-alley - porch encroachment
