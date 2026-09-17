@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Lot Fit Sheet — Olivia Clarke Homes</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Space+Grotesk:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#16232E; --slate:#5B6B76; --line:#C9CFD4; --line-soft:#E4E8EB;
+    --card:#FAF8F3; --pass:#2F7D5A; --warn:#B8791E; --fail:#A6392E; --structural:#2E4A63;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:#EDEAE3;color:var(--ink);
+       font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:13px}
+  h1,h2,h3{font-family:'Space Grotesk',system-ui,sans-serif;margin:0}
+
+  /* ---- controls (screen only) ---- */
+  .bar{background:#fff;border-bottom:2px solid var(--ink);padding:12px 18px;
+       display:flex;gap:14px;align-items:center;flex-wrap:wrap;position:sticky;top:0;z-index:5}
+  .bar label{font-size:11px;color:var(--slate);text-transform:uppercase;letter-spacing:.5px;
+             display:block;margin-bottom:3px}
+  select,button{font-family:'IBM Plex Mono',monospace;font-size:13px;padding:6px 10px;
+                border:1px solid var(--line);border-radius:3px;background:#fff;color:var(--ink)}
+  button{cursor:pointer;background:var(--ink);color:#fff;border-color:var(--ink);font-weight:500}
+  button.ghost{background:#fff;color:var(--ink)}
+  .seg{display:flex;border:1px solid var(--line);border-radius:3px;overflow:hidden}
+  .seg button{border:0;border-radius:0;background:#fff;color:var(--ink);font-weight:400}
+  .seg button.on{background:var(--structural);color:#fff}
+
+  /* ---- the sheet ---- */
+  .sheet{width:8.5in;min-height:11in;margin:20px auto;background:#fff;padding:0.5in 0.55in;
+         box-shadow:0 2px 14px rgba(0,0,0,.14)}
+  .head{display:flex;justify-content:space-between;align-items:flex-start;
+        border-bottom:2px solid var(--ink);padding-bottom:10px}
+  .head h1{font-size:23px;letter-spacing:-.2px}
+  .head .sub{color:var(--slate);font-size:12px;margin-top:3px}
+  .brand{text-align:right;font-family:'Space Grotesk',sans-serif;font-size:11px;
+         color:var(--slate);line-height:1.5}
+  .brand b{display:block;font-size:14px;color:var(--ink);letter-spacing:.4px}
+
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:13px 0}
+  .box{border:1px solid var(--line);border-radius:4px;padding:9px 11px;background:var(--card)}
+  .box h3{font-size:10.5px;text-transform:uppercase;letter-spacing:.6px;color:var(--slate);
+          margin-bottom:6px;font-weight:600}
+  .kv{display:grid;grid-template-columns:auto auto;gap:3px 12px;font-size:12px}
+  .kv .k{color:var(--slate)}
+  .kv .v{text-align:right;font-weight:500}
+
+  .drawbox{border:1px solid var(--line);border-radius:4px;padding:8px;background:#fff;margin-top:4px}
+  svg{width:100%;height:auto;display:block}
+
+  .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:10.5px;color:var(--slate);
+          margin-top:7px;padding-top:7px;border-top:1px solid var(--line-soft)}
+  .legend i{display:inline-block;width:11px;height:11px;border-radius:2px;margin-right:5px;
+            vertical-align:-1px;border:1px solid rgba(0,0,0,.2)}
+
+  .verdict{margin-top:11px;border-radius:4px;padding:10px 13px;color:#fff}
+  .verdict.pass{background:var(--pass)} .verdict.warn{background:var(--warn)}
+  .verdict.fail{background:var(--fail)}
+  .verdict .st{font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:600}
+  .verdict .ds{font-size:11.5px;opacity:.94;margin-top:2px}
+
+  .notes{margin-top:11px;font-size:10.5px;color:var(--slate);line-height:1.55;
+         border-top:1px solid var(--line-soft);padding-top:8px}
+  .notes b{color:var(--ink)}
+  .foot{margin-top:12px;padding-top:7px;border-top:1px solid var(--line-soft);
+        display:flex;justify-content:space-between;font-size:10px;color:var(--slate)}
+
+  @media print{
+    body{background:#fff}
+    .bar{display:none}
+    .sheet{box-shadow:none;margin:0;width:auto;min-height:auto;padding:0.35in}
+    @page{size:letter portrait;margin:0.4in}
+  }
+</style>
+</head>
+<body>
+
+<div class="bar">
+  <div><label>Lot</label><select id="lotSel"></select></div>
+  <div><label>Plan</label><select id="planSel"></select></div>
+  <div><label>Elevation</label><select id="elevSel"></select></div>
+  <div><label>Garage side <span style="text-transform:none">(viewed from the alley)</span></label>
+    <div class="seg"><button id="gL" class="on" onclick="setGar('L')">Left</button><button id="gR" onclick="setGar('R')">Right</button></div>
+  </div>
+  <div style="margin-left:auto;display:flex;gap:8px">
+    <button class="ghost" onclick="location.href='../index.html'">← communities</button>
+    <button onclick="window.print()">Print</button>
+  </div>
+</div>
+
+<div class="sheet" id="sheet"></div>
+
+<script>
+/* =====================================================================
+   LOT FIT SHEET — one printable page per lot, for the sales office.
+
+   WHAT IS SURVEY-ACCURATE
+     · lot boundary — recorded final plat, Inst. 2024-20240100000602
+     · setbacks and porch encroachment — resolved against City-approved,
+       OCH-built plot plans
+     · plan width and depth — measured off the architectural sheets
+       (finish face), via the plan library
+
+   WHAT IS APPROXIMATE, AND SAID SO ON THE SHEET
+     · the home draws as a RECTANGLE. The plan library carries overall
+       width x depth, not the true foundation outline, so garage bump-outs
+       and rear jogs are not shown.
+     · pad POSITION is derived from the setbacks, not traced from the
+       grading plan. The grading set gave pad elevations, not pad outlines.
+     · garage side is an elevation/handing choice, drawn as an indicator on
+       the alley face. It is not the true opening location.
+
+   This is a sales conversation aid. It is not a plot plan and not a
+   permit document.
+   ===================================================================== */
+
+const QS=new URLSearchParams(location.search);
+const COMMUNITY=QS.get('c')||'heights-uptown';
+let MAP=null, ORIENT=null, LOT=null, GAR='L';
+
+const F=v=>v==null?'—':(Math.round(v*10)/10).toFixed(1)+"'";
+const FT=v=>{const f=Math.floor(v),i=Math.round((v-f)*12);return i===0?f+"'":f+"'-"+i+'"';};
+
+/* ---------- geometry ---------- */
+const sub=(a,b)=>[a[0]-b[0],a[1]-b[1]];
+const len=a=>Math.hypot(a[0],a[1]);
+const mid=e=>[(e[0][0]+e[1][0])/2,(e[0][1]+e[1][1])/2];
+function centroid(p){let A=0,cx=0,cy=0;for(let i=0;i<p.length;i++){const [x0,y0]=p[i],[x1,y1]=p[(i+1)%p.length];const c=x0*y1-x1*y0;A+=c;cx+=(x0+x1)*c;cy+=(y0+y1)*c;}
+  if(Math.abs(A)<1e-9){const n=p.length;return [p.reduce((s,q)=>s+q[0],0)/n,p.reduce((s,q)=>s+q[1],0)/n];}
+  A*=0.5;return [cx/(6*A),cy/(6*A)];}
+function rot(p,a,o){const c=Math.cos(a),s=Math.sin(a),dx=p[0]-o[0],dy=p[1]-o[1];
+  return [o[0]+dx*c-dy*s, o[1]+dx*s+dy*c];}
+
+/* Rotate the lot so its frontage is horizontal with the street at the bottom. */
+function orientLot(lot,orient){
+  const fr=orient.front, o=centroid(lot.pts);
+  const v=sub(fr[1],fr[0]);
+  let a=-Math.atan2(v[1],v[0]);
+  let pts=lot.pts.map(p=>rot(p,a,o));
+  let f=fr.map(p=>rot(p,a,o));
+  /* street must end up at the BOTTOM: frontage y greater than the lot centre */
+  const cy=centroid(pts)[1];
+  if(mid(f)[1] < cy){ a+=Math.PI; pts=lot.pts.map(p=>rot(p,a,o)); f=fr.map(p=>rot(p,a,o)); }
+  return {pts:pts, front:f};
+}
+
+/* ---------- boot ---------- */
+async function boot(){
+  const [m,o]=await Promise.all([
+    fetch('../data/'+COMMUNITY+'.json').then(r=>r.json()),
+    fetch('../data/'+COMMUNITY+'-orient.json').then(r=>r.json()).catch(()=>null)
+  ]);
+  MAP=m; ORIENT=o||{};
+  const lots=MAP.lots.filter(l=>l.addr).sort((a,b)=>a.addr.localeCompare(b.addr,undefined,{numeric:true}));
+  const ls=document.getElementById('lotSel');
+  lots.forEach(l=>{const op=document.createElement('option');
+    op.value=l.b+'-'+l.l; op.textContent=l.addr+'  ·  '+l.b+'-'+l.l; ls.appendChild(op);});
+  ls.onchange=()=>{LOT=lots.find(x=>x.b+'-'+x.l===ls.value); fillPlans(); draw();};
+  LOT=lots[0]; fillPlans(); draw();
+}
+function offered(){
+  const o=(MAP.meta||{}).offers;
+  if(!o)return [];
+  if(Array.isArray(o))return o;
+  const pr=LOT?LOT.prod:null;
+  return (pr!=null&&o[String(pr)])||Object.values(o).flat();
+}
+function fillPlans(){
+  const ids=offered();
+  const fams=[];
+  ids.forEach(id=>{const n=PLANNAMES[id]; if(n){const f=n.split(' ')[0]; if(!fams.includes(f))fams.push(f);}});
+  const ps=document.getElementById('planSel'); const keep=ps.value;
+  ps.innerHTML=fams.map(f=>`<option ${f===keep?'selected':''}>${f}</option>`).join('');
+  ps.onchange=()=>{fillElevs(); draw();};
+  fillElevs();
+}
+function fillElevs(){
+  const fam=document.getElementById('planSel').value;
+  const ids=offered().filter(id=>PLANNAMES[id]&&PLANNAMES[id].split(' ')[0]===fam);
+  const es=document.getElementById('elevSel'); const keep=es.value;
+  es.innerHTML=ids.map(id=>{const e=PLANNAMES[id].split(' ')[1]||'A';
+    return `<option value="${id}" ${PLANNAMES[id].endsWith(' '+keep)?'selected':''}>${e}</option>`;}).join('');
+  es.onchange=draw;
+}
+function setGar(s){GAR=s;
+  document.getElementById('gL').classList.toggle('on',s==='L');
+  document.getElementById('gR').classList.toggle('on',s==='R'); draw();}
+
+/* ---------- plan data (mirrors the plan library) ---------- */
+const PLANNAMES={}, PLANDIMS={};
+[['addison_a','Addison A',34.833,84.5],['addison_b','Addison B',34.833,84.5],['addison_c','Addison C',34.833,84.5],
+ ['carmichael_a','Carmichael A',34.833,82.5],['carmichael_b','Carmichael B',34.833,82.5],['carmichael_c','Carmichael C',34.833,82.5],
+ ['crowder_a','Crowder A',30,80],['crowder_b','Crowder B',30,80],['crowder_c','Crowder C',30,80],
+ ['holland_a','Holland A',34.833,76.5],['holland_b','Holland B',34.833,77.5],['holland_c','Holland C',34.833,76.5],
+ ['knox_a','Knox A',34.917,74.5],['knox_b','Knox B',34.917,74.5],['knox_c','Knox C',34.917,77.5],
+ ['parker_a','Parker A',34.833,83],['parker_b','Parker B',34.833,83],['parker_c','Parker C',34.833,83],
+ ['pearl_a','Pearl A',29.917,79.917]
+].forEach(([id,n,w,d])=>{PLANNAMES[id]=n;PLANDIMS[id]={w,d};});
+
+/* ---------- draw ---------- */
+function draw(){
+  if(!LOT)return;
+  const key=LOT.b+'-'+LOT.l;
+  const or=ORIENT[key];
+  const pid=document.getElementById('elevSel').value;
+  const plan=PLANDIMS[pid], pname=PLANNAMES[pid]||'—';
+  const M=MAP.meta||{};
+  const fbl=M.frontBL??10, rear=M.rearBL??20, sideI=M.sideInterior??5, porch=M.porchEncroach??5;
+
+  let svg='<p style="color:var(--slate);font-size:12px">Lot orientation not available for this lot.</p>';
+  let dm=null, wm=null;
+
+  if(or){
+    const O=orientLot(LOT,or);
+    const xs=O.pts.map(p=>p[0]), ys=O.pts.map(p=>p[1]);
+    const minx=Math.min(...xs), maxx=Math.max(...xs), miny=Math.min(...ys), maxy=Math.max(...ys);
+    const lotW=maxx-minx, lotD=maxy-miny;
+    const PAD=26, W=560, H=Math.max(300, Math.min(470, W*lotD/Math.max(lotW,1)));
+    const sc=Math.min((W-PAD*2)/lotW,(H-PAD*2)/lotD);
+    const ox=PAD+((W-PAD*2)-lotW*sc)/2, oy=PAD+((H-PAD*2)-lotD*sc)/2;
+    const X=x=>ox+(x-minx)*sc, Y=y=>oy+(y-miny)*sc, S=v=>v*sc;
+
+    const poly=O.pts.map(p=>X(p[0])+','+Y(p[1])).join(' ');
+    const frontY=maxy, rearY=miny;
+
+    /* buildable envelope */
+    const bx=X(minx+sideI), by=Y(rearY+rear), bw=S(lotW-sideI*2), bh=S(lotD-rear-fbl);
+
+    let s=`<svg viewBox="0 0 ${W} ${H}">`;
+    s+=`<rect width="${W}" height="${H}" fill="#fff"/>`;
+    /* setback bands */
+    s+=`<polygon points="${poly}" fill="#FAF8F3" stroke="#16232E" stroke-width="2"/>`;
+    s+=`<rect x="${X(minx)}" y="${Y(frontY-fbl)}" width="${S(lotW)}" height="${S(fbl)}" fill="#B8791E" opacity=".16"/>`;
+    s+=`<rect x="${X(minx)}" y="${Y(rearY)}" width="${S(lotW)}" height="${S(rear)}" fill="#B8791E" opacity=".16"/>`;
+    s+=`<rect x="${X(minx)}" y="${Y(rearY)}" width="${S(sideI)}" height="${S(lotD)}" fill="#B8791E" opacity=".16"/>`;
+    s+=`<rect x="${X(maxx-sideI)}" y="${Y(rearY)}" width="${S(sideI)}" height="${S(lotD)}" fill="#B8791E" opacity=".16"/>`;
+    s+=`<rect x="${bx}" y="${by}" width="${bw}" height="${bh}" fill="none" stroke="#2E4A63" stroke-dasharray="5,4" stroke-width="1.3"/>`;
+
+    if(plan){
+      /* house sits against the rear apron; the porch may reach into the front BL */
+      const hw=S(plan.w), hd=S(plan.d);
+      const hx=X(minx+lotW/2)-hw/2, hy=Y(rearY+rear);
+      wm=(M.buildableWidth??(lotW-sideI*2))-plan.w;
+      dm=lotD-(plan.d+fbl+rear-porch);
+      const bad=(wm<0||dm<0), col=bad?'#A6392E':'#2F7D5A';
+      s+=`<rect x="${hx}" y="${hy}" width="${hw}" height="${hd}" fill="${col}" opacity=".26" stroke="${col}" stroke-width="1.6"/>`;
+      /* porch zone — the part that may encroach the front BL */
+      s+=`<rect x="${hx}" y="${hy+hd-S(porch)}" width="${hw}" height="${S(porch)}" fill="${col}" opacity=".16"
+            stroke="${col}" stroke-dasharray="3,3" stroke-width="1"/>`;
+      s+=`<text x="${hx+hw/2}" y="${hy+hd/2}" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" fill="#16232E">${FT(plan.w)} × ${FT(plan.d)}</text>`;
+      /* garage indicator on the alley face, on the chosen side */
+      const gw=hw*0.46, gx=(GAR==='L')?hx+hw*0.04:hx+hw-gw-hw*0.04;
+      s+=`<rect x="${gx}" y="${hy}" width="${gw}" height="${Math.min(S(22),hd*0.3)}" fill="#2E4A63" opacity=".55"/>`;
+      s+=`<text x="${gx+gw/2}" y="${hy+Math.min(S(22),hd*0.3)/2+4}" text-anchor="middle" font-family="IBM Plex Mono" font-size="9.5" fill="#fff">GARAGE ${GAR==='L'?'LEFT':'RIGHT'}</text>`;
+      /* driveway apron, garage face to alley */
+      s+=`<rect x="${gx}" y="${Y(rearY)}" width="${gw}" height="${S(rear)}" fill="#5B6B76" opacity=".3"/>`;
+      s+=`<text x="${gx+gw/2}" y="${Y(rearY)+S(rear)/2+4}" text-anchor="middle" font-family="IBM Plex Mono" font-size="9" fill="#16232E">${rear}' APRON</text>`;
+    }
+    s+=`<text x="${W/2}" y="${H-7}" text-anchor="middle" font-family="IBM Plex Mono" font-size="10.5" fill="#5B6B76">${(LOT.street||'STREET')} — FRONT</text>`;
+    s+=`<text x="${W/2}" y="13" text-anchor="middle" font-family="IBM Plex Mono" font-size="10.5" fill="#5B6B76">ALLEY — GARAGE ENTRY</text>`;
+    if(or.irregular)
+      s+=`<text x="${W/2}" y="${H-20}" text-anchor="middle" font-family="IBM Plex Mono" font-size="9.5" fill="#B8791E">IRREGULAR LOT — shape is not rectangular, check the plat</text>`;
+    s+='</svg>';
+    svg=s;
+  }
+
+  const cls=(dm==null||wm==null)?'warn':((dm<0||wm<0)?'fail':((dm<2||wm<0.5)?'warn':'pass'));
+  const txt=cls==='fail'?'DOES NOT FIT':cls==='warn'?'FITS — TIGHT, CONFIRM AGAINST SURVEY':'FITS';
+
+  document.getElementById('sheet').innerHTML=`
+    <div class="head">
+      <div><h1>${LOT.addr||(LOT.b+'-'+LOT.l)}</h1>
+        <div class="sub">Block ${LOT.b} · Lot ${LOT.l} · ${MAP.meta.name||''}</div></div>
+      <div class="brand"><b>OLIVIA CLARKE HOMES</b>Lot fit sheet<br>${new Date().toLocaleDateString()}</div>
+    </div>
+
+    <div class="grid">
+      <div class="box"><h3>Home</h3><div class="kv">
+        <span class="k">Plan</span><span class="v">${pname}</span>
+        <span class="k">Width × depth</span><span class="v">${plan?FT(plan.w)+' × '+FT(plan.d):'—'}</span>
+        <span class="k">Garage</span><span class="v">${GAR==='L'?'Left':'Right'} · rear alley</span>
+      </div></div>
+      <div class="box"><h3>Lot</h3><div class="kv">
+        <span class="k">Area</span><span class="v">${LOT.a?LOT.a.toLocaleString()+' sf':'—'}</span>
+        <span class="k">Width × depth</span><span class="v">${F(LOT.lw)} × ${F(LOT.ld)}</span>
+        <span class="k">Finished pad</span><span class="v">${LOT.fp!=null?LOT.fp.toFixed(1)+"'":'—'}</span>
+      </div></div>
+    </div>
+
+    <div class="drawbox">${svg}
+      <div class="legend">
+        <span><i style="background:#FAF8F3;border-color:#16232E"></i>Lot line</span>
+        <span><i style="background:#B8791E;opacity:.4"></i>Setback</span>
+        <span><i style="background:#2E4A63;opacity:.25;border-style:dashed"></i>Buildable envelope</span>
+        <span><i style="background:#2F7D5A;opacity:.5"></i>Home footprint</span>
+        <span><i style="background:#2E4A63;opacity:.6"></i>Garage</span>
+        <span><i style="background:#5B6B76;opacity:.4"></i>Driveway apron</span>
+      </div>
+    </div>
+
+    <div class="verdict ${cls}">
+      <div class="st">${txt}</div>
+      <div class="ds">Width margin ${wm==null?'—':(wm>=0?'+':'')+wm.toFixed(1)+"'"} ·
+        Depth margin ${dm==null?'—':(dm>=0?'+':'')+dm.toFixed(1)+"'"} ·
+        Envelope ${fbl}' front, ${rear}' rear to alley, ${sideI}' sides, ${porch}' porch encroachment</div>
+    </div>
+
+    <div class="grid" style="margin-top:9px">
+      <div class="box"><h3>Grading</h3><div class="kv">
+        <span class="k">Finished pad</span><span class="v">${LOT.fp!=null?LOT.fp.toFixed(1)+"'":'—'}</span>
+        <span class="k">Rear grade at alley</span><span class="v">${LOT.dg!=null?LOT.dg.toFixed(1)+"'":'—'}</span>
+        <span class="k">Driveway slope (est)</span><span class="v" style="color:${LOT.sl21!=null&&LOT.sl21>10?'var(--fail)':'inherit'}">${LOT.sl21!=null?LOT.sl21.toFixed(1)+'%':'not recorded'}</span>
+      </div></div>
+      <div class="box"><h3>Retaining wall</h3><div class="kv">
+        ${LOT.wall?`<span class="k">Top of wall</span><span class="v">${LOT.tw!=null?LOT.tw.toFixed(1)+"'":'—'}</span>
+        <span class="k">Bottom of wall</span><span class="v">${LOT.bw!=null?LOT.bw.toFixed(1)+"'":'—'}</span>
+        <span class="k">Exposed</span><span class="v">${LOT.wexp!=null?LOT.wexp.toFixed(1)+"'":'not recorded'}</span>`
+        :`<span class="k">None recorded</span><span class="v">—</span>`}
+      </div></div>
+    </div>
+
+    <div class="notes">
+      <b>How to read this.</b> The lot boundary and setbacks are to scale from the recorded
+      final plat and the City-approved setbacks. The home is drawn as a <b>rectangle at its
+      overall width and depth</b> — garage bump-outs and rear jogs are not shown, and the pad
+      position is derived from the setbacks rather than traced from the grading plan. The
+      garage block marks the chosen side as viewed from the alley, not the true opening
+      location.<br>
+      ${or&&or.irregular?'<b style="color:var(--warn)">This lot is not rectangular.</b> The drawing squares it up to show the frontage horizontally, so side clearances are indicative only. Check the plat.<br>':''}
+      <b>This is a sales conversation aid, not a plot plan and not a permit document.</b>
+      Confirm against the surveyed plot plan before making commitments to a buyer.
+    </div>
+
+    <div class="foot">
+      <span>${MAP.meta.name||''} · ${MAP.meta.city||''}</span>
+      <span>Plat ${MAP.meta.platSource||''}</span>
+    </div>`;
+}
+boot();
+</script>
+</body>
+</html>
