@@ -373,16 +373,23 @@ function fitsLot(l,p){const pr=lotProduct(l);
   return p.lot<=pr;}
 function planVerdict(l,p){
   const reasons=[];
+  const warnMissing=[];
   const pr=lotProduct(l);
   if(pr!==null&&p.lot>pr) reasons.push(`needs a ${p.lot}' lot — this is a ${pr}'`);
+  /* evalLot returns null where the front-entry driveway maths cannot run:
+     rear-alley lots (no front spot elevation) and plans with no measured depth.
+     Those checks are simply unavailable — never treat that as a pass or a fail. */
   const ev=evalLot(l,p.id);
-  if(!ev.pass) reasons.push(`driveway ${ev.slope.toFixed(1)}% even set back ${ev.setback.toFixed(1)}' — needs a ${ev.dg.toFixed(2)}' drop garage`);
-  if(ev.hand==='no') reasons.push('J-swing hand cannot match the required driveway side');
+  if(ev===null){
+    if(p.d==null||p.w==null) warnMissing.push('dimensions not measured');
+    else warnMissing.push('driveway check not applicable');
+  }
+  if(ev&&!ev.pass) reasons.push(`driveway ${ev.slope.toFixed(1)}% even set back ${ev.setback.toFixed(1)}' — needs a ${ev.dg.toFixed(2)}' drop garage`);
+  if(ev&&ev.hand==='no') reasons.push('J-swing hand cannot match the required driveway side');
   const mc=monoConflict(l.i,p.id);
   if(mc.length) reasons.push('monotony: '+mc.map(x=>x.plan+' at '+x.lot).join(', '));
-  const warn=[];
-  if(ev.hand==='mirror') warn.push('mirror required');
-  if(ev.dg>0&&ev.pass===false) {} 
+  const warn=warnMissing.slice();
+  if(ev&&ev.hand==='mirror') warn.push('mirror required');
   return {ok:reasons.length===0,reasons:reasons,warn:warn,ev:ev,mono:mc};
 }
 function evalLot(l,pid){
@@ -418,6 +425,7 @@ function statusOf(l){
   if(pid){
     if(monoConflict(l.i,pid).length)return 'fail';
     const e=evalLot(l,pid);
+    if(e===null)return 'pass';          /* driveway maths not applicable here */
     if(!e.pass&&e.dg>0)return e.shortfall>0?'fail':'warn';
     return e.hand==='no'?'fail':(e.hand==='mirror'?'warn':'pass');}
   if(l.shift<=0)return 'pass';
@@ -764,7 +772,9 @@ function renderSide(hits){
     else if(monoRule!=='off')h+=`<div class="remedy" style="border-left-color:var(--pass)"><b>Monotony clear</b> under “${MRULES[monoRule].n}”.
       <span class="muted">Checked ${monoNeighbors(l.i).length} neighboring lots.</span></div>`;
   }
-  const verd=PLANS.map(p=>({p:p,v:planVerdict(l,p)}));
+  /* Only weigh plans this community actually offers for this lot's product. */
+  const offeredIds=offeredFor(l);
+  const verd=PLANS.filter(p=>offeredIds.includes(p.id)).map(p=>({p:p,v:planVerdict(l,p)}));
   const good=verd.filter(x=>x.v.ok), bad=verd.filter(x=>!x.v.ok);
   const nb=MAP.adj[l.i]||{};
   const nm=x=>x===null||x===undefined?'—':`<a href="#" onclick="select(${x});return false">${byId[x].b}-${byId[x].l}</a>`
@@ -775,13 +785,39 @@ function renderSide(hits){
      <span class="k">Across street</span><span class="v">${nm(nb.A)}</span></div>`;
   h+=`<h3 class="sh">Plans that fit — ${good.length}</h3>`;
   if(good.length){
-    h+=`<table class="pl"><thead><tr><th>Plan</th><th>Lot</th><th>Max shift</th><th>Shift</th><th>Slope</th></tr></thead><tbody>`;
-    good.forEach(x=>{h+=`<tr style="cursor:pointer" onclick="assignPlan(${l.i},'${x.p.id}')">
-      <td><b>${x.p.n}</b>${x.v.warn.length?' <span class="pill p-warn">'+x.v.warn.join(', ')+'</span>':''}</td>
-      <td>${x.p.lot}'</td><td>${x.v.ev.maxShift.toFixed(1)}'</td><td>${x.v.ev.setback.toFixed(1)}'</td>
-      <td style="color:var(--pass)">${x.v.ev.slope.toFixed(1)}%</td></tr>`});
+    /* Front-entry lots are judged on driveway geometry; rear-alley lots on
+       width and depth against the buildable envelope. Different columns,
+       because the front-entry numbers do not exist on a rear-alley lot. */
+    const M=MAP.meta||{};
+    const dmar=p=>{
+      if(p.d==null||l.ld==null)return null;
+      const fbl=M.frontBL!=null?M.frontBL:10, rear=M.rearBL!=null?M.rearBL:20,
+            porch=M.porchEncroach!=null?M.porchEncroach:5;
+      return l.ld-(p.d+fbl+rear-porch);
+    };
+    const wmar=p=>(p.w==null||M.buildableWidth==null)?null:M.buildableWidth-p.w;
+    h+= rearEntry
+      ? `<table class="pl"><thead><tr><th>Plan</th><th>Width</th><th>Depth</th><th>Width margin</th><th>Depth margin</th></tr></thead><tbody>`
+      : `<table class="pl"><thead><tr><th>Plan</th><th>Lot</th><th>Max shift</th><th>Shift</th><th>Slope</th></tr></thead><tbody>`;
+    good.forEach(x=>{
+      const tag=x.v.warn.length?' <span class="pill p-warn">'+x.v.warn.join(', ')+'</span>':'';
+      h+=`<tr style="cursor:pointer" onclick="assignPlan(${l.i},'${x.p.id}')"><td><b>${x.p.n}</b>${tag}</td>`;
+      if(rearEntry){
+        const wm=wmar(x.p), dm=dmar(x.p);
+        h+=`<td>${x.p.w!=null?x.p.w.toFixed(1)+"'":'—'}</td>
+            <td>${x.p.d!=null?x.p.d.toFixed(1)+"'":'—'}</td>
+            <td${wm!=null?` style="color:var(--${wm<0?'fail':(wm<1?'warn':'pass')})"`:''}>${wm!=null?(wm>=0?'+':'')+wm.toFixed(1)+"'":'—'}</td>
+            <td${dm!=null?` style="color:var(--${dm<0?'fail':(dm<2?'warn':'pass')})"`:''}>${dm!=null?(dm>=0?'+':'')+dm.toFixed(1)+"'":'—'}</td></tr>`;
+      } else {
+        const e=x.v.ev;
+        h+=`<td>${x.p.lot}'</td>
+            <td>${e?e.maxShift.toFixed(1)+"'":'—'}</td>
+            <td>${e?e.setback.toFixed(1)+"'":'—'}</td>
+            <td style="color:var(--pass)">${e?e.slope.toFixed(1)+'%':'—'}</td></tr>`;
+      }
+    });
     h+='</tbody></table><p class="muted" style="margin-top:5px">Click a row to assign it.</p>';
-  } else h+=`<p class="muted">No plan currently fits this lot.</p>`;
+  } else h+=`<p class="muted">No offered plan currently fits this lot.</p>`;
   h+=`<h3 class="sh">Plans that do not fit — ${bad.length}</h3>`;
   h+=`<table class="pl"><thead><tr><th>Plan</th><th style="text-align:left">Why not</th></tr></thead><tbody>`;
   bad.forEach(x=>{h+=`<tr class="no"><td><b>${x.p.n}</b></td>
