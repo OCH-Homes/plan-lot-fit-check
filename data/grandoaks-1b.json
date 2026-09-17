@@ -11398,8 +11398,50 @@
    "Lot D-2 outline drawn ~41% under platted area; its numbers are fine.",
    "Street adjacency (left/right/across) is built from the OCH master address list, not plat geometry: lots ordered along each street by house number, across-street is same street, opposite side, nearest number. The previous geometry-derived across-street values disagreed on 69 of 112 lots and were replaced. Note r4 does not test across-street, so those values were unused.",
    "B-6 is 4120 Dunmore Drive. The address plat mislabels it 4020, which duplicated A-56. 4120 fits the sequence (4116, 4120, 4124) and pairs across from 4121. FIX THE ADDRESS PLAT.",
-   "Two address anomalies, both isolated: B-8 is 4128 Gallop Drive while the rest of Gallop runs 5005-5025 (B-8 is also flagged CHECK in the plat); and A-4/A-5 are adjacent on Brockdale with opposite parity. Likely corner lots fronting another street. Across-street pairing for these two may be unreliable."
+   "Two address anomalies, both isolated: B-8 is 4128 Gallop Drive while the rest of Gallop runs 5005-5025 (B-8 is also flagged CHECK in the plat); and A-4/A-5 are adjacent on Brockdale with opposite parity. Likely corner lots fronting another street. Across-street pairing for these two may be unreliable.",
+   "Grand Oaks 70' lots have NO plans offered \u2014 OCH buys 50s and 60s only. The 28 seventy-foot lots are in the plat for context and cannot be assigned.",
+   "15 of the 19 offered 60' elevations have NO measured dimensions: Ellis A/B/D/E, Marshall A/B/C, Meredith A/B/C, Tyler A/B/C, Bradley A/B. Also Campbell A/B on the 50's. They can be assigned and are colour-coded, but width and depth fit cannot run for them. Extract from the plan sheets as was done for the 40' family."
   ],
-  "addressSource": "OCH master address list, 179/179 residential lots (9/14/26)"
+  "addressSource": "OCH master address list, 179/179 residential lots (9/14/26)",
+  "offers": {
+   "50": [
+    "campbell_c",
+    "cooper_a",
+    "cooper_b",
+    "cooper_c",
+    "renner_a",
+    "renner_b",
+    "renner_c",
+    "shelby_d",
+    "shelby_e",
+    "shelby_f",
+    "webber_a",
+    "webber_b",
+    "webber_c"
+   ],
+   "60": [
+    "dakota_a",
+    "dakota_b",
+    "ellis_a",
+    "ellis_b",
+    "ellis_d",
+    "ellis_e",
+    "marshall_a",
+    "marshall_b",
+    "marshall_c",
+    "meredith_a",
+    "meredith_b",
+    "meredith_c",
+    "ross_a",
+    "ross_b",
+    "tyler_a",
+    "tyler_b",
+    "tyler_c",
+    "bradley_a",
+    "bradley_b"
+   ],
+   "70": []
+  },
+  "offersSource": "Community Offerings tab, Grand Oaks 50's/60's/70's columns"
  }
 }

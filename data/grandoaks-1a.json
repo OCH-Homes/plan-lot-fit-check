@@ -10640,6 +10640,45 @@
    "Pad elevations for all 178 lots were read from the grading sheets and validated 6 of 6 against the surveyed plot plans.",
    "16 lot outlines are drawn slightly under their platted area \u2014 shape only, the figures are unaffected.",
    "Addresses reconciled against the OCH master address list 9/14/26. A-4 gained its house number (4412). I-21 is Sheridan WAY \u2014 the master list showed \"Dr\"; the plat record is correct and the master list should be corrected."
-  ]
+  ],
+  "offers": {
+   "50": [
+    "campbell_c",
+    "cooper_a",
+    "cooper_b",
+    "cooper_c",
+    "renner_a",
+    "renner_b",
+    "renner_c",
+    "shelby_d",
+    "shelby_e",
+    "shelby_f",
+    "webber_a",
+    "webber_b",
+    "webber_c"
+   ],
+   "60": [
+    "dakota_a",
+    "dakota_b",
+    "ellis_a",
+    "ellis_b",
+    "ellis_d",
+    "ellis_e",
+    "marshall_a",
+    "marshall_b",
+    "marshall_c",
+    "meredith_a",
+    "meredith_b",
+    "meredith_c",
+    "ross_a",
+    "ross_b",
+    "tyler_a",
+    "tyler_b",
+    "tyler_c",
+    "bradley_a",
+    "bradley_b"
+   ],
+   "70": []
+  }
  }
 }
