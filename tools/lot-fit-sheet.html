@@ -77,14 +77,16 @@
 <body>
 
 <div class="bar">
+  <div id="pickers" style="display:contents">
   <div><label>Lot</label><select id="lotSel"></select></div>
   <div><label>Plan</label><select id="planSel"></select></div>
   <div><label>Elevation</label><select id="elevSel"></select></div>
   <div><label>Garage side <span style="text-transform:none">(viewed from the alley)</span></label>
     <div class="seg"><button id="gL" class="on" onclick="setGar('L')">Left</button><button id="gR" onclick="setGar('R')">Right</button></div>
   </div>
+  </div>
   <div style="margin-left:auto;display:flex;gap:8px">
-    <button class="ghost" onclick="location.href='../index.html'">← communities</button>
+    <button class="ghost" onclick="history.length>1?history.back():location.href='lot-map.html?c='+COMMUNITY">← back to map</button>
     <button onclick="window.print()">Print</button>
   </div>
 </div>
@@ -117,7 +119,10 @@
 
 const QS=new URLSearchParams(location.search);
 const COMMUNITY=QS.get('c')||'heights-uptown';
-let MAP=null, ORIENT=null, LOT=null, GAR='L';
+/* The map drives this sheet: ?lot=N-12&plan=addison_b&gar=L
+   The controls are a fallback for opening the sheet directly. */
+const WANT_LOT=QS.get('lot'), WANT_PLAN=QS.get('plan');
+let MAP=null, ORIENT=null, FOOT=null, LOT=null, GAR=(QS.get('gar')==='R')?'R':'L';
 
 const F=v=>v==null?'—':(Math.round(v*10)/10).toFixed(1)+"'";
 const FT=v=>{const f=Math.floor(v),i=Math.round((v-f)*12);return i===0?f+"'":f+"'-"+i+'"';};
@@ -147,17 +152,30 @@ function orientLot(lot,orient){
 
 /* ---------- boot ---------- */
 async function boot(){
-  const [m,o]=await Promise.all([
+  const [m,o,f]=await Promise.all([
     fetch('../data/'+COMMUNITY+'.json').then(r=>r.json()),
-    fetch('../data/'+COMMUNITY+'-orient.json').then(r=>r.json()).catch(()=>null)
+    fetch('../data/'+COMMUNITY+'-orient.json').then(r=>r.json()).catch(()=>null),
+    fetch('../data/footprints.json').then(r=>r.json()).catch(()=>null)
   ]);
-  MAP=m; ORIENT=o||{};
+  MAP=m; ORIENT=o||{}; FOOT=(f&&f.plans)||{};
   const lots=MAP.lots.filter(l=>l.addr).sort((a,b)=>a.addr.localeCompare(b.addr,undefined,{numeric:true}));
   const ls=document.getElementById('lotSel');
   lots.forEach(l=>{const op=document.createElement('option');
     op.value=l.b+'-'+l.l; op.textContent=l.addr+'  ·  '+l.b+'-'+l.l; ls.appendChild(op);});
   ls.onchange=()=>{LOT=lots.find(x=>x.b+'-'+x.l===ls.value); fillPlans(); draw();};
-  LOT=lots[0]; fillPlans(); draw();
+  LOT=(WANT_LOT&&lots.find(x=>x.b+'-'+x.l===WANT_LOT))||lots[0];
+  ls.value=LOT.b+'-'+LOT.l;
+  fillPlans();
+  if(WANT_PLAN&&PLANNAMES[WANT_PLAN]){
+    document.getElementById('planSel').value=PLANNAMES[WANT_PLAN].split(' ')[0];
+    fillElevs();
+    document.getElementById('elevSel').value=WANT_PLAN;
+  }
+  if(GAR==='R'){document.getElementById('gL').classList.remove('on');document.getElementById('gR').classList.add('on');}
+  /* Driven from the map: the lot and plan are already decided, so hide the
+     pickers. They stay available when the sheet is opened on its own. */
+  if(WANT_LOT&&WANT_PLAN) document.getElementById('pickers').style.display='none';
+  draw();
 }
 function offered(){
   const o=(MAP.meta||{}).offers;
@@ -237,18 +255,54 @@ function draw(){
     s+=`<rect x="${X(maxx-sideI)}" y="${Y(rearY)}" width="${S(sideI)}" height="${S(lotD)}" fill="#B8791E" opacity=".16"/>`;
     s+=`<rect x="${bx}" y="${by}" width="${bw}" height="${bh}" fill="none" stroke="#2E4A63" stroke-dasharray="5,4" stroke-width="1.3"/>`;
 
+    /* Real pad from the engineer's grading drawing, where we have one. */
+    let padPts=null;
+    if(LOT.pad){
+      const fr=or.front, o=centroid(LOT.pts);
+      const v=sub(fr[1],fr[0]); let a=-Math.atan2(v[1],v[0]);
+      let test=LOT.pts.map(p=>rot(p,a,o));
+      const f0=fr.map(p=>rot(p,a,o));
+      if(mid(f0)[1] < centroid(test)[1]) a+=Math.PI;
+      padPts=LOT.pad.map(p=>rot(p,a,o));
+      s+=`<polygon points="${padPts.map(p=>X(p[0])+','+Y(p[1])).join(' ')}"
+            fill="#5B6B76" opacity=".12" stroke="#5B6B76" stroke-width="1.2" stroke-dasharray="6,3"/>`;
+    }
     if(plan){
       /* house sits against the rear apron; the porch may reach into the front BL */
       const hw=S(plan.w), hd=S(plan.d);
       const hx=X(minx+lotW/2)-hw/2, hy=Y(rearY+rear);
-      wm=(M.buildableWidth??(lotW-sideI*2))-plan.w;
-      dm=lotD-(plan.d+fbl+rear-porch);
+      /* Traced footprint, where we have one. It was traced from the plan sheet
+         with the rear (garage/alley) end at y=0 and x across the width, so it
+         maps straight onto the pad once the lot is oriented alley-up. Mirroring
+         in x gives the opposite garage hand. */
+      const fam=(pname.split(' ')[0]||'').toLowerCase();
+      const fp=FOOT[fam];
+      wm=(LOT.padW??M.buildableWidth??(lotW-sideI*2))-plan.w;
+      /* Where the engineer drew a pad, the pad is the constraint. Otherwise fall
+         back to the setback-derived envelope. The porch may sit off the pad,
+         into the front building line. */
+      dm=(LOT.padD!=null) ? (LOT.padD-(plan.d-porch))
+                          : (lotD-(plan.d+fbl+rear-porch));
       const bad=(wm<0||dm<0), col=bad?'#A6392E':'#2F7D5A';
-      s+=`<rect x="${hx}" y="${hy}" width="${hw}" height="${hd}" fill="${col}" opacity=".26" stroke="${col}" stroke-width="1.6"/>`;
-      /* porch zone — the part that may encroach the front BL */
-      s+=`<rect x="${hx}" y="${hy+hd-S(porch)}" width="${hw}" height="${S(porch)}" fill="${col}" opacity=".16"
-            stroke="${col}" stroke-dasharray="3,3" stroke-width="1"/>`;
-      s+=`<text x="${hx+hw/2}" y="${hy+hd/2}" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" fill="#16232E">${FT(plan.w)} × ${FT(plan.d)}</text>`;
+      if(fp&&fp.pts&&fp.pts.length>3){
+        /* anchor the traced outline on the pad: rear edge of the outline to the
+           rear edge of the pad, centred across the pad's width */
+        const padL = padPts ? Math.min(...padPts.map(p=>p[0])) : (minx+lotW/2-plan.w/2);
+        const padR = padPts ? Math.max(...padPts.map(p=>p[0])) : (minx+lotW/2+plan.w/2);
+        const padT = padPts ? Math.min(...padPts.map(p=>p[1])) : (rearY+rear);
+        const cx=(padL+padR)/2;
+        const poly=fp.pts.map(p=>{
+          const fx = GAR==='L' ? p[0] : (fp.w - p[0]);     /* mirror for the other hand */
+          return X(cx - fp.w/2 + fx) + ',' + Y(padT + p[1]);
+        }).join(' ');
+        s+=`<polygon points="${poly}" fill="${col}" opacity=".30" stroke="${col}" stroke-width="1.8" stroke-linejoin="round"/>`;
+        s+=`<text x="${X(cx)}" y="${Y(padT+fp.d*0.55)}" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" fill="#16232E">${FT(plan.w)} × ${FT(plan.d)}</text>`;
+      } else {
+        s+=`<rect x="${hx}" y="${hy}" width="${hw}" height="${hd}" fill="${col}" opacity=".26" stroke="${col}" stroke-width="1.6"/>`;
+        s+=`<rect x="${hx}" y="${hy+hd-S(porch)}" width="${hw}" height="${S(porch)}" fill="${col}" opacity=".16"
+              stroke="${col}" stroke-dasharray="3,3" stroke-width="1"/>`;
+        s+=`<text x="${hx+hw/2}" y="${hy+hd/2}" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" fill="#16232E">${FT(plan.w)} × ${FT(plan.d)}</text>`;
+      }
       /* garage indicator on the alley face, on the chosen side */
       const gw=hw*0.46, gx=(GAR==='L')?hx+hw*0.04:hx+hw-gw-hw*0.04;
       s+=`<rect x="${gx}" y="${hy}" width="${gw}" height="${Math.min(S(22),hd*0.3)}" fill="#2E4A63" opacity=".55"/>`;
@@ -284,7 +338,7 @@ function draw(){
       <div class="box"><h3>Lot</h3><div class="kv">
         <span class="k">Area</span><span class="v">${LOT.a?LOT.a.toLocaleString()+' sf':'—'}</span>
         <span class="k">Width × depth</span><span class="v">${F(LOT.lw)} × ${F(LOT.ld)}</span>
-        <span class="k">Finished pad</span><span class="v">${LOT.fp!=null?LOT.fp.toFixed(1)+"'":'—'}</span>
+        <span class="k">Graded pad</span><span class="v">${LOT.padW?LOT.padW+"' × "+LOT.padD+"'":'—'}</span>
       </div></div>
     </div>
 
@@ -293,9 +347,10 @@ function draw(){
         <span><i style="background:#FAF8F3;border-color:#16232E"></i>Lot line</span>
         <span><i style="background:#B8791E;opacity:.4"></i>Setback</span>
         <span><i style="background:#2E4A63;opacity:.25;border-style:dashed"></i>Buildable envelope</span>
-        <span><i style="background:#2F7D5A;opacity:.5"></i>Home footprint</span>
+        <span><i style="background:#2F7D5A;opacity:.5"></i>Home footprint (traced)</span>
         <span><i style="background:#2E4A63;opacity:.6"></i>Garage</span>
         <span><i style="background:#5B6B76;opacity:.4"></i>Driveway apron</span>
+        <span><i style="background:#5B6B76;opacity:.2;border-style:dashed"></i>Graded pad</span>
       </div>
     </div>
 
@@ -303,7 +358,8 @@ function draw(){
       <div class="st">${txt}</div>
       <div class="ds">Width margin ${wm==null?'—':(wm>=0?'+':'')+wm.toFixed(1)+"'"} ·
         Depth margin ${dm==null?'—':(dm>=0?'+':'')+dm.toFixed(1)+"'"} ·
-        Envelope ${fbl}' front, ${rear}' rear to alley, ${sideI}' sides, ${porch}' porch encroachment</div>
+        ${LOT.padD!=null?`Measured against the graded pad ${LOT.padW}' × ${LOT.padD}' (porch may sit off the pad, into the ${fbl}' front BL)`
+          :`Envelope ${fbl}' front, ${rear}' rear to alley, ${sideI}' sides, ${porch}' porch encroachment`}</div>
     </div>
 
     <div class="grid" style="margin-top:9px">
@@ -323,8 +379,7 @@ function draw(){
     <div class="notes">
       <b>How to read this.</b> The lot boundary and setbacks are to scale from the recorded
       final plat and the City-approved setbacks. The home is drawn as a <b>rectangle at its
-      overall width and depth</b> — garage bump-outs and rear jogs are not shown, and the pad
-      position is derived from the setbacks rather than traced from the grading plan. The
+      overall width and depth</b> — garage bump-outs and rear jogs are not shown, ${LOT.pad?` The <b>graded pad is the engineer's</b>, taken from the grading drawing, not derived.`:` The pad position is derived from the setbacks.`} The
       garage block marks the chosen side as viewed from the alley, not the true opening
       location.<br>
       ${or&&or.irregular?'<b style="color:var(--warn)">This lot is not rectangular.</b> The drawing squares it up to show the frontage horizontally, so side clearances are indicative only. Check the plat.<br>':''}
