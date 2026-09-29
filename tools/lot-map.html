@@ -45,6 +45,7 @@ h1,h2,h3,h4{font-family:'Space Grotesk',sans-serif;margin:0}
 .lot.exc{stroke-dasharray:3 2;stroke:#8A959C;stroke-width:.9}
 body .lot.exc:hover{stroke:#5B6B76;stroke-width:2.2}
 .curb{fill:none;stroke:#B8C2C9;stroke-width:1.1}
+.padline{fill:none;stroke:#2E4A63;stroke-width:.7;stroke-dasharray:2.5 2;opacity:.55;pointer-events:none}
 .lotno{font-family:'IBM Plex Mono',monospace;font-size:5px;fill:#16232E;pointer-events:none;text-anchor:middle;opacity:.75}
 .stname{font-family:'Inter';font-size:6.5px;fill:#7C8A93;pointer-events:none;text-anchor:middle;letter-spacing:.4px}
 .blname{font-family:'Space Grotesk';font-size:8px;font-weight:600;fill:#9AA6AD;pointer-events:none;text-anchor:middle}
@@ -76,6 +77,8 @@ tr.no td{opacity:.4}
 .statbar div{background:#fff;padding:7px 8px}
 .statbar .n{font-family:'IBM Plex Mono',monospace;font-size:17px;font-weight:600}
 .statbar .t{font-size:10px;color:var(--slate);text-transform:uppercase;letter-spacing:.4px}
+.btn{font-family:'IBM Plex Mono';font-size:12px;padding:6px 11px;border:1px solid var(--line);
+  border-radius:4px;background:#fff;cursor:pointer}
 </style>
 </head>
 <body>
@@ -103,6 +106,7 @@ tr.no td{opacity:.4}
       <button onclick="fit()">reset</button>
       <button onclick="cycleColor()" id="cmBtn">color: slope</button>
       <button onclick="toggleNums()" id="numBtn">lot #: on</button>
+      <button onclick="togglePads()" id="padBtn">pads: on</button>
       <button onclick="togglePick()" id="pickBtn">select lots</button>
       <button onclick="toggleHide()" id="hideBtn">excluded: shown</button>
     </div>
@@ -123,20 +127,76 @@ const CFG={
   url:'https://erszlacysbetmamlpfpm.supabase.co',
   key:'sb_publishable_jf1zM0RZUwkz-RpS-iT0pQ_xYxgmkn2'
 };
+/* =====================================================================
+   COMMUNITY STANDARDS — confirmed 9/28/26, not yet written into the data files.
+
+   These properly belong in each community's JSON meta block. They sit here so
+   the tool can be updated by replacing this one file, with no hand-editing of
+   the data. Anything listed here OVERRIDES the JSON, and the summary panel
+   names every value that came from this block, so it is never silent.
+
+   When a value does get written into the JSON, delete it from here.
+   ===================================================================== */
+const STANDARDS_PATCH={
+  'heights-uptown':{ maxGradeApproval:12.0 },
+  'grandoaks-1a':  { maxGradeApproval:12.0, sideInterior:5.0, sideCorner:15.0,
+                     rearBL:20.0 },   /* recorded as 25.0; confirmed 20' 9/28 */
+  'grandoaks-1b':  { maxGradeApproval:12.0, sideInterior:5.0, sideCorner:15.0 }
+};
+let PATCHED=[];
+function applyStandardsPatch(){
+  const sp=STANDARDS_PATCH[COMMUNITY]; PATCHED=[];
+  if(!sp)return;
+  MAP.meta=MAP.meta||{};
+  Object.keys(sp).forEach(k=>{
+    if(MAP.meta[k]!==sp[k])
+      PATCHED.push(k+': '+(MAP.meta[k]==null?'not in the data file':MAP.meta[k])+' → '+sp[k]);
+    MAP.meta[k]=sp[k];
+  });
+}
 /* ---------- plan library (pad depth sets how far a plan can shift back) ---------- */
 let PAD_DEPTH=80.0, BASE_RUN=21.0, MAXG=10.0, SLAB=0.83, STD_STEP=0.58;
+/* Some jurisdictions allow a steeper driveway with a variance. Celina's design
+   maximum is 10%, approvable to 12%. A slope between the two is NOT a failure —
+   it is a lot that needs a City sign-off, which is a commercial decision rather
+   than a dead lot. Stays null where a community records no approval allowance,
+   in which case maxGrade is a hard ceiling exactly as before. */
+let MAXG_APPROVE=null;
 let RECORD=false, OCH_LOTS=0;
+/* Community entry type. Front-entry communities carry a garage apron elevation
+   (ap) on their lots; rear-alley communities do not. Held as two independent
+   flags rather than one either/or, because a community may plat both — alley
+   cottages on one block, front-entry lots on another. Every per-lot calculation
+   below branches on the LOT, never on the community; these flags only decide
+   which colour modes and which summary sections are worth showing. */
+let REAR=false, FRONT=false;
+const rearLot=l=>(l.ap===undefined||l.ap===null);
+/* Where a slope sits against the design maximum and the approval ceiling. */
+function gradeCeiling(){return MAXG_APPROVE!=null?MAXG_APPROVE:MAXG;}
+function gradeVerdict(s){
+  if(s==null)return null;
+  if(s<=MAXG)return 'pass';
+  if(s<=gradeCeiling())return 'warn';
+  return 'fail';
+}
+const NODATA='#D5D9DC';
 function applyMeta(m){ if(!m)return;
   RECORD = m.mode==='record';
   OCH_LOTS = m.ochLots||0;
   if(m.padDepth)PAD_DEPTH=m.padDepth; if(m.baseRun)BASE_RUN=m.baseRun;
   if(m.maxGrade)MAXG=m.maxGrade; if(m.slab)SLAB=m.slab; if(m.stepDown)STD_STEP=m.stepDown;
+  MAXG_APPROVE = (m.maxGradeApproval!=null && m.maxGradeApproval>MAXG) ? m.maxGradeApproval : null;
+  /* A community may declare which monotony rule governs it. The Heights is r3
+     per its DCCR; Grand Oaks is unsettled and stays on the built-in default.
+     Without this the Heights silently ran Grand Oaks' rule. */
+  if(m.monoDefault&&MRULES[m.monoDefault])monoRule=m.monoDefault;
   document.title=(m.shortName||'Lot Map')+' — Lot Fit Check';
   const t=document.getElementById('commName'); if(t)t.textContent=m.name||COMMUNITY;
   const s=document.getElementById('commSub');
   if(s)s.textContent='Lot map, driveway grade check & plan fit · '+(m.residentialLots||'')+' residential lots'+(m.city?' · '+m.city:'');
   const r=document.getElementById('tagRun'); if(r)r.textContent='Run '+BASE_RUN+' ft';
-  const g=document.getElementById('tagGrade'); if(g)g.textContent='Max grade '+MAXG+'%';
+  const g=document.getElementById('tagGrade');
+  if(g)g.textContent='Max grade '+MAXG+'%'+(MAXG_APPROVE!=null?' · '+MAXG_APPROVE+'% w/ approval':'');
   const p=document.getElementById('tagPlat');
   if(p)p.textContent='Plat: '+(m.residentialLots||'?')+' residential';
 }
@@ -217,10 +277,20 @@ PLANS.push(
  {id:'campbell_b',n:'Campbell B',coll:"MR 40' FE",lot:50,w:null,d:null,gar:'Front'}
 );
 const PLAN=Object.fromEntries(PLANS.map(p=>[p.id,p]));
-const rearShiftOf=p=>Math.max(0,PAD_DEPTH-p.d);
+/* How far a plan can slide toward the rear of its pad. Uses THIS lot's pad depth
+   where the grading drawing gave one, and only falls back to the community-wide
+   figure otherwise. Grand Oaks Ph 1A has two lots platted at a 73.5 ft pad rather
+   than 80; against a global 80 the tool would hand them 6.5 ft of shift they do
+   not have, lengthening the driveway on paper and understating the slope. */
+const padDepthOf=l=>(l&&l.padD!=null)?l.padD:PAD_DEPTH;
+const rearShiftOf=(p,l)=>Math.max(0,padDepthOf(l)-(p.d||0));
 
 /* ---------- shared state (Supabase) ---------- */
 const COMMUNITY=(new URLSearchParams(location.search).get('c')||'grandoaks-1b');
+/* Local cache keys are per community. They used to be hard-coded to 1B, so any
+   community falling back to local storage inherited Grand Oaks' assignments —
+   plan ids that do not exist here, against lot indexes that mean other lots. */
+const LSK='ochLotMap:'+COMMUNITY;
 let A={}, EXC={}, monoRule='r2';
 let WHO=localStorage.getItem('ochWho')||'';
 let syncState='offline', lastSync=null, pending=0;
@@ -245,28 +315,39 @@ function setSync(s,msg){syncState=s;const el=document.getElementById('syncTag');
 function keyOf(i){const l=byId[i];return {community:COMMUNITY,block:l.b,lot:parseInt(l.l,10)};}
 async function pullAll(){
   if(RECORD){setSync('live','Phase 1A is a record of built lots — nothing to save.');paint();renderSide();return;}
-  if(!SB.on()){loadLocal();setSync('offline','No database configured — changes stay in this browser.');return;}
-  try{
-    const rows=await SB.get('lot_state?community=eq.'+COMMUNITY+'&select=block,lot,plan_id,excluded');
-    A={};EXC={};
-    const ix={}; MAP.lots.forEach(l=>ix[l.b+'-'+l.l]=l.i);
-    rows.forEach(r=>{const i=ix[r.block+'-'+r.lot]; if(i===undefined)return;
-      if(r.plan_id)A[i]=r.plan_id; if(r.excluded)EXC[i]=1;});
-    const st=await SB.get('community_settings?community=eq.'+COMMUNITY+'&key=eq.mono_rule&select=value');
-    if(st.length&&MRULES[st[0].value])monoRule=st[0].value;
-    lastSync=new Date(); setSync('live');
-  }catch(e){ setSync('error',e.message); loadLocal(); }
-  paint();renderSide();
+  if(!SB.on()){loadLocal();setSync('offline','No database configured — changes stay in this browser.');}
+  else{
+    try{
+      const rows=await SB.get('lot_state?community=eq.'+COMMUNITY+'&select=block,lot,plan_id,excluded');
+      A={};EXC={};
+      const ix={}; MAP.lots.forEach(l=>ix[l.b+'-'+l.l]=l.i);
+      rows.forEach(r=>{const i=ix[r.block+'-'+r.lot]; if(i===undefined)return;
+        if(r.plan_id)A[i]=r.plan_id; if(r.excluded)EXC[i]=1;});
+      const st=await SB.get('community_settings?community=eq.'+COMMUNITY+'&key=eq.mono_rule&select=value');
+      if(st.length&&MRULES[st[0].value])monoRule=st[0].value;
+      lastSync=new Date(); setSync('live');
+    }catch(e){ setSync('error',e.message); loadLocal(); }
+  }
+  /* renderSide can throw on bad data; never let that kill the rest of boot. */
+  try{paint();renderSide();}catch(e){sideError(e);}
+}
+function sideError(e){
+  const el=document.getElementById('side');
+  if(el)el.innerHTML='<div class="remedy" style="border-left-color:var(--fail)">'+
+    '<b>The summary panel could not be drawn.</b><br>'+(e&&e.message?e.message:e)+
+    '<br><br>The map itself is unaffected — click any lot to work with it.</div>';
+  try{console.error(e);}catch(_){}
 }
 function loadLocal(){
-  try{A=JSON.parse(localStorage.getItem('ochLotMap1B:assign')||'{}')}catch(e){A={}}
-  try{EXC=JSON.parse(localStorage.getItem('ochLotMap1B:excluded')||'{}')}catch(e){EXC={}}
-  monoRule=localStorage.getItem('ochLotMap1B:monoRule')||'r2';
+  try{A=JSON.parse(localStorage.getItem(LSK+':assign')||'{}')}catch(e){A={}}
+  try{EXC=JSON.parse(localStorage.getItem(LSK+':excluded')||'{}')}catch(e){EXC={}}
+  /* fall back to the community's declared rule, not a hard-coded one */
+  monoRule=localStorage.getItem(LSK+':monoRule')||monoRule;
 }
 function cacheLocal(){
-  try{localStorage.setItem('ochLotMap1B:assign',JSON.stringify(A));
-      localStorage.setItem('ochLotMap1B:excluded',JSON.stringify(EXC));
-      localStorage.setItem('ochLotMap1B:monoRule',monoRule);}catch(e){}
+  try{localStorage.setItem(LSK+':assign',JSON.stringify(A));
+      localStorage.setItem(LSK+':excluded',JSON.stringify(EXC));
+      localStorage.setItem(LSK+':monoRule',monoRule);}catch(e){}
 }
 async function pushLot(i){
   cacheLocal();
@@ -301,7 +382,7 @@ function requireWho(){
 async function clearAll(){
   if(!confirm('Remove every plan assignment for everyone?'))return;
   if(!requireWho())return;
-  const was=Object.keys(A).map(Number); A={}; paint(); renderSide();
+  const was=Object.keys(A).map(Number); A={}; paint(); safeSide();
   for(const i of was) await pushLot(i);
 }
 function changeWho(){WHO='';localStorage.removeItem('ochWho');requireWho();}
@@ -311,20 +392,41 @@ async function loadHistory(){
     '&select=block,lot,field,old_value,new_value,changed_at,changed_by&order=changed_at.desc&limit=40');}
   catch(e){return [];}
 }
-let sel=null,colorMode=0,showNums=true,q='';
+let sel=null,colorMode=0,showNums=true,showPads=true,q='';
 /* ---- lot selection: which lots OCH will actually build ---- */
 let pickMode=false, hideExcluded=false;
 const isOurs=l=>!EXC[l.i];
 const OURS=()=>RES.filter(isOurs);
-function toggleOwn(i){ if(!requireWho())return; if(EXC[i])delete EXC[i]; else EXC[i]=1; paint(); renderSide(); pushLot(i); }
+/* A community may contain far more lots than OCH owns (The Heights: 48 of 227).
+   Only lots carrying an OCH address are ever assignable, so they are the honest
+   definition of "ours" where the community declares a smaller OCH count. */
+function hasOchAddress(l){return !!l.addr;}
+function partialOwnership(){
+  const m=MAP.meta||{};
+  return !RECORD && m.ochLots>0 && m.residentialLots>0 && m.ochLots<m.residentialLots;
+}
+function toggleOwn(i){ if(!requireWho())return; if(EXC[i])delete EXC[i]; else EXC[i]=1; paint(); safeSide(); pushLot(i); }
 function togglePick(){ pickMode=!pickMode;
   document.getElementById('pickBtn').textContent=pickMode?'selecting: ON':'select lots';
   document.getElementById('pickBtn').style.background=pickMode?'#2E4A63':'#fff';
   document.getElementById('pickBtn').style.color=pickMode?'#fff':'#16232E'; }
 function toggleHide(){ hideExcluded=!hideExcluded;
   document.getElementById('hideBtn').textContent='excluded: '+(hideExcluded?'hidden':'shown'); paint(); }
-async function excludeBlock(bl){ if(!requireWho())return; const t=RES.filter(l=>l.b===bl); t.forEach(l=>EXC[l.i]=1); paint(); renderSide(); for(const l of t) await pushLot(l.i); }
-async function includeAll(){ if(!requireWho())return; const was=Object.keys(EXC).map(Number); EXC={}; paint(); renderSide(); for(const i of was) await pushLot(i); }
+function togglePads(){ showPads=!showPads;
+  document.getElementById('padBtn').textContent='pads: '+(showPads?'on':'off');
+  const g=document.getElementById('gPads'); if(g)g.style.display=showPads?'':'none'; }
+async function excludeBlock(bl){ if(!requireWho())return; const t=RES.filter(l=>l.b===bl); t.forEach(l=>EXC[l.i]=1); paint(); safeSide(); for(const l of t) await pushLot(l.i); }
+async function includeAll(){ if(!requireWho())return; const was=Object.keys(EXC).map(Number); EXC={}; paint(); safeSide(); for(const i of was) await pushLot(i); }
+async function selectOchOnly(){
+  const drop=RES.filter(l=>!hasOchAddress(l)&&!EXC[l.i]);
+  if(!drop.length){alert('Every lot without an OCH address is already excluded.');return;}
+  if(!confirm('Exclude '+drop.length+' lots that carry no OCH address, leaving '+
+    RES.filter(hasOchAddress).length+' OCH lots in the program?\n\nThis writes '+drop.length+
+    ' rows to the shared database and may take a moment.'))return;
+  if(!requireWho())return;
+  drop.forEach(l=>EXC[l.i]=1); paint(); safeSide();
+  for(const l of drop) await pushLot(l.i);
+}
 function excList(){ return RES.filter(l=>!isOurs(l)).map(l=>l.b+'-'+l.l).sort(); }
 let RES=[]; let byId={};
 
@@ -336,14 +438,14 @@ const MRULES={
  r2:{n:'2 lots either direction + across',desc:'Same plan may not repeat within 2 lots either side, nor directly across the street.',span:2,across:true},
  off:{n:'off',desc:'No monotony test applied.',span:0,across:false}
 };
-function setRule(v){monoRule=v;paint();renderSide();pushSetting('mono_rule',v);}
+function setRule(v){monoRule=v;paint();safeSide();pushSetting('mono_rule',v);}
 /* What counts as "the same home" for monotony differs by community.
    Grand Oaks compares the plan family: Campbell A/B/C all count as Campbell.
    The Heights compares plan AND elevation: its DCCR requires "sufficient
    dissimilarity", and the built record shows a different elevation satisfies
    that (Addison A and Addison C sit two doors apart, City- and HOA-approved). */
 function planFamily(pid){
-  if(!pid)return null;
+  if(!pid||!PLAN[pid])return null;
   return MRULES[monoRule].byElev ? pid : PLAN[pid].n.split(' ')[0];
 }
 function walk(i,dir,steps){const out=[];let cur=i;
@@ -361,10 +463,99 @@ function acrossIs(i,j){ return (MAP.adj[i]||{}).A===j; }
 function monoConflict(i,pid){
   if(!pid)return [];
   const fam=planFamily(pid);
-  return monoNeighbors(i).filter(j=>A[j]&&planFamily(A[j])===fam)
+  return monoNeighbors(i).filter(j=>A[j]&&byId[j]&&PLAN[A[j]]&&planFamily(A[j])===fam)
     .map(j=>({i:j,lot:byId[j].b+'-'+byId[j].l,plan:PLAN[A[j]].n,
               across:acrossIs(i,j), conf:acrossIs(i,j)?acrossConf(i):null}));
 }
+
+/* ---------- buildable envelope ----------
+   Rear-alley fit has two routes. Both were validated against the built record
+   on 9/15/26 and give the same answer where both are available.
+
+   PAD route (preferred) — the engineer's grading drawing gives the ACTUAL pad
+   per lot, so it beats anything derived from setbacks:
+       depth margin = padD - (plan depth - porch encroachment)
+     P-8, 501 Callum Parkway, pad 35 x 66: the shallowest plan (Knox, 74.5 ft)
+     needs 69.5 ft after the porch credit, so 66 - 69.5 = -3.5 ft. NO plan fits.
+     Reading lot depth instead gives 140.9 ft and passes every plan — the exact
+     opposite of the truth, on the one lot where it matters most.
+     Addison on an 80 ft pad: 80 - (84.5 - 5) = +0.5 ft, the tightest built home.
+
+   LOT route (fallback where no pad was extracted):
+       depth margin = lot depth - (plan depth + front BL + rear-to-alley - porch)
+     Addison B at 713 Lincoln Mews: 110.1 - 109.5 = +0.6 ft. Same answer.
+
+   The porch may encroach into the front building line, so it does not consume
+   buildable depth. Without that credit 10 of the 22 built homes read as
+   impossible — which is how the credit was found. */
+function depthFit(l,p){
+  if(!l||!p||p.d==null)return null;
+  const M=MAP.meta||{};
+  const porch=M.porchEncroach!=null?M.porchEncroach:5;
+  if(l.padD!=null){
+    const need=p.d-porch;
+    return {src:'pad',need:need,have:l.padD,margin:l.padD-need,porch:porch};
+  }
+  if(l.ld!=null){
+    const fbl=M.frontBL!=null?M.frontBL:10, rear=M.rearBL!=null?M.rearBL:20;
+    const need=p.d+fbl+rear-porch;
+    return {src:'lot',need:need,have:l.ld,margin:l.ld-need,porch:porch,fbl:fbl,rear:rear};
+  }
+  return null;
+}
+/* Buildable width, best source first.
+   1. The lot's own pad from the grading drawing.
+   2. Derived from THIS lot's platted width less both side setbacks. Pad width is
+      a function of lot product, not a community constant: at The Heights a 35 ft
+      lot carries a 25 ft pad, a 45 ft lot a 35 ft pad and a 50 ft lot a 40 ft
+      pad, and lw - 2 x sideInterior reproduces every one of them exactly.
+   3. meta.buildableWidth, which is a single number and therefore only correct
+      for whichever product it was measured on — last resort. */
+function widthAvail(l){
+  if(l&&l.padW!=null)return {v:l.padW,src:'pad'};
+  const M=MAP.meta||{};
+  if(l&&l.lw!=null&&M.sideInterior!=null){
+    /* A corner lot gives up the street-side setback instead of an interior one —
+       15 ft rather than 5 at both Grand Oaks and The Heights. Applied only where
+       the data marks the lot as a corner; neither dataset carries that flag yet,
+       and corner status is NOT inferred from geometry (geometry cannot tell a
+       street from an alley, which is the mistake that cost days on adjacency).
+       Where a real pad exists it wins over all of this anyway. */
+    const side2=(l.corner&&M.sideCorner!=null)?M.sideCorner:M.sideInterior;
+    const v=l.lw-M.sideInterior-side2;
+    if(v>0)return {v:v,src:l.corner?'setbacks, corner':'setbacks'};
+  }
+  if(M.buildableWidth!=null)return {v:M.buildableWidth,src:'community default'};
+  return null;
+}
+/* A pad wider than the lot it sits on is a data error, not a buildable area. */
+function padSuspect(l){
+  return l&&l.padW!=null&&l.lw!=null&&l.padW>l.lw+0.5;
+}
+/* The lot product recorded in the data should agree with the pad the engineer
+   drew for it. Where the two disagree, doubt the product field: at The Heights
+   every one of the 227 lots is stamped 45', but OCH owns 48 of them and only
+   those are genuinely 45' with a 35 ft pad. A 25 ft pad is a 35' lot and a 40 ft
+   pad a 50' lot — other builders' product, carried in the plat for context.
+   The envelope check does the real work regardless, since it measures against
+   the pad rather than the product, but a wrong product still mis-states which
+   plans are even offered on a lot. */
+function impliedProduct(l){
+  const M=MAP.meta||{};
+  if(!l||l.padW==null||M.sideInterior==null)return null;
+  return l.padW+2*M.sideInterior;
+}
+function productMismatch(l){
+  const ip=impliedProduct(l), pr=lotProduct(l);
+  if(ip==null||pr==null||padSuspect(l))return null;
+  return Math.abs(ip-pr)>0.6 ? {declared:pr,implied:ip} : null;
+}
+function widthFit(l,p){
+  if(!l||!p||p.w==null)return null;
+  const a=widthAvail(l); if(!a)return null;
+  return {have:a.v,src:a.src,need:p.w,margin:a.v-p.w};
+}
+
 /* ---------- analysis ---------- */
 function lotProduct(l){
   if(l.prod===undefined||l.prod===null)return null;
@@ -393,22 +584,36 @@ function fitsLot(l,p){const pr=lotProduct(l);
   return p.lot<=pr;}
 function planVerdict(l,p){
   const reasons=[];
-  const warnMissing=[];
+  const warn=[];
   const pr=lotProduct(l);
   if(pr!==null&&p.lot>pr) reasons.push(`needs a ${p.lot}' lot — this is a ${pr}'`);
+  /* Rear-alley communities are judged on the buildable envelope: width and depth
+     against the engineer's pad. Without this every plan "fit" every lot, because
+     the only other test — the front-entry driveway maths — cannot run here. */
+  if(rearLot(l)){
+    if(p.d==null||p.w==null) warn.push('dimensions not measured');
+    const df=depthFit(l,p);
+    if(df&&df.margin<0)
+      reasons.push(`short ${Math.abs(df.margin).toFixed(1)}' on depth against the ${df.src==='pad'?"engineer's pad":'lot depth'}`);
+    else if(df&&df.margin<2) warn.push(`tight on depth, +${df.margin.toFixed(1)}'`);
+    else if(!df&&p.d!=null) warn.push('depth not checkable');
+    const wf=widthFit(l,p);
+    if(wf&&wf.margin<0)
+      reasons.push(`needs ${wf.need.toFixed(1)}' of width on a ${wf.have.toFixed(1)}' ${wf.src==='pad'?'pad':'buildable width'}`);
+    else if(wf&&wf.margin<0.5&&wf.margin>=0) warn.push('tight on width');
+  }
   /* evalLot returns null where the front-entry driveway maths cannot run:
      rear-alley lots (no front spot elevation) and plans with no measured depth.
      Those checks are simply unavailable — never treat that as a pass or a fail. */
   const ev=evalLot(l,p.id);
-  if(ev===null){
-    if(p.d==null||p.w==null) warnMissing.push('dimensions not measured');
-    else warnMissing.push('driveway check not applicable');
+  if(ev===null&&!rearLot(l)){
+    if(p.d==null||p.w==null) warn.push('dimensions not measured');
+    else warn.push('driveway check not applicable');
   }
   if(ev&&!ev.pass) reasons.push(`driveway ${ev.slope.toFixed(1)}% even set back ${ev.setback.toFixed(1)}' — needs a ${ev.dg.toFixed(2)}' drop garage`);
   if(ev&&ev.hand==='no') reasons.push('J-swing hand cannot match the required driveway side');
   const mc=monoConflict(l.i,p.id);
   if(mc.length) reasons.push('monotony: '+mc.map(x=>x.plan+' at '+x.lot).join(', '));
-  const warn=warnMissing.slice();
   if(ev&&ev.hand==='mirror') warn.push('mirror required');
   return {ok:reasons.length===0,reasons:reasons,warn:warn,ev:ev,mono:mc};
 }
@@ -419,7 +624,7 @@ function evalLot(l,pid){
      rather than compute with missing values. */
   if(p&&(p.d===null||p.d===undefined))return null;
   if(l.fs===undefined||l.fs===null||l.shift===undefined)return null;
-  const maxShift=p?rearShiftOf(p):0;
+  const maxShift=p?rearShiftOf(p,l):0;
   const run=BASE_RUN+ (p? Math.min(maxShift, Math.max(0,l.shift)) :0);
   const rise=l.fp+SLAB-l.fs;
   const slope=rise/run*100;
@@ -438,53 +643,86 @@ function evalLot(l,pid){
 function statusOf(l){
   const pid=A[l.i];
   if(pid&&monoConflict(l.i,pid).length)return 'fail';
-  if(l.fs===undefined||l.fs===null){          /* rear-alley community */
-    if(l.sl21===undefined||l.sl21===null)return 'warn';
-    return l.sl21>MAXG?'fail':'pass';
+  /* rear-alley community: judged on envelope fit and the estimated apron slope.
+     A lot with no rear grade recorded is NOT a problem — it is simply unknown,
+     and must not read as a failure. */
+  if(rearLot(l)){
+    if(pid&&PLAN[pid]){
+      const v=planVerdict(l,PLAN[pid]);
+      if(!v.ok)return 'fail';
+      if(v.warn.length)return 'warn';
+    }
+    const gv=gradeVerdict(l.sl21);
+    if(gv==='fail')return 'fail';
+    if(gv==='warn')return 'warn';       /* over design max but within approval */
+    return 'pass';
   }
   if(pid){
-    if(monoConflict(l.i,pid).length)return 'fail';
     const e=evalLot(l,pid);
     if(e===null)return 'pass';          /* driveway maths not applicable here */
+    if(!e.pass&&gradeVerdict(e.slope)==='warn')return 'warn';
     if(!e.pass&&e.dg>0)return e.shortfall>0?'fail':'warn';
     return e.hand==='no'?'fail':(e.hand==='mirror'?'warn':'pass');}
+  if(typeof l.shift!=='number')return 'pass';
   if(l.shift<=0)return 'pass';
   if(l.shift<=15.5)return 'warn';
   return 'fail';
 }
 
 /* ---------- color ---------- */
-let CM=['slope','remedy','product','driveway','confidence','plan'];
+/* Modes are chosen by NAME, not by index, and every mode returns a neutral grey
+   where its field is absent. Indexing by number with no null check is what made
+   197 of the 227 Heights lots draw in fail-red on load: neither sl21 nor shift
+   exists on most of them, and `undefined <= 8` is false all the way down to the
+   final else. */
+const CM_FRONT=['slope','remedy','product','driveway','confidence','plan'];
+const CM_REAR=['slope','pad','product','confidence','plan'];
 const CM_RECORD=['ownership','product','driveway','plan'];
-function modes(){return RECORD?CM_RECORD:CM;}
+const CM_MIXED=['slope','pad','remedy','product','driveway','confidence','plan'];
+function modes(){
+  if(RECORD)return CM_RECORD;
+  if(REAR&&FRONT)return CM_MIXED;   /* a community with both entry types */
+  return REAR?CM_REAR:CM_FRONT;
+}
 function colorOf(l){
   if(l.type!=='Residential')return '#E4E7E9';
+  const mode=modes()[colorMode]||modes()[0];
   if(RECORD){
-    const mode=modes()[colorMode];
     if(mode==='ownership'){
       if(l.model)return '#2E4A63';
       if(l.own)return '#2F7D5A';
       return '#E8EBED';
     }
-    if(mode==='product'){const pr=l.prod;
-      return pr===50?'#4E79A7':pr===60?'#59A14F':pr===70?'#B07AA1':'#D5D9DC';}
-    if(mode==='driveway')return l.drvReq==='left'?'#4E79A7':l.drvReq==='right'?'#B8791E':'#DCE0E2';
+    if(mode==='product'){const pr=lotProduct(l);
+      return (pr!=null&&productColors()[pr])||NODATA;}
+    if(mode==='driveway'){const d=(l.drvReq||'').toUpperCase();
+      return d==='LEFT'?'#4E79A7':d==='RIGHT'?'#B8791E':'#DCE0E2';}
     if(!l.own)return '#E8EBED';
     const PC={marshall_c:'#4E79A7',marshall_b:'#76B7B2',ellis_d:'#F28E2B',ellis_b:'#EDC948',dakota_a:'#9C755F'};
     return PC[l.plan]||'#8A959C';
   }
-  if(colorMode===0){const s=l.sl21;
-    return s<=8?'#2F7D5A':s<=10?'#7FA86B':s<=12?'#B8791E':'#A6392E';}
-  if(colorMode===1){
-    if(l.shift<=0)return '#2F7D5A';
-    if(l.shift<=2)return '#9CBE7A';
-    if(l.shift<=4)return '#D9C15C';
-    if(l.shift<=15.5)return '#B8791E';
+  if(mode==='slope'){const s=l.sl21;
+    if(s==null)return NODATA;
+    if(s<=MAXG*0.8)return '#2F7D5A';          /* comfortably under the design max */
+    if(s<=MAXG)return '#7FA86B';              /* at the design max */
+    if(s<=gradeCeiling())return '#B8791E';    /* needs a City approval */
+    return '#A6392E';}                        /* beyond what can be approved */
+  if(mode==='remedy'){const s=l.shift;
+    if(typeof s!=='number')return NODATA;
+    if(s<=0)return '#2F7D5A';
+    if(s<=2)return '#9CBE7A';
+    if(s<=4)return '#D9C15C';
+    if(s<=15.5)return '#B8791E';
     return '#A6392E';}
-  if(colorMode===2){const pr=lotProduct(l);
-    return (pr!==null&&productColors()[pr])||'#D5D9DC';}
-  if(colorMode===3)return l.drvReq==='LEFT'?'#4E79A7':l.drvReq==='RIGHT'?'#B8791E':'#DCE0E2';
-  if(colorMode===4)return l.conf==='OK'?'#2F7D5A':'#B8791E';
+  if(mode==='pad'){const d=l.padD;
+    if(d==null)return NODATA;
+    return d>=80?'#2F7D5A':d>=77?'#7FA86B':d>=70?'#B8791E':'#A6392E';}
+  if(mode==='product'){const pr=lotProduct(l);
+    return (pr!=null&&productColors()[pr])||NODATA;}
+  if(mode==='driveway'){const d=(l.drvReq||'').toUpperCase();
+    return d==='LEFT'?'#4E79A7':d==='RIGHT'?'#B8791E':'#DCE0E2';}
+  if(mode==='confidence'){if(l.conf==null)return NODATA;
+    return l.conf==='OK'?'#2F7D5A':'#B8791E';}
   const pid=A[l.i];
   if(!pid)return '#E8EBED';
   if(monoConflict(l.i,pid).length)return '#A6392E';
@@ -508,19 +746,20 @@ let _pcCache=null;
    Falls back to garage type only if a community has no offers recorded. */
 function offeredFor(l){
   const o=(MAP.meta||{}).offers;
-  if(!o) {
-    const rear=MAP.lots.some(x=>x.ap===undefined||x.ap===null);
-    return PLANS.filter(p=>rear ? p.gar==='Rear' : p.gar!=='Rear').map(p=>p.id);
-  }
+  if(!o) return PLANS.filter(p=>REAR ? p.gar==='Rear' : p.gar!=='Rear').map(p=>p.id);
   if(Array.isArray(o)) return o;
   const pr=l?lotProduct(l):null;
   if(pr!=null && o[String(pr)]) return o[String(pr)];
   return Object.values(o).flat();
 }
+function livePlans(l){
+  const offered=offeredFor(l);
+  const retired=(MAP.meta&&MAP.meta.retiredPlans)||[];
+  return PLANS.filter(p=>offered.includes(p.id)&&!retired.includes(p.id));
+}
 function communityFamilies(){
   const seen=[];
-  offeredFor(null).forEach(id=>{
-    const p=PLAN[id]; if(!p)return;
+  livePlans(null).forEach(p=>{
     const f=p.n.split(' ')[0];
     if(!seen.includes(f))seen.push(f);
   });
@@ -532,29 +771,41 @@ function planColors(){
   communityFamilies().forEach((f,i)=>{_pcCache[f]=PALETTE[i%PALETTE.length];});
   return _pcCache;
 }
-const LEGENDS=[
- ['Driveway slope @ {RUN} ft run',[['#2F7D5A','under 8%'],['#7FA86B','8–10%'],['#B8791E','10–12%'],['#A6392E','over 12%']]],
- ['Remedy needed',[['#2F7D5A','none — passes'],['#9CBE7A','set back ≤2 ft'],['#D9C15C','2–4 ft'],['#B8791E','4–15.5 ft'],['#A6392E','drop garage only']]],
- ['Lot product',null],
- ['Restricted driveway side',[['#4E79A7','must be LEFT'],['#B8791E','must be RIGHT'],['#DCE0E2','unrestricted']]],
- ['Data confidence',[['#2F7D5A','OK'],['#B8791E','CHECK — verify']]],
- ['Assigned plan',null]   /* built at render time from this community's plans */
-];
-const LEGENDS_RECORD=[
- ['OCH ownership',[['#2E4A63','model home'],['#2F7D5A','OCH spec'],['#E8EBED','not an OCH lot']]],
- ['Lot product',null],
- ['Driveway side required',[['#4E79A7','left'],['#B8791E','right'],['#DCE0E2','unrestricted']]],
- ['Plan built',[['#4E79A7','Marshall C'],['#76B7B2','Marshall B'],['#F28E2B','Ellis D'],['#EDC948','Ellis B'],['#9C755F','Dakota A'],['#E8EBED','not an OCH lot']]]
-];
+const LEGEND_BY_MODE={
+ slope:['Driveway slope @ {RUN} ft run',null],
+ remedy:['Remedy needed',[['#2F7D5A','none — passes'],['#9CBE7A','set back ≤2 ft'],['#D9C15C','2–4 ft'],['#B8791E','4–15.5 ft'],['#A6392E','drop garage only'],[NODATA,'not applicable']]],
+ pad:["Engineer's pad depth",[['#2F7D5A','80 ft or more'],['#7FA86B','77–80 ft'],['#B8791E','70–77 ft'],['#A6392E','under 70 ft'],[NODATA,'no pad extracted']]],
+ product:['Lot product',null],
+ driveway:['Restricted driveway side',[['#4E79A7','must be LEFT'],['#B8791E','must be RIGHT'],['#DCE0E2','unrestricted']]],
+ confidence:['Data confidence',[['#2F7D5A','OK'],['#B8791E','CHECK — verify'],[NODATA,'not recorded']]],
+ plan:['Assigned plan',null],
+ ownership:['OCH ownership',[['#2E4A63','model home'],['#2F7D5A','OCH spec'],['#E8EBED','not an OCH lot']]]
+};
+const LEGEND_RECORD_PLAN=['Plan built',[['#4E79A7','Marshall C'],['#76B7B2','Marshall B'],['#F28E2B','Ellis D'],['#EDC948','Ellis B'],['#9C755F','Dakota A'],['#E8EBED','not an OCH lot']]];
 function drawLegend(){
-  let [t,rows]=(RECORD?LEGENDS_RECORD:LEGENDS)[colorMode];
+  const mode=modes()[colorMode]||modes()[0];
+  let entry=(RECORD&&mode==='plan')?LEGEND_RECORD_PLAN:LEGEND_BY_MODE[mode];
+  if(!entry)entry=['Legend',[]];
+  let t=entry[0], rows=entry[1];
   /* BASE_RUN is set from community meta after this table is defined,
      so substitute at render time, not at parse time. */
   t=t.replace('{RUN}', BASE_RUN);
   if(rows===null){
-    if(t==='Lot product'){
+    if(mode==='slope'){
+      /* Bands follow the community's own design max and approval ceiling. */
+      rows=[['#2F7D5A','under '+(MAXG*0.8)+'%'],
+            ['#7FA86B',(MAXG*0.8)+'–'+MAXG+'%']];
+      if(MAXG_APPROVE!=null){
+        rows.push(['#B8791E',MAXG+'–'+MAXG_APPROVE+'% — City approval'],
+                  ['#A6392E','over '+MAXG_APPROVE+'% — not approvable']);
+      } else {
+        rows.push(['#A6392E','over '+MAXG+'%']);
+      }
+      rows.push([NODATA,'no grade recorded']);
+    }
+    else if(mode==='product'){
       const pc=productColors();
-      rows=communityProducts().map(p=>[pc[p], p+"' product"]).concat([['#D5D9DC','not set']]);
+      rows=communityProducts().map(p=>[pc[p], p+"' product"]).concat([[NODATA,'not set']]);
     } else {
       const pc=planColors();
       rows=communityFamilies().map(f=>[pc[f],f])
@@ -582,13 +833,13 @@ function build(){
     '<rect width="5" height="5" fill="#F2F3F4"/><line x1="0" y1="0" x2="0" y2="5" stroke="#B9C0C5" stroke-width="1.6"/></pattern>';
   svg.appendChild(defs);
   const gc=document.createElementNS(NS,'g');
-  MAP.curb.forEach(c=>{const p=document.createElementNS(NS,'polyline');
+  (MAP.curb||[]).forEach(c=>{const p=document.createElementNS(NS,'polyline');
     p.setAttribute('points',c.map(q=>q.join(',')).join(' '));p.setAttribute('class','curb');gc.appendChild(p);});
   svg.appendChild(gc);
   const gs=document.createElementNS(NS,'g');
-  MAP.streets.forEach(s=>{const t=document.createElementNS(NS,'text');
+  (MAP.streets||[]).forEach(s=>{const t=document.createElementNS(NS,'text');
     t.setAttribute('x',s.x);t.setAttribute('y',s.y);t.setAttribute('class','stname');t.textContent=s.t;gs.appendChild(t);});
-  MAP.blocks.forEach(s=>{const t=document.createElementNS(NS,'text');
+  (MAP.blocks||[]).forEach(s=>{const t=document.createElementNS(NS,'text');
     t.setAttribute('x',s.x);t.setAttribute('y',s.y);t.setAttribute('class','blname');t.textContent=s.t;gs.appendChild(t);});
   svg.appendChild(gs);
   const gl=document.createElementNS(NS,'g');gl.id='gLots';
@@ -598,6 +849,14 @@ function build(){
     p.addEventListener('click',()=>{ if(pickMode&&l.type==='Residential') toggleOwn(l.i); else select(l.i); });
     gl.appendChild(p);});
   svg.appendChild(gl);
+  /* The engineer's pads, where the grading drawing gave them. Drawn above the
+     lot so the buildable area is visible without opening the fit sheet. */
+  const gp=document.createElementNS(NS,'g');gp.id='gPads';
+  MAP.lots.forEach(l=>{ if(!l.pad||!l.pad.length)return;
+    const p=document.createElementNS(NS,'polygon');
+    p.setAttribute('points',l.pad.map(q=>q.join(',')).join(' '));
+    p.setAttribute('class','padline');gp.appendChild(p);});
+  svg.appendChild(gp);
   const gd=document.createElementNS(NS,'g');gd.id='gDrv';svg.appendChild(gd);
   const gn=document.createElementNS(NS,'g');gn.id='gNums';
   MAP.lots.forEach(l=>{const c=centroid(l.pts);
@@ -620,16 +879,17 @@ function paint(){
     p.classList.toggle('exc',ex);
     if(ex){p.setAttribute('fill','url(#hatch)');}
   });
-  const gd=document.getElementById('gDrv');gd.innerHTML='';
-  MAP.lots.forEach(l=>{
+  const gd=document.getElementById('gDrv');if(gd)gd.innerHTML='';
+  if(gd)MAP.lots.forEach(l=>{
     if(!l.drvReq)return;
     const c=centroid(l.pts);
     const t=document.createElementNS(NS,'text');
     t.setAttribute('x',c[0]);t.setAttribute('y',c[1]-3.2);
     t.setAttribute('class','drvmark');t.setAttribute('text-anchor','middle');
     t.setAttribute('font-size','6');t.setAttribute('fill','#B8791E');t.setAttribute('font-weight','700');
-    t.textContent=l.drvReq==='LEFT'?'◄':'►';gd.appendChild(t);
+    t.textContent=String(l.drvReq).toUpperCase()==='LEFT'?'◄':'►';gd.appendChild(t);
   });
+  tagOurs();
 }
 function setVB(){svg.setAttribute('viewBox',`${vb.x} ${vb.y} ${vb.w} ${vb.h}`);}
 function fit(){vb={x:-10,y:-10,w:MAP.w+20,h:MAP.h+20};setVB();}
@@ -647,39 +907,42 @@ svg.addEventListener('pointerdown',e=>{drag={x:e.clientX,y:e.clientY,vx:vb.x,vy:
 svg.addEventListener('pointermove',e=>{if(!drag)return;const r=svg.getBoundingClientRect();
   vb.x=drag.vx-(e.clientX-drag.x)/r.width*vb.w;vb.y=drag.vy-(e.clientY-drag.y)/r.height*vb.h;setVB();});
 svg.addEventListener('pointerup',e=>{drag=null;svg.classList.remove('drag');});
+function matches(l,qq){
+  return (l.b+'-'+l.l).toUpperCase().includes(qq) || (l.addr && l.addr.toUpperCase().includes(qq));
+}
 function doSearch(){
   q=document.getElementById('q').value;
   paint();
   const qq=q.trim().toUpperCase();
   if(!qq){return;}
-  const hits=RES.filter(l=>(l.b+'-'+l.l).toUpperCase().includes(qq)
-    || (l.addr && l.addr.toUpperCase().includes(qq)));
+  const hits=RES.filter(l=>matches(l,qq));
   if(hits.length===1){select(hits[0].i);}          // unique -> open it
-  else if(hits.length>1){sel=null;paint();renderSide(hits);}
-  else {sel=null;paint();renderSide([]);}
+  else if(hits.length>1){sel=null;paint();safeSide(hits);}
+  else {sel=null;paint();safeSide([]);}
 }
 function searchKey(e){
   if(e.key!=='Enter')return;
   const qq=document.getElementById('q').value.trim().toUpperCase();
-  const hits=RES.filter(l=>(l.b+'-'+l.l).toUpperCase().includes(qq)
-    || (l.addr && l.addr.toUpperCase().includes(qq)));
+  const hits=RES.filter(l=>matches(l,qq));
   if(hits.length){select(hits[0].i);}
 }
 
 /* ---------- side panel ---------- */
-function select(i){sel=i;paint();renderSide();}
+function select(i){sel=i;paint();safeSide();}
+function safeSide(hits){ try{renderSide(hits);}catch(e){sideError(e);} }
 function pill(cls,txt){return `<span class="pill p-${cls}">${txt}</span>`;}
+function fmt(v,dp,suf){return v==null||isNaN(v)?'—':v.toFixed(dp==null?1:dp)+(suf||'');}
 function renderSide(hits){
   const el=document.getElementById('side');
   if(sel===null&&Array.isArray(hits)){
     const qq=document.getElementById('q').value.trim().toUpperCase();
     if(!hits.length){el.innerHTML=`<p class="hint">No lot matches “${qq}”.</p>`+backBtn();return;}
     let h=`<h3 class="sh">${hits.length} lots match “${qq}”</h3><table class="pl">
-      <thead><tr><th>Lot</th><th>Product</th><th>Slope @21ft</th><th>Shift</th></tr></thead><tbody>`;
+      <thead><tr><th>Lot</th><th>Product</th><th>Slope</th><th>${REAR?'Pad depth':'Shift'}</th></tr></thead><tbody>`;
     hits.slice(0,60).forEach(l=>{h+=`<tr style="cursor:pointer" onclick="select(${l.i})">
-      <td><b>${l.b}-${l.l}</b></td><td>${l.prod}'</td>
-      <td style="color:${l.sl21<=10?'var(--pass)':'var(--fail)'}">${l.sl21.toFixed(1)}%</td>
-      <td>${l.shift>0?l.shift.toFixed(1)+"'":'—'}</td></tr>`});
+      <td><b>${l.b}-${l.l}</b></td><td>${l.prod?l.prod+"'":'—'}</td>
+      <td style="color:${l.sl21==null?'var(--slate)':(l.sl21<=MAXG?'var(--pass)':'var(--fail)')}">${fmt(l.sl21,1,'%')}</td>
+      <td>${REAR?fmt(l.padD,0,"'"):(typeof l.shift==='number'&&l.shift>0?l.shift.toFixed(1)+"'":'—')}</td></tr>`});
     h+='</tbody></table><p class="muted" style="margin-top:8px">Click a row to open it.</p>';
     el.innerHTML=h; return;
   }
@@ -690,6 +953,7 @@ function renderSide(hits){
   const pid=A[l.i]||'';
   const e=pid?evalLot(l,pid):null;
   const st=statusOf(l);
+  const rearEntry=rearLot(l);
   let h=`<div style="display:flex;justify-content:space-between;align-items:baseline">
       <h2 style="font-size:22px">${l.addr ? l.addr : 'Block '+l.b+' · Lot '+l.l}</h2>
       <span class="muted">${l.a.toLocaleString()} sf · ${l.prod?l.prod+"' product":(l.lw?l.lw.toFixed(0)+"ft wide":'')}</span></div>`;
@@ -698,87 +962,123 @@ function renderSide(hits){
       <input type="checkbox" ${isOurs(l)?'checked':''} onchange="toggleOwn(${l.i})" style="vertical-align:-2px;margin-right:6px">
       OCH will build this lot</label></div>`;
   if(!isOurs(l))h+=`<div class="remedy" style="border-left-color:var(--slate)"><b>Excluded from the program.</b> Left out of all counts.</div>`;
-  if(l.conf!=='OK')h+=`<div class="remedy" style="border-left-color:var(--warn)"><b>Verify this lot.</b><br>${l.note||'Flagged CHECK.'}</div>`;
+  if(partialOwnership()&&!l.addr)
+    h+=`<div class="remedy" style="border-left-color:var(--slate)"><b>No OCH address on this lot.</b><br>
+      OCH owns ${MAP.meta.ochLots} of the ${MAP.meta.residentialLots} lots here. This one carries no address in the master list, so it is shown for context and is not expected to take an OCH plan.</div>`;
+  /* Only warn where a confidence flag actually exists. Reading `conf !== 'OK'`
+     on a community that records no confidence field fired this banner on all
+     227 Heights lots. */
+  if(l.conf!=null&&l.conf!=='OK')h+=`<div class="remedy" style="border-left-color:var(--warn)"><b>Verify this lot.</b><br>${l.note||'Flagged CHECK.'}</div>`;
+  else if(l.note)h+=`<div class="remedy" style="border-left-color:var(--structural)">${l.note}</div>`;
   if(!l.prod)h+=`<div class="remedy" style="border-left-color:var(--warn)"><b>Lot product not set.</b><br>Measured ${l.lw?l.lw.toFixed(0)+' ft':'?'} wide — set the lot product in the workbook. Every plan is listed below until it is.</div>`;
-  /* Slope may be unknown: 18 of 48 Heights OCH lots have no rear grade in the
+  /* Slope may be unknown: many Heights lots have no rear grade in the
      construction set, so there is no estimate. Show "—", never a fake number. */
   const slopeVal = e ? e.slope : (l.sl21!=null ? l.sl21 : null);
   h+=`<div class="card2" style="margin-top:12px"><div style="display:flex;justify-content:space-between;align-items:flex-end">
       <div><div class="muted" style="font-size:11px;text-transform:uppercase;letter-spacing:.5px">Driveway slope @ ${e?e.run.toFixed(1):BASE_RUN} ft</div>
-      <div class="big" style="color:${slopeVal==null?'var(--slate)':(slopeVal<=MAXG?'var(--pass)':'var(--fail)')}">${slopeVal==null?'—':slopeVal.toFixed(1)+'%'}</div></div>
+      <div class="big" style="color:${slopeVal==null?'var(--slate)':'var(--'+gradeVerdict(slopeVal)+')'}">${slopeVal==null?'—':slopeVal.toFixed(1)+'%'}</div>
+      ${slopeVal!=null&&gradeVerdict(slopeVal)==='warn'?`<div class="muted" style="font-size:11px">over the ${MAXG}% design max, within the ${gradeCeiling()}% the City can approve</div>`:''}</div>
       <div>${st==='pass'?pill('pass','OK'):st==='warn'?pill('warn','NEEDS WORK'):pill('fail','PROBLEM')}</div></div>
-      ${slopeVal==null?`<div class="muted" style="font-size:11px;margin-top:6px">No rear grade recorded for this lot — slope cannot be estimated.</div>`:''}</div>`;
+      ${slopeVal==null?`<div class="muted" style="font-size:11px;margin-top:6px">No rear grade recorded for this lot — slope cannot be estimated. This is missing data, not a problem with the lot.</div>`:''}</div>`;
   /* Front-entry communities carry apron + front-spot elevations. Rear-alley
      communities (The Heights) do not — they have pad, rear grade and drop only.
      Branch rather than assume; the fields are genuinely absent, not zero. */
-  const rearEntry = (l.ap===undefined||l.ap===null);
   if(!rearEntry){
     h+=`<h3 class="sh">Elevations</h3><div class="kv">
-      <span class="k">Pad (FP)</span><span class="v">${l.fp.toFixed(2)}</span>
-      <span class="k">Top of slab (+0.83)</span><span class="v">${(l.fp+SLAB).toFixed(2)}</span>
-      <span class="k">Garage apron</span><span class="v">${l.ap.toFixed(2)}</span>
-      <span class="k">Front spot at ROW</span><span class="v">${l.fs.toFixed(2)}</span>
-      <span class="k">Driveway drop</span><span class="v">${l.drop.toFixed(2)} ft</span></div>`;
+      <span class="k">Pad (FP)</span><span class="v">${fmt(l.fp,2)}</span>
+      <span class="k">Top of slab (+${SLAB})</span><span class="v">${l.fp!=null?(l.fp+SLAB).toFixed(2):'—'}</span>
+      <span class="k">Garage apron</span><span class="v">${fmt(l.ap,2)}</span>
+      <span class="k">Front spot at ROW</span><span class="v">${fmt(l.fs,2)}</span>
+      <span class="k">Driveway drop</span><span class="v">${fmt(l.drop,2,' ft')}</span></div>`;
   } else {
     h+=`<h3 class="sh">Elevations</h3><div class="kv">
-      <span class="k">Finished pad (FP)</span><span class="v">${l.fp!=null?l.fp.toFixed(1):'—'}</span>
-      <span class="k">Rear grade at alley</span><span class="v">${l.dg!=null?l.dg.toFixed(1):'—'}</span>
-      <span class="k">Pad → rear drop</span><span class="v">${l.drop!=null?l.drop.toFixed(1)+' ft':'—'}</span></div>`;
+      <span class="k">Finished pad (FP)</span><span class="v">${fmt(l.fp,1)}</span>
+      <span class="k">Rear grade at alley</span><span class="v">${fmt(l.dg,1)}</span>
+      <span class="k">Pad → rear drop</span><span class="v">${fmt(l.drop,1,' ft')}</span></div>`;
+    if(l.padW!=null||l.padD!=null){
+      h+=`<h3 class="sh">Engineer's pad</h3><div class="kv">
+        <span class="k">Pad width</span><span class="v">${fmt(l.padW,1,"'")}</span>
+        <span class="k">Pad depth</span><span class="v">${fmt(l.padD,1,"'")}</span>
+        <span class="k">Lot (plat)</span><span class="v">${fmt(l.lw,0,"'")} × ${fmt(l.ld,0,"'")}</span></div>
+        <p class="muted" style="margin-top:5px">Read from the grading drawing — an actual pad, not derived from setbacks. Fit is measured against this.</p>`;
+      if(padSuspect(l))
+        h+=`<div class="remedy" style="border-left-color:var(--fail)"><b>Pad is wider than the lot.</b><br>
+          The grading drawing gives a ${l.padW.toFixed(0)} ft pad on a ${l.lw.toFixed(0)} ft lot, which cannot be right — the pad was probably matched to the wrong lot during extraction. Width fit here is unreliable; check the grading sheet before using it.</div>`;
+      const pmm=productMismatch(l);
+      if(pmm)
+        h+=`<div class="remedy" style="border-left-color:var(--warn)"><b>Lot product disagrees with the pad.</b><br>
+          Recorded as a ${pmm.declared}' lot, but a ${l.padW.toFixed(0)} ft pad implies a ${pmm.implied.toFixed(0)}' lot. Fit below is measured against the pad, so it stands either way — but the list of plans <i>offered</i> here comes from the product, so treat it with care.</div>`;
+      if(l.padD!=null&&l.padD<70)
+        h+=`<div class="remedy" style="border-left-color:var(--fail)"><b>Shallow pad — ${l.padD.toFixed(0)} ft.</b><br>
+          The shallowest offered plan needs ${(Math.min.apply(null,livePlans(l).filter(p=>p.d!=null).map(p=>p.d))-((MAP.meta||{}).porchEncroach!=null?MAP.meta.porchEncroach:5)).toFixed(1)} ft after the porch credit. Verify against the grading sheet before offering this lot.</div>`;
+    }
     if(l.wall){
       const exp = (l.wexp!=null)?l.wexp:((l.tw!=null&&l.bw!=null)?(l.tw-l.bw):null);
       h+=`<h3 class="sh">Retaining wall</h3><div class="kv">
-        <span class="k">Top of wall (TW)</span><span class="v">${l.tw!=null?l.tw.toFixed(1):'—'}</span>
-        <span class="k">Bottom of wall (BW)</span><span class="v">${l.bw!=null?l.bw.toFixed(1):'—'}</span>
+        <span class="k">Top of wall (TW)</span><span class="v">${fmt(l.tw,1)}</span>
+        <span class="k">Bottom of wall (BW)</span><span class="v">${fmt(l.bw,1)}</span>
         <span class="k">Exposed height</span><span class="v">${exp!=null?exp.toFixed(1)+' ft':'not recorded'}</span></div>`;
       if(exp!=null&&exp>4)
         h+=`<div class="remedy" style="border-left-color:var(--warn)"><b>Engineered wall required.</b><br>
           Exposed height ${exp.toFixed(1)} ft exceeds 4 ft (Celina §9.05). Build around the existing wall.</div>`;
     }
-    if(l.sl21!=null&&l.sl21>MAXG)
-      h+=`<div class="remedy" style="border-left-color:var(--fail)"><b>Estimated driveway slope ${l.sl21.toFixed(1)}% exceeds ${MAXG}%.</b><br>
-        Estimate only — (pad − rear grade) ÷ ${BASE_RUN} ft apron. Verify against the alley profile before relying on it.</div>`;
+    if(l.sl21!=null&&gradeVerdict(l.sl21)==='warn')
+      h+=`<div class="remedy" style="border-left-color:var(--warn)"><b>Estimated driveway slope ${l.sl21.toFixed(1)}% — needs City approval.</b><br>
+        Over the ${MAXG}% design maximum but within the ${gradeCeiling()}% the City will consider. This lot is sellable with a variance, not lost.<br>
+        <span class="muted">Estimate only — (pad − rear grade) ÷ ${BASE_RUN} ft apron. Verify against the alley profile before applying.</span></div>`;
+    else if(l.sl21!=null&&gradeVerdict(l.sl21)==='fail')
+      h+=`<div class="remedy" style="border-left-color:var(--fail)"><b>Estimated driveway slope ${l.sl21.toFixed(1)}% exceeds ${gradeCeiling()}%.</b><br>
+        Beyond what the City will approve${MAXG_APPROVE!=null?' even with a variance':''}. Regrading or a different pad is needed.<br>
+        <span class="muted">Estimate only — (pad − rear grade) ÷ ${BASE_RUN} ft apron. Verify against the alley profile before relying on it.</span></div>`;
   }
-  if(!rearEntry) h+=`<h3 class="sh">To reach 10%</h3><div class="kv">
-      <span class="k">Required driveway length</span><span class="v">${l.need.toFixed(1)} ft</span>
+  if(!rearEntry&&typeof l.shift==='number') h+=`<h3 class="sh">To reach ${MAXG}%</h3><div class="kv">
+      <span class="k">Required driveway length</span><span class="v">${fmt(l.need,1,' ft')}</span>
       <span class="k">Shift home back</span><span class="v">${l.shift>0?l.shift.toFixed(1)+' ft':'—'}</span>
       <span class="k">Drop garage if not</span><span class="v">${l.dg>0?'+'+l.dg.toFixed(2)+' ft':'—'}</span></div>`;
   if(l.drvReq)h+=`<div class="remedy"><b>Restricted driveway.</b> Must be on the <b>${l.drvReq}</b> side, viewed from the street. J-swing plans must match this hand or be mirrored.</div>`;
   h+=`<h3 class="sh">Plan fit</h3>`;
   h+=`<select id="assign" onchange="assignPlan(${l.i},this.value)" style="width:100%;padding:7px;font-family:'IBM Plex Mono';font-size:12px;border:1px solid var(--line);border-radius:4px">
       <option value="">— no plan assigned —</option>`;
-  /* only offer plans that match the community's entry type */
+  /* only offer plans this community sells for this lot's product */
   const offered = offeredFor(l);
   const retired = (MAP.meta&&MAP.meta.retiredPlans)||[];
   PLANS.filter(p=>offered.includes(p.id) || pid===p.id)   /* an already-assigned plan stays visible even if withdrawn */
        .filter(p=>!retired.includes(p.id) || pid===p.id)
        .forEach(p=>{h+=`<option value="${p.id}" ${pid===p.id?'selected':''}>${p.n} · ${p.coll}${p.d==null?' · dims not measured':''}</option>`});
   h+='</select>';
-  /* Rear-alley depth fit, calibrated against the built record 9/15/26:
-       lot depth >= plan depth + front BL + rear-to-alley - porch encroachment
-     The porch may encroach into the front building line, so it does not consume
-     buildable depth. All 22 built Heights homes pass; the tightest (Addison B at
-     713 Lincoln Mews) clears by 0.6 ft. Without the porch credit, 10 of them
-     would read as impossible — which is how the credit was discovered. */
   if(pid&&rearEntry&&PLAN[pid]){
-    const P=PLAN[pid], M=(MAP.meta||{});
-    const fbl=M.frontBL!=null?M.frontBL:10, rear=M.rearBL!=null?M.rearBL:20,
-          porch=M.porchEncroach!=null?M.porchEncroach:5;
-    if(P.d!=null && l.ld!=null){
-      const need=P.d+fbl+rear-porch, marg=l.ld-need;
-      const cls = marg<0?'fail':(marg<2?'warn':'pass');
-      h+=`<h3 class="sh">Depth fit</h3><div class="kv">
-        <span class="k">Lot depth</span><span class="v">${l.ld.toFixed(0)}'</span>
-        <span class="k">Plan depth</span><span class="v">${P.d.toFixed(1)}'</span>
-        <span class="k">Front BL + rear to alley</span><span class="v">${fbl}' + ${rear}'</span>
-        <span class="k">Porch encroachment credit</span><span class="v">−${porch}'</span>
-        <span class="k">Required</span><span class="v">${need.toFixed(1)}'</span>
-        <span class="k">Margin</span><span class="v" style="color:var(--${cls})">${marg>=0?'+':''}${marg.toFixed(1)}'</span></div>`;
-      if(marg<0)h+=`<div class="remedy" style="border-left-color:var(--fail)"><b>Does not fit on depth.</b><br>
-        Short by ${Math.abs(marg).toFixed(1)} ft. Lot depth is derived from the plat polygon, so verify against survey before ruling it out.</div>`;
-      else if(marg<2)h+=`<div class="remedy" style="border-left-color:var(--warn)"><b>Tight — ${marg.toFixed(1)} ft margin.</b><br>
-        Within the tolerance of a plat-derived lot depth. Confirm against survey.</div>`;
+    const P=PLAN[pid];
+    const df=depthFit(l,P), wf=widthFit(l,P);
+    if(df){
+      const cls = df.margin<0?'fail':(df.margin<2?'warn':'pass');
+      h+=`<h3 class="sh">Depth fit — against the ${df.src==='pad'?"engineer's pad":'plat lot depth'}</h3><div class="kv">`;
+      if(df.src==='pad'){
+        h+=`<span class="k">Pad depth</span><span class="v">${df.have.toFixed(1)}'</span>
+            <span class="k">Plan depth</span><span class="v">${P.d.toFixed(1)}'</span>
+            <span class="k">Porch encroachment credit</span><span class="v">−${df.porch}'</span>
+            <span class="k">Required on pad</span><span class="v">${df.need.toFixed(1)}'</span>`;
+      } else {
+        h+=`<span class="k">Lot depth</span><span class="v">${df.have.toFixed(0)}'</span>
+            <span class="k">Plan depth</span><span class="v">${P.d.toFixed(1)}'</span>
+            <span class="k">Front BL + rear to alley</span><span class="v">${df.fbl}' + ${df.rear}'</span>
+            <span class="k">Porch encroachment credit</span><span class="v">−${df.porch}'</span>
+            <span class="k">Required</span><span class="v">${df.need.toFixed(1)}'</span>`;
+      }
+      h+=`<span class="k">Margin</span><span class="v" style="color:var(--${cls})">${df.margin>=0?'+':''}${df.margin.toFixed(1)}'</span></div>`;
+      if(df.margin<0)h+=`<div class="remedy" style="border-left-color:var(--fail)"><b>Does not fit on depth.</b><br>
+        Short by ${Math.abs(df.margin).toFixed(1)} ft${df.src==='pad'?" against the engineer's pad.":'. Lot depth is derived from the plat polygon, so verify against survey before ruling it out.'}</div>`;
+      else if(df.margin<2)h+=`<div class="remedy" style="border-left-color:var(--warn)"><b>Tight — ${df.margin.toFixed(1)} ft margin.</b><br>
+        Confirm against survey before committing.</div>`;
     } else if(P.d==null){
       h+=`<div class="remedy" style="border-left-color:var(--warn)"><b>Depth fit unavailable.</b><br>${P.n} has no measured depth on file.</div>`;
+    }
+    if(wf){
+      const wcls = wf.margin<0?'fail':(wf.margin<0.5?'warn':'pass');
+      h+=`<h3 class="sh">Width fit</h3><div class="kv">
+        <span class="k">${wf.src==='pad'?'Pad width':'Buildable width'}</span><span class="v">${wf.have.toFixed(1)}'</span>
+        <span class="k">Plan width</span><span class="v">${wf.need.toFixed(1)}'</span>
+        <span class="k">Margin</span><span class="v" style="color:var(--${wcls})">${wf.margin>=0?'+':''}${wf.margin.toFixed(2)}'</span></div>`;
+      if(wf.margin<0)h+=`<div class="remedy" style="border-left-color:var(--fail)"><b>Too wide for the buildable area.</b></div>`;
     }
   }
   if(e){
@@ -790,20 +1090,23 @@ function renderSide(hits){
       ${e.dg>0?`<span class="k">Drop garage still needed</span><span class="v" style="color:var(--fail)">+${e.dg.toFixed(2)} ft</span>`:''}
       ${e.handTxt?`<span class="k">J-swing hand</span><span class="v">${e.handTxt}</span>`:''}
       </div></div>`;
+  }
+  if(pid&&PLAN[pid]){
     const mc=monoConflict(l.i,pid);
     if(mc.length)h+=`<div class="remedy" style="border-left-color:var(--fail)"><b>Monotony conflict.</b><br>
-      ${PLAN[pid].n.split(' ')[0]} also at ${mc.map(x=>'<b>'+(byId[x.i]&&byId[x.i].addr?byId[x.i].addr:x.lot)+'</b> ('+x.plan+(x.across?', across the street':'')+')').join(', ')}.<br>
+      ${PLAN[pid].n} also at ${mc.map(x=>'<b>'+(byId[x.i]&&byId[x.i].addr?byId[x.i].addr:x.lot)+'</b> ('+x.plan+(x.across?', across the street':'')+')').join(', ')}.<br>
       <span class="muted">Rule in force: ${MRULES[monoRule].n}</span></div>`;
     else if(monoRule!=='off')h+=`<div class="remedy" style="border-left-color:var(--pass)"><b>Monotony clear</b> under “${MRULES[monoRule].n}”.
       <span class="muted">Checked ${monoNeighbors(l.i).length} neighboring lots.</span></div>`;
   }
-  /* Only weigh plans this community actually offers for this lot's product. */
-  const offeredIds=offeredFor(l);
-  const verd=PLANS.filter(p=>offeredIds.includes(p.id)).map(p=>({p:p,v:planVerdict(l,p)}));
+  /* Only weigh plans this community actually offers for this lot's product,
+     and never offer a retired plan. */
+  const candidates=livePlans(l);
+  const verd=candidates.map(p=>({p:p,v:planVerdict(l,p)}));
   const good=verd.filter(x=>x.v.ok), bad=verd.filter(x=>!x.v.ok);
   const nb=MAP.adj[l.i]||{};
-  const nm=x=>x===null||x===undefined?'—':`<a href="#" onclick="select(${x});return false">${byId[x].b}-${byId[x].l}</a>`
-      +(A[x]?` <span class="muted">${PLAN[A[x]].n}</span>`:'');
+  const nm=x=>x===null||x===undefined||!byId[x]?'—':`<a href="#" onclick="select(${x});return false">${byId[x].b}-${byId[x].l}</a>`
+      +(A[x]&&PLAN[A[x]]?` <span class="muted">${PLAN[A[x]].n}</span>`:'');
   h+=`<h3 class="sh">Neighbors</h3><div class="kv">
      <span class="k">Left</span><span class="v">${nm(nb.L)}</span>
      <span class="k">Right</span><span class="v">${nm(nb.R)}</span>
@@ -813,14 +1116,6 @@ function renderSide(hits){
     /* Front-entry lots are judged on driveway geometry; rear-alley lots on
        width and depth against the buildable envelope. Different columns,
        because the front-entry numbers do not exist on a rear-alley lot. */
-    const M=MAP.meta||{};
-    const dmar=p=>{
-      if(p.d==null||l.ld==null)return null;
-      const fbl=M.frontBL!=null?M.frontBL:10, rear=M.rearBL!=null?M.rearBL:20,
-            porch=M.porchEncroach!=null?M.porchEncroach:5;
-      return l.ld-(p.d+fbl+rear-porch);
-    };
-    const wmar=p=>(p.w==null||M.buildableWidth==null)?null:M.buildableWidth-p.w;
     h+= rearEntry
       ? `<table class="pl"><thead><tr><th>Plan</th><th>Width</th><th>Depth</th><th>Width margin</th><th>Depth margin</th></tr></thead><tbody>`
       : `<table class="pl"><thead><tr><th>Plan</th><th>Lot</th><th>Max shift</th><th>Shift</th><th>Slope</th></tr></thead><tbody>`;
@@ -828,17 +1123,18 @@ function renderSide(hits){
       const tag=x.v.warn.length?' <span class="pill p-warn">'+x.v.warn.join(', ')+'</span>':'';
       h+=`<tr style="cursor:pointer" onclick="assignPlan(${l.i},'${x.p.id}')"><td><b>${x.p.n}</b>${tag}</td>`;
       if(rearEntry){
-        const wm=wmar(x.p), dm=dmar(x.p);
+        const wf=widthFit(l,x.p), df=depthFit(l,x.p);
+        const wm=wf?wf.margin:null, dm=df?df.margin:null;
         h+=`<td>${x.p.w!=null?x.p.w.toFixed(1)+"'":'—'}</td>
             <td>${x.p.d!=null?x.p.d.toFixed(1)+"'":'—'}</td>
-            <td${wm!=null?` style="color:var(--${wm<0?'fail':(wm<1?'warn':'pass')})"`:''}>${wm!=null?(wm>=0?'+':'')+wm.toFixed(1)+"'":'—'}</td>
+            <td${wm!=null?` style="color:var(--${wm<0?'fail':(wm<0.5?'warn':'pass')})"`:''}>${wm!=null?(wm>=0?'+':'')+wm.toFixed(2)+"'":'—'}</td>
             <td${dm!=null?` style="color:var(--${dm<0?'fail':(dm<2?'warn':'pass')})"`:''}>${dm!=null?(dm>=0?'+':'')+dm.toFixed(1)+"'":'—'}</td></tr>`;
       } else {
-        const e=x.v.ev;
+        const ev=x.v.ev;
         h+=`<td>${x.p.lot}'</td>
-            <td>${e?e.maxShift.toFixed(1)+"'":'—'}</td>
-            <td>${e?e.setback.toFixed(1)+"'":'—'}</td>
-            <td style="color:var(--pass)">${e?e.slope.toFixed(1)+'%':'—'}</td></tr>`;
+            <td>${ev?ev.maxShift.toFixed(1)+"'":'—'}</td>
+            <td>${ev?ev.setback.toFixed(1)+"'":'—'}</td>
+            <td style="color:var(--pass)">${ev?ev.slope.toFixed(1)+'%':'—'}</td></tr>`;
       }
     });
     h+='</tbody></table><p class="muted" style="margin-top:5px">Click a row to assign it.</p>';
@@ -852,15 +1148,18 @@ function renderSide(hits){
   el.innerHTML=h;
 }
 function exportState(){
-  const st={rule:monoRule,assigned:A,excluded:EXC,saved:new Date().toISOString()};
+  const st={community:COMMUNITY,rule:monoRule,assigned:A,excluded:EXC,saved:new Date().toISOString()};
   const blob=new Blob([JSON.stringify(st,null,1)],{type:'application/json'});
   const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
-  a.download='grandoaks-1b-plan-assignments.json'; a.click();
+  a.download=COMMUNITY+'-plan-assignments.json'; a.click();
 }
 function importState(ev){
   const f=ev.target.files[0]; if(!f)return;
   const rd=new FileReader();
   rd.onload=()=>{try{const st=JSON.parse(rd.result);
+    if(st.community&&st.community!==COMMUNITY&&
+       !confirm('That file was exported from "'+st.community+'", not "'+COMMUNITY+
+                '". Lot numbers will not line up. Load it anyway?'))return;
     if(st.assigned){A=st.assigned;}
     if(st.excluded){EXC=st.excluded;}
     cacheLocal();
@@ -868,7 +1167,7 @@ function importState(ev){
       (async()=>{for(const i of Object.keys(byId).map(Number)) if(A[i]||EXC[i]) await pushLot(i);})();
     }
     if(st.rule){monoRule=st.rule;}
-    sel=null;paint();renderSide();alert('Loaded '+Object.keys(A).length+' plan assignments.');
+    sel=null;paint();safeSide();alert('Loaded '+Object.keys(A).length+' plan assignments.');
   }catch(e){alert('Could not read that file.')}};
   rd.readAsText(f);
 }
@@ -885,7 +1184,7 @@ function renderRecordLot(l){
     h+=`<div class="card2" style="margin-top:12px"><b>Not an OCH lot.</b>
       <p class="muted" style="margin:6px 0 0">Shown for context. Pad elevation below is read from the grading sheets; no driveway figures were derived for Phase 1A.</p></div>`;
     h+=`<h3 class="sh">From the grading plan</h3><div class="kv">
-      <span class="k">Pad elevation (FP)</span><span class="v">${l.fp!==undefined&&l.fp!==null?l.fp.toFixed(1):'—'}</span>
+      <span class="k">Pad elevation (FP)</span><span class="v">${fmt(l.fp,1)}</span>
       <span class="k">Driveway side drawn</span><span class="v">${l.drv||'—'}</span>
       <span class="k">Driveway side required</span><span class="v">${l.drvReq||'—'}</span></div>`;
     if(!l.geoOK)h+=`<div class="remedy" style="border-left-color:var(--warn)"><b>Outline approximate.</b> Drawn area is under the platted ${l.a.toLocaleString()} sf. Figures unaffected.</div>`;
@@ -918,8 +1217,8 @@ function renderRecordLot(l){
     <span class="k">Driveway side required</span><span class="v">${l.drvReq||'—'}</span></div>`;
   el.innerHTML=h+backBtn();
 }
-function backBtn(){return `<p style="margin-top:14px"><a href="#" onclick="sel=null;paint();renderSide();return false" class="muted">← back to overview</a></p>`;}
-function assignPlan(i,pid){if(!requireWho())return; if(pid)A[i]=pid;else delete A[i]; paint();renderSide(); pushLot(i);}
+function backBtn(){return `<p style="margin-top:14px"><a href="#" onclick="sel=null;paint();safeSide();return false" class="muted">← back to overview</a></p>`;}
+function assignPlan(i,pid){if(!requireWho())return; if(pid)A[i]=pid;else delete A[i]; paint();safeSide(); pushLot(i);}
 function overviewRecord(){
   const own=RES.filter(l=>l.own), model=own.filter(l=>l.model);
   const sl=own.map(l=>l.sl);
@@ -948,56 +1247,149 @@ function overviewRecord(){
 function overview(){
   if(RECORD) return overviewRecord();
   const O=OURS(); const n=O.length; const exn=RES.length-n;
-  const pass=O.filter(l=>l.shift<=0).length;
-  const set=O.filter(l=>l.shift>0&&l.shift<=15.5).length;
-  const hard=O.filter(l=>l.shift>15.5).length;
-  const chk=O.filter(l=>l.conf!=='OK').length;
   const assigned=Object.keys(A).length;
-  let h=`<div class="statbar">
-    <div><div class="n">${n}</div><div class="t">OCH lots</div></div>
-    <div><div class="n" style="color:var(--pass)">${pass}</div><div class="t">pass as sited</div></div>
-    <div><div class="n" style="color:var(--warn)">${set}</div><div class="t">need setback</div></div>
-    <div><div class="n" style="color:var(--fail)">${hard}</div><div class="t">drop garage</div></div></div>`;
-  h+=`<p class="muted">Click any lot for elevations, the driveway calculation and plan fit. Selections and assignments save in this browser.</p>`;
+  const conf=O.filter(l=>A[l.i]&&monoConflict(l.i,A[l.i]).length);
+  const asg=O.filter(l=>A[l.i]);
+  let h='';
+  if(REAR){
+    /* Rear-alley communities have no shift/remedy figures at all. Report what
+       actually exists here: envelope fit, estimated slope and monotony. */
+    const noFit=O.filter(l=>livePlans(l).filter(p=>p.d!=null).every(p=>{const d=depthFit(l,p);return d&&d.margin<0;}));
+    const needApproval=O.filter(l=>gradeVerdict(l.sl21)==='warn');
+    const tooSteep=O.filter(l=>gradeVerdict(l.sl21)==='fail');
+    h+=`<div class="statbar">
+      <div><div class="n">${n}</div><div class="t">lots in program</div></div>
+      <div><div class="n" style="color:${noFit.length?'var(--fail)':'var(--pass)'}">${noFit.length}</div><div class="t">no plan fits</div></div>
+      <div><div class="n" style="color:${needApproval.length?'var(--warn)':'var(--pass)'}">${needApproval.length}</div><div class="t">${MAXG_APPROVE!=null?'need approval':'over '+MAXG+'%'}</div></div>
+      <div><div class="n" style="color:${tooSteep.length?'var(--fail)':'var(--pass)'}">${tooSteep.length}</div><div class="t">over ${gradeCeiling()}%</div></div></div>`;
+    h+=`<p class="muted">Click any lot for its pad, elevations and plan fit. Fit is measured against the engineer's pad where one was extracted, and against the plat lot depth otherwise.</p>`;
+    if(noFit.length)h+=`<div class="remedy" style="border-left-color:var(--fail)"><b>${noFit.length} lot${noFit.length>1?'s take':' takes'} no offered plan on depth.</b><br>
+      <span style="font-family:'IBM Plex Mono',monospace;font-size:11.5px">${noFit.map(l=>`<a href="#" onclick="select(${l.i});return false">${l.b}-${l.l}</a>`).join(' · ')}</span></div>`;
+    const slopeList=arr=>arr.map(l=>`<a href="#" onclick="select(${l.i});return false">${l.b}-${l.l}</a> ${l.sl21.toFixed(0)}%`).join(' · ');
+    if(needApproval.length)h+=`<div class="remedy" style="border-left-color:var(--warn)"><b>${needApproval.length} lot${needApproval.length>1?'s':''} between ${MAXG}% and ${gradeCeiling()}% — City approval route.</b><br>
+      <span style="font-family:'IBM Plex Mono',monospace;font-size:11.5px">${slopeList(needApproval)}</span><br>
+      <span class="muted">Sellable with a variance. Estimate only — (pad − rear grade) ÷ ${BASE_RUN} ft.</span></div>`;
+    if(tooSteep.length)h+=`<div class="remedy" style="border-left-color:var(--fail)"><b>${tooSteep.length} lot${tooSteep.length>1?'s':''} estimate over ${gradeCeiling()}%.</b><br>
+      <span style="font-family:'IBM Plex Mono',monospace;font-size:11.5px">${slopeList(tooSteep)}</span><br>
+      <span class="muted">Beyond the approval ceiling. Verify against the alley profile before writing these off.</span></div>`;
+    const noGrade=O.filter(l=>l.sl21==null).length;
+    if(noGrade)h+=`<p class="muted">${noGrade} of ${n} lots have no rear grade recorded, so no slope estimate exists for them. That is missing data, not a failure — they draw grey.</p>`;
+  }
+  if(FRONT){
+    const hasShift=l=>typeof l.shift==='number';
+    const pass=O.filter(l=>hasShift(l)&&l.shift<=0).length;
+    const set=O.filter(l=>hasShift(l)&&l.shift>0&&l.shift<=15.5).length;
+    const hard=O.filter(l=>hasShift(l)&&l.shift>15.5).length;
+    h+=`<div class="statbar">
+      <div><div class="n">${n}</div><div class="t">OCH lots</div></div>
+      <div><div class="n" style="color:var(--pass)">${pass}</div><div class="t">pass as sited</div></div>
+      <div><div class="n" style="color:var(--warn)">${set}</div><div class="t">need setback</div></div>
+      <div><div class="n" style="color:var(--fail)">${hard}</div><div class="t">drop garage</div></div></div>`;
+    h+=`<p class="muted">Click any lot for elevations, the driveway calculation and plan fit.</p>`;
+  }
   h+=`<div class="card2"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
       <div><div class="muted" style="font-size:11px;text-transform:uppercase;letter-spacing:.5px">Shared data</div>
       <div style="font-size:13px">${SB.on()?'Connected — everyone sees the same plan. Changes save as you make them and are stamped with your name.':'<b>Not connected.</b> Changes are saved in this browser only and nobody else will see them. Fill in the CFG block at the top of this file to connect.'}</div></div>
-      <button onclick="pullAll()" style="font-family:'IBM Plex Mono';font-size:12px;padding:6px 11px;border:1px solid var(--line);border-radius:4px;background:#fff;cursor:pointer">refresh</button>
+      <button onclick="pullAll()" class="btn">refresh</button>
       </div></div>`;
   h+=`<h3 class="sh">Lots OCH will build</h3>
-   <p style="font-size:13px">Turn on <b>select lots</b> in the map controls, then click any lot to drop it from the program. Excluded lots draw hatched and are left out of every count below.</p>
+   <p style="font-size:13px">Turn on <b>select lots</b> in the map controls, then click any lot to drop it from the program. Excluded lots draw hatched and are left out of every count above.</p>
    <div class="kv"><span class="k">In the program</span><span class="v">${n}</span>
    <span class="k">Excluded</span><span class="v">${exn}</span></div>`;
+  if(partialOwnership()){
+    const addressed=RES.filter(hasOchAddress).length;
+    h+=`<div class="remedy" style="border-left-color:var(--warn)"><b>OCH owns ${MAP.meta.ochLots} of the ${MAP.meta.residentialLots} lots here.</b><br>
+      ${addressed} lots carry an OCH address; the rest belong to other builders and can never take an OCH plan.
+      Counts above currently treat all ${n} included lots as OCH.
+      <div style="margin-top:8px"><button onclick="selectOchOnly()" class="btn">select OCH lots only</button></div></div>`;
+  }
   if(exn){h+=`<div class="card2" style="margin-top:8px"><div class="muted" style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Excluded lots</div>
     <div style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;line-height:1.7">${excList().join(' · ')}</div>
     <div style="margin-top:8px"><a href="#" onclick="copyExc();return false" class="muted">copy list</a> · <a href="#" onclick="includeAll();return false" class="muted">reset all</a></div></div>`;}
   else h+=`<p class="muted" style="margin-top:6px">No lots excluded yet — all ${RES.length} are counted.</p>`;
-  h+=`<h3 class="sh">How a lot is judged</h3>
-   <p style="font-size:13px">Garage apron sits ${SLAB} ft above pad less the ${STD_STEP} ft step-down. The driveway falls from there to the front spot elevation at the right-of-way. Slope is that drop over the driveway length — and that length grows as the home shifts toward the rear of the pad.</p>
-   <p style="font-size:13px">A shallower plan leaves more room behind it, so it can shift further back — a longer driveway, a gentler slope, and no drop garage needed.</p>`;
-  const pm={50:0,60:0,70:0,0:0}; O.forEach(l=>pm[l.prod||0]++);
+  h+=`<h3 class="sh">How a lot is judged</h3>`;
+  if(REAR){
+    const M=MAP.meta||{};
+    h+=`<p style="font-size:13px">A home has to sit on the engineer's pad. Depth fit is the pad depth less the plan depth, with the porch allowed to encroach ${M.porchEncroach!=null?M.porchEncroach:5} ft into the front building line, so the porch does not eat buildable depth. Width fit is the pad width against the plan width.</p>
+     <p style="font-size:13px">Where no pad was extracted, the check falls back to the plat lot depth against the front building line (${M.frontBL!=null?M.frontBL:10} ft) plus rear-to-alley (${M.rearBL!=null?M.rearBL:20} ft), less the same porch credit. Both routes agree on every lot where both are available.</p>
+     <p style="font-size:13px">Driveway slope is an <b>estimate</b> — pad less rear grade over a ${BASE_RUN} ft apron — and only exists where a rear grade was recorded. ${MAXG_APPROVE!=null?`The design maximum is ${MAXG}%; between ${MAXG}% and ${MAXG_APPROVE}% the lot is buildable with a City approval, and only above ${MAXG_APPROVE}% is it treated as a failure.`:`Anything over ${MAXG}% is treated as a failure.`}</p>`;
+  }
+  if(FRONT){
+    h+=`<p style="font-size:13px">Garage apron sits ${SLAB} ft above pad less the ${STD_STEP} ft step-down. The driveway falls from there to the front spot elevation at the right-of-way. Slope is that drop over the driveway length — and that length grows as the home shifts toward the rear of the pad.</p>
+     <p style="font-size:13px">A shallower plan leaves more room behind it, so it can shift further back — a longer driveway, a gentler slope, and no drop garage needed.</p>`;
+  }
   h+=`<h3 class="sh">Monotony rule</h3>
    <select onchange="setRule(this.value)" style="width:100%;padding:7px;font-family:'IBM Plex Mono';font-size:12px;border:1px solid var(--line);border-radius:4px">
      ${Object.entries(MRULES).map(([k,v])=>`<option value="${k}" ${monoRule===k?'selected':''}>${v.n}</option>`).join('')}
    </select>
-   <p class="muted" style="margin-top:6px">${MRULES[monoRule].desc}</p>
-   <p class="muted"><b>Two source documents conflict on this.</b> Confirm which governs at Grand Oaks before relying on it — the tool applies whichever you pick here.</p>`;
-  const conf=O.filter(l=>A[l.i]&&monoConflict(l.i,A[l.i]).length);
-  const asg=O.filter(l=>A[l.i]);
+   <p class="muted" style="margin-top:6px">${MRULES[monoRule].desc}</p>`;
+  if((MAP.meta||{}).monoDefault)
+    h+=`<p class="muted">This community declares <b>${MRULES[(MAP.meta.monoDefault)]?MRULES[MAP.meta.monoDefault].n:MAP.meta.monoDefault}</b> as its governing rule.</p>`;
+  else
+    h+=`<p class="muted"><b>Two source documents conflict on this.</b> Confirm which governs before relying on it — the tool applies whichever you pick here.</p>`;
   h+=`<div class="kv" style="margin-top:8px"><span class="k">Plans assigned</span><span class="v">${asg.length} / ${n}</span>
    <span class="k" style="${conf.length?'color:var(--fail)':''}">Monotony conflicts</span>
    <span class="v" style="${conf.length?'color:var(--fail)':''}">${conf.length}</span></div>`;
   if(conf.length)h+=`<div class="card2" style="margin-top:8px"><div style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;line-height:1.8">
     ${conf.map(l=>`<a href="#" onclick="select(${l.i});return false">${l.b}-${l.l}</a>`).join(' · ')}</div></div>`;
+  /* Product counts are built from the products this community actually has.
+     A fixed {50,60,70} map produced NaN, and then 0, for The Heights' 45s. */
+  const pm={other:0}; communityProducts().forEach(p=>pm[p]=0);
+  O.forEach(l=>{const p=lotProduct(l); if(p!=null&&pm[p]!==undefined)pm[p]++; else pm.other++;});
   h+=`<h3 class="sh">Lot product mix</h3><div class="kv">`
-    + communityProducts().map(p=>`<span class="k">${p}' lots</span><span class="v">${pm[p]||0}</span>`).join('')
-    + `${pm[0]?`<span class="k" style="color:var(--warn)">product not set</span><span class="v" style="color:var(--warn)">${pm[0]}</span>`:''}</div>`;
-  h+=`<h3 class="sh">How far each plan can shift back</h3><table class="pl"><thead><tr><th>Plan</th><th>Depth</th><th>Max rear shift</th><th>Lots it solves</th></tr></thead><tbody>`;
-  [...PLANS].sort((a,b)=>rearShiftOf(b)-rearShiftOf(a)).forEach(p=>{
-    const s=rearShiftOf(p), solv=O.filter(l=>l.shift<=s).length;
-    h+=`<tr><td>${p.n}</td><td>${p.d.toFixed(1)}'</td><td>${s.toFixed(1)}'</td><td>${solv}/${n}</td></tr>`;});
-  h+='</tbody></table>';
-  if(chk)h+=`<div class="remedy" style="border-left-color:var(--warn);margin-top:14px"><b>${chk} OCH lots flagged CHECK.</b> Their front spot elevation could not be confirmed — switch the color mode to “confidence” to find them.</div>`;
+    + communityProducts().map(p=>`<span class="k">${p}' lots</span><span class="v">${pm[p]}</span>`).join('')
+    + `${pm.other?`<span class="k" style="color:var(--warn)">product not set</span><span class="v" style="color:var(--warn)">${pm.other}</span>`:''}</div>`;
+  if(REAR){
+    /* The rear-alley equivalent of the shift table: how much pad each plan needs. */
+    const M=MAP.meta||{}, porch=M.porchEncroach!=null?M.porchEncroach:5;
+    const list=livePlans(null).filter(p=>p.d!=null).sort((a,b)=>a.d-b.d);
+    if(list.length){
+      h+=`<h3 class="sh">Pad each plan needs</h3><table class="pl"><thead><tr><th>Plan</th><th>Width</th><th>Depth</th><th>Pad depth needed</th><th>Lots it fits</th></tr></thead><tbody>`;
+      list.forEach(p=>{
+        const need=p.d-porch;
+        const fits=O.filter(l=>{const d=depthFit(l,p),w=widthFit(l,p);
+          return (!d||d.margin>=0)&&(!w||w.margin>=0);}).length;
+        h+=`<tr><td>${p.n}</td><td>${p.w!=null?p.w.toFixed(1)+"'":'—'}</td><td>${p.d.toFixed(1)}'</td>
+            <td>${need.toFixed(1)}'</td><td>${fits}/${n}</td></tr>`;});
+      h+='</tbody></table><p class="muted" style="margin-top:5px">Pad depth needed is the plan depth less the ' + porch + ' ft porch credit.</p>';
+    }
+  }
+  if(FRONT){
+    /* Only plans this community offers, and only those with a measured depth.
+       Iterating every plan in the library and calling .toFixed() on a null depth
+       threw a TypeError here, which silently blanked the whole summary panel. */
+    const list=livePlans(null).filter(p=>p.d!=null).sort((a,b)=>rearShiftOf(b)-rearShiftOf(a));
+    const unmeasured=livePlans(null).filter(p=>p.d==null);
+    if(list.length){
+      h+=`<h3 class="sh">How far each plan can shift back</h3><table class="pl"><thead><tr><th>Plan</th><th>Depth</th><th>Max rear shift</th><th>Lots it solves</th></tr></thead><tbody>`;
+      list.forEach(p=>{
+        const s=rearShiftOf(p);   /* typical, against the community pad depth */
+        const solv=O.filter(l=>typeof l.shift==='number'&&l.shift<=rearShiftOf(p,l)).length;
+        h+=`<tr><td>${p.n}</td><td>${p.d.toFixed(1)}'</td><td>${s.toFixed(1)}'</td><td>${solv}/${n}</td></tr>`;});
+      h+='</tbody></table>';
+    }
+    if(unmeasured.length)
+      h+=`<div class="remedy" style="border-left-color:var(--warn)"><b>${unmeasured.length} offered plans have no measured dimensions.</b><br>
+        ${unmeasured.map(p=>p.n).join(', ')}.<br>No fit check can run for these — extract them from the plan sheets.</div>`;
+  }
+  if(PATCHED.length)h+=`<div class="remedy" style="border-left-color:var(--structural);margin-top:10px"><b>Standards applied from the tool, not the data file.</b><br>
+    <span style="font-family:'IBM Plex Mono',monospace;font-size:11.5px">${PATCHED.join('<br>')}</span><br>
+    <span class="muted">Confirmed 9/28/26. Move these into this community's JSON meta block when convenient, then delete them from the STANDARDS_PATCH block at the top of lot-map.html.</span></div>`;
+  const mism=O.filter(productMismatch);
+  if(mism.length)h+=`<div class="remedy" style="border-left-color:var(--warn);margin-top:10px"><b>${mism.length} of the ${n} lots in the program carry a product that disagrees with their pad.</b><br>
+    Fit is measured against the pad, so those numbers stand — but the <i>offerings</i> list is keyed off the product, so those lots may be shown plans that were never sold at their real width.
+    ${partialOwnership()?'Most of these are usually other builders’ lots; excluding them with the button above clears it.':''}</div>`;
+  const badpad=O.filter(padSuspect);
+  if(badpad.length)h+=`<div class="remedy" style="border-left-color:var(--fail)"><b>${badpad.length} lots have a pad wider than the lot itself.</b><br>
+    <span style="font-family:'IBM Plex Mono',monospace;font-size:11.5px">${badpad.map(l=>`<a href="#" onclick="select(${l.i});return false">${l.b}-${l.l}</a>`).join(' · ')}</span><br>
+    <span class="muted">A pad cannot exceed its lot — these were probably matched to the wrong lot during extraction.</span></div>`;
+  const chk=O.filter(l=>l.conf!=null&&l.conf!=='OK').length;
+  if(chk)h+=`<div class="remedy" style="border-left-color:var(--warn);margin-top:14px"><b>${chk} lots flagged CHECK.</b> Switch the color mode to “confidence” to find them.</div>`;
+  const cav=(MAP.meta||{}).caveats||[];
+  if(cav.length){
+    h+=`<h3 class="sh">Known caveats</h3><ul style="font-size:12.5px;padding-left:18px;margin:6px 0">`
+      + cav.map(c=>`<li style="margin-bottom:5px">${c}</li>`).join('') + `</ul>`;
+  }
   h+=`<h3 class="sh">Recent changes</h3><div id="histBox" class="muted">loading…</div>`;
   setTimeout(async()=>{
     const el=document.getElementById('histBox'); if(!el)return;
@@ -1015,18 +1407,16 @@ function overview(){
           <td>${r.changed_by||'—'}</td></tr>`}).join('')+'</tbody></table>';
   },0);
   h+=`<h3 class="sh">Save / share</h3>
-   <p style="font-size:13px" id="shareTxt"></p>
    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-     <button onclick="exportState()" style="font-family:'IBM Plex Mono';font-size:12px;padding:6px 11px;border:1px solid var(--line);border-radius:4px;background:#fff;cursor:pointer">export</button>
-     <label style="font-family:'IBM Plex Mono';font-size:12px;padding:6px 11px;border:1px solid var(--line);border-radius:4px;background:#fff;cursor:pointer">
-       import<input type="file" accept="application/json" onchange="importState(event)" style="display:none"></label>
+     <button onclick="exportState()" class="btn">export</button>
+     <label class="btn">import<input type="file" accept="application/json" onchange="importState(event)" style="display:none"></label>
    </div>`;
   if(assigned)h+=`<p class="muted" style="margin-top:12px">${assigned} lot${assigned>1?'s':''} assigned. <a href="#" onclick="clearAll();return false">clear all</a></p>`;
   return h;
 }
 function tagOurs(){const el=document.getElementById('tagOurs');
+  if(!el)return;
   const n=OURS().length; el.textContent=n+' of '+RES.length+' lots';}
-const _paint=paint; paint=function(){_paint();tagOurs();};
 async function boot(){
   const st=document.getElementById('side');
   try{
@@ -1046,20 +1436,28 @@ async function boot(){
     if(tag){tag.textContent='no data';tag.style.background='#F5E4E1';tag.style.color='#A6392E';}
     return;
   }
+  MAP.adj=MAP.adj||{}; MAP.curb=MAP.curb||[]; MAP.streets=MAP.streets||[]; MAP.blocks=MAP.blocks||[];
   RES=MAP.lots.filter(l=>l.type==='Residential');
   byId={}; MAP.lots.forEach(l=>byId[l.i]=l);
+  /* Entry type is decided from the data before anything renders, because the
+     colour modes, the status test and the fit maths all branch on it. */
+  REAR = RES.some(rearLot); FRONT = RES.some(l=>!rearLot(l));
+  applyStandardsPatch();
   applyMeta(MAP.meta);
   vb={x:0,y:0,w:MAP.w,h:MAP.h};
   build();
   if(RECORD){
-    ['pickBtn','hideBtn'].forEach(id=>{const e=document.getElementById(id); if(e)e.style.display='none';});
+    ['pickBtn','hideBtn','padBtn'].forEach(id=>{const e=document.getElementById(id); if(e)e.style.display='none';});
+  }
+  if(!MAP.lots.some(l=>l.pad&&l.pad.length)){
+    const e=document.getElementById('padBtn'); if(e)e.style.display='none';
   }
   colorMode=0; document.getElementById('cmBtn').textContent='color: '+modes()[0];
   drawLegend();
   if(WHO){const w=document.getElementById('whoTag'); if(w)w.textContent=WHO;}
   await pullAll();
   setInterval(()=>{if(SB.on()&&syncState!=='saving')pullAll();},60000);
-  renderSide();tagOurs();
+  safeSide();tagOurs();
   document.getElementById('pickBtn').title='Turn on, then click lots to add or remove them from the OCH program';
 }
 boot();
