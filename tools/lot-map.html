@@ -393,6 +393,16 @@ async function loadHistory(){
   catch(e){return [];}
 }
 let sel=null,colorMode=0,showNums=true,showPads=true,q='';
+/* Garage hand for the printable fit sheet. Remembered per person, not per lot —
+   it is a drawing choice, not lot data, so it never touches the database. */
+let GARHAND=localStorage.getItem('ochGarHand')||'L';
+function setGarHand(s){GARHAND=s;try{localStorage.setItem('ochGarHand',s);}catch(e){} safeSide();}
+function sheetHref(l){
+  let u='lot-fit-sheet.html?c='+encodeURIComponent(COMMUNITY)
+       +'&lot='+encodeURIComponent(l.b+'-'+l.l)+'&gar='+GARHAND;
+  if(A[l.i])u+='&plan='+encodeURIComponent(A[l.i]);
+  return u;
+}
 /* ---- lot selection: which lots OCH will actually build ---- */
 let pickMode=false, hideExcluded=false;
 const isOurs=l=>!EXC[l.i];
@@ -1037,6 +1047,18 @@ function renderSide(hits){
       <span class="k">Drop garage if not</span><span class="v">${l.dg>0?'+'+l.dg.toFixed(2)+' ft':'—'}</span></div>`;
   if(l.drvReq)h+=`<div class="remedy"><b>Restricted driveway.</b> Must be on the <b>${l.drvReq}</b> side, viewed from the street. J-swing plans must match this hand or be mirrored.</div>`;
   h+=`<h3 class="sh">Plan fit</h3>`;
+  if(l.addr){
+    /* The printable sheet draws the traced outline on this lot's graded pad.
+       Garage hand is picked here so the sheet opens already set. */
+    const seg=(s,t)=>`<button onclick="setGarHand('${s}')" style="font-family:'IBM Plex Mono';font-size:11.5px;`
+      +`padding:4px 10px;border:0;cursor:pointer;background:${GARHAND===s?'var(--structural)':'#fff'};`
+      +`color:${GARHAND===s?'#fff':'var(--ink)'}">${t}</button>`;
+    h+=`<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px">
+        <span class="muted" title="Which side the garage is on, standing at the street looking at the house">Garage side</span>
+        <span style="display:flex;border:1px solid var(--line);border-radius:4px;overflow:hidden">${seg('L','Left')}${seg('R','Right')}</span>
+        <a href="${sheetHref(l)}" target="_blank" class="btn" style="text-decoration:none;margin-left:auto">fit sheet &rarr;</a>
+      </div>`;
+  }
   h+=`<select id="assign" onchange="assignPlan(${l.i},this.value)" style="width:100%;padding:7px;font-family:'IBM Plex Mono';font-size:12px;border:1px solid var(--line);border-radius:4px">
       <option value="">— no plan assigned —</option>`;
   /* only offer plans this community sells for this lot's product */
