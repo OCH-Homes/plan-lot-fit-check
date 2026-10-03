@@ -23,8 +23,12 @@
   .seg button.on{background:var(--ink);color:#fff}
 
   /* ---- the sheet ---- */
-  .sheet{width:8.5in;min-height:11in;margin:18px auto;background:#fff;padding:0.5in;
-         box-shadow:0 1px 10px rgba(0,0,0,.2);display:flex;flex-direction:column}
+  /* Fixed letter page. The drawing is the only elastic block: it takes whatever
+     height the header, specs, verdict and notes leave, and the SVG scales into
+     it uniformly. That is what guarantees one page, on screen and on paper. */
+  .sheet{width:8.5in;height:11in;margin:18px auto;background:#fff;padding:0.5in;
+         box-shadow:0 1px 10px rgba(0,0,0,.2);display:flex;flex-direction:column;
+         overflow:hidden}
 
   .title{display:flex;justify-content:space-between;align-items:flex-start;
          border-bottom:1.5px solid var(--ink);padding-bottom:7px}
@@ -38,16 +42,16 @@
   .specs div span{color:var(--mid)}
   .specs div b{font-weight:500}
 
-  .draw{flex:1;padding:6px 0 0}
-  svg{width:100%;height:auto;display:block}
+  .draw{flex:1 1 auto;min-height:0;padding:6px 0 0;display:flex}
+  svg{width:100%;height:100%;display:block}
 
   .result{border-top:1.5px solid var(--ink);margin-top:6px;padding-top:7px;
           display:flex;justify-content:space-between;align-items:baseline;gap:18px}
   .result .verdict{font-size:15px;font-weight:600;letter-spacing:.6px;white-space:nowrap}
   .result .margins{font-size:11px;color:var(--mid);text-align:right}
 
-  .notes{margin-top:7px;padding-top:6px;border-top:1px solid var(--faint);
-         font-size:9.5px;color:var(--mid);line-height:1.6}
+  .notes{margin-top:6px;padding-top:5px;border-top:1px solid var(--faint);
+         font-size:8.6px;color:var(--mid);line-height:1.48}
   .notes b{color:var(--ink);font-weight:500}
   .foot{margin-top:6px;display:flex;justify-content:space-between;
         font-size:9px;color:var(--light);letter-spacing:.4px}
@@ -55,7 +59,8 @@
   @media print{
     body{background:#fff}
     .bar{display:none}
-    .sheet{box-shadow:none;margin:0;width:auto;min-height:auto;padding:0}
+    /* 8.5 x 11 less a 0.5in page margin leaves exactly 7.5 x 10 in of paper. */
+    .sheet{box-shadow:none;margin:0;width:7.5in;height:10in;padding:0;overflow:hidden}
     @page{size:letter portrait;margin:0.5in}
   }
 </style>
@@ -106,6 +111,10 @@
 
    A sales conversation aid. Not a plot plan, not a permit document.
    ===================================================================== */
+
+/* Printed in the footer so you can tell at a glance which file is actually
+   live on the site. Bump it whenever this file changes. */
+const SHEET_BUILD='2026-10-03b';
 
 const QS=new URLSearchParams(location.search);
 const COMMUNITY=QS.get('c')||'heights-uptown';
@@ -314,7 +323,7 @@ function draw(){
   const ceil=M.maxGradeApproval!=null?M.maxGradeApproval:maxg;
 
   let svg='<p style="font-size:11px;color:#555">Lot orientation is not recorded for this lot, so the plan cannot be drawn to scale. The figures below still apply.</p>';
-  let dm=null, wm=null, traced=false, doorFound=false, fpKey=null;
+  let dm=null, wm=null, traced=false, doorFound=false, fpKey=null, rearClamp=0;
 
   if(or){
     const O=orientLot(LOT,or);
@@ -334,7 +343,10 @@ function draw(){
     const frontY=maxy, rearY=miny;
     const poly=O.pts.map(p=>X(p[0])+','+Y(p[1])).join(' ');
 
-    let s=`<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">`;
+    /* meet, not slice: the whole drawing is scaled uniformly into whatever box
+       the page leaves, so nothing is ever cropped and the graphic scale bar
+       below stays truthful at any size. */
+    let s=`<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">`;
     s+=`<rect width="${W}" height="${H}" fill="#fff"/>`;
 
     /* --- lot boundary: the heaviest line on the sheet --- */
@@ -380,10 +392,28 @@ function draw(){
                           : (lotD-(plan.d+fbl+rear-porch));
 
       /* anchor: rear (garage) face of the house to the alley edge of the pad,
-         centred across the pad width. Falls back to the setback envelope. */
+         centred across the pad width. Falls back to the setback envelope.
+
+         THE REAR BUILDING LINE IS A HARD STOP. The engineer's pad is a grading
+         limit, not a building envelope, and on some lots it is graded closer to
+         the alley than the rear B.L. allows. The house may not follow it there:
+         the rear face is clamped to the building line, and the depth the clamp
+         costs comes straight off the margin below so the verdict can never be
+         flattered by a pad that reaches past the line. `rear` is read from the
+         community meta — 20' at The Heights, whatever each community defines. */
       const aL = padL!=null?padL:(minx+lotW/2-plan.w/2);
       const aR = padR!=null?padR:(minx+lotW/2+plan.w/2);
-      const aT = padT!=null?padT:(rearY+rear);
+      const blT = rearY+rear;
+      let aT = padT!=null?padT:blT;
+      if(aT < blT){ rearClamp = blT-aT; aT = blT; }
+      /* The margin is NOT penalised by the clamp. dm is computed from padD, the
+         pad's DEPTH, and the depth model already assumes a home seated on the
+         rear B.L. — at 713 Lincoln Mews padD is 80.0', which is exactly the
+         110' lot less the 20' rear and 10' front building lines. A clamp here
+         means the pad POLYGON is drawn nearer the alley than its own depth
+         implies, which is a placement discrepancy in the pad geometry, not lost
+         buildable depth. Docking dm would have turned a built house's +0.5'
+         into -10.3'. Flagged in the notes instead. */
       const cx = (aL+aR)/2;
 
       let houseL,houseR,houseFrontY;
@@ -519,6 +549,8 @@ function draw(){
       <b>Lot line and setbacks</b> are to scale from the recorded plat and the City-approved
       setbacks: ${fbl}' front, ${rear}' rear to alley, ${sideI}' sides, with a ${porch}' porch
       encroachment allowed into the front building line.
+      <b>The rear of the house is held at the ${rear}' building line to the alley</b> and is never placed closer than that.
+      ${rearClamp>0?`<b>The drawn pad outline on this lot sits ${rearClamp.toFixed(1)}' nearer the alley than that line</b>, so the home is held at the line rather than at the pad edge. The depth margin below is unaffected — it is figured from the pad's ${F(LOT.padD)} depth, which already seats the home on the building line. Worth checking the pad geometry for this lot. `:''}
       ${LOT.pad?`<b>The graded pad is the engineer's</b>, from the grading drawing — not derived from setbacks.`
                :`No graded pad was recorded for this lot, so the home is placed against the setback envelope.`}
       ${traced&&fpKey&&fpKey.indexOf('_')<0?`<b>Outline is the plan's single first-floor plan</b>, shared by elevations A, B and C — on this plan the elevations change the front facade, not the footprint. `:''}
@@ -537,7 +569,7 @@ function draw(){
 
     <div class="foot">
       <span>${esc(MAP.meta.name||'')} · ${esc(MAP.meta.city||'')}</span>
-      <span>${esc(MAP.meta.platSource||'')}</span>
+      <span>${esc(MAP.meta.platSource||'')} &nbsp;·&nbsp; SHEET ${SHEET_BUILD}</span>
     </div>`;
 }
 boot();
