@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Lot Fit Sheet — Olivia Clarke Homes</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{ --ink:#000; --mid:#555; --light:#8A8A8A; --faint:#BFBFBF; }
+  *{box-sizing:border-box}
+  body{margin:0;background:#D8D8D4;color:var(--ink);
+       font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:12px}
+
+  /* ---- controls: screen only, never printed ---- */
+  .bar{background:#fff;border-bottom:1px solid var(--ink);padding:10px 16px;
+       display:flex;gap:14px;align-items:flex-end;flex-wrap:wrap;position:sticky;top:0;z-index:5}
+  .bar label{font-size:10px;color:var(--mid);text-transform:uppercase;letter-spacing:.6px;
+             display:block;margin-bottom:3px}
+  select,button{font-family:'IBM Plex Mono',monospace;font-size:12px;padding:5px 9px;
+                border:1px solid var(--light);border-radius:0;background:#fff;color:var(--ink)}
+  button{cursor:pointer}
+  .seg{display:flex;border:1px solid var(--light)}
+  .seg button{border:0;background:#fff}
+  .seg button.on{background:var(--ink);color:#fff}
+
+  /* ---- the sheet ---- */
+  /* Fixed letter page. The drawing is the only elastic block: it takes whatever
+     height the header, specs, verdict and notes leave, and the SVG scales into
+     it uniformly. That is what guarantees one page, on screen and on paper. */
+  .sheet{width:8.5in;height:11in;margin:18px auto;background:#fff;padding:0.5in;
+         box-shadow:0 1px 10px rgba(0,0,0,.2);display:flex;flex-direction:column;
+         overflow:hidden}
+
+  .title{display:flex;justify-content:space-between;align-items:flex-start;
+         border-bottom:1.5px solid var(--ink);padding-bottom:7px}
+  .title .addr{font-size:19px;font-weight:600;letter-spacing:-.2px}
+  .title .bl{font-size:11px;color:var(--mid);margin-top:2px;letter-spacing:.5px}
+  .title .right{text-align:right;font-size:10px;color:var(--mid);line-height:1.6;letter-spacing:.4px}
+  .title .right b{display:block;font-size:11.5px;color:var(--ink);letter-spacing:.9px;font-weight:600}
+
+  .specs{display:flex;gap:26px;flex-wrap:wrap;padding:7px 0;
+         border-bottom:1px solid var(--faint);font-size:11px}
+  .specs div span{color:var(--mid)}
+  .specs div b{font-weight:500}
+
+  /* The SVG is positioned against a definite-height box rather than given
+     height:100% as a flex item. A percentage height on a flex item resolves
+     against a height the flex algorithm is still computing, which some browsers
+     decline to shrink — the drawing then overflows and is CLIPPED by the
+     overflow:hidden above instead of scaling down. Absolute inset against a
+     position:relative parent always resolves. */
+  .draw{flex:1 1 auto;min-height:0;padding:6px 0 0;position:relative}
+  svg{position:absolute;top:6px;left:0;right:0;bottom:0;
+      width:100%;height:calc(100% - 6px);display:block}
+
+  .result{border-top:1.5px solid var(--ink);margin-top:6px;padding-top:7px;
+          display:flex;justify-content:space-between;align-items:baseline;gap:18px}
+  .result .verdict{font-size:15px;font-weight:600;letter-spacing:.6px;white-space:nowrap}
+  .result .margins{font-size:11px;color:var(--mid);text-align:right}
+
+  .notes{margin-top:6px;padding-top:5px;border-top:1px solid var(--faint);
+         font-size:8.6px;color:var(--mid);line-height:1.48}
+  .notes b{color:var(--ink);font-weight:500}
+  .foot{margin-top:6px;display:flex;justify-content:space-between;
+        font-size:9px;color:var(--light);letter-spacing:.4px}
+
+  @media print{
+    body{background:#fff}
+    .bar{display:none}
+    /* 8.5 x 11 less a 0.5in page margin leaves exactly 7.5 x 10 in of paper. */
+    .sheet{box-shadow:none;margin:0;width:7.5in;height:10in;padding:0;overflow:hidden}
+    @page{size:letter portrait;margin:0.5in}
+  }
+</style>
+</head>
+<body>
+
+<div class="bar">
+  <div id="pickers" style="display:contents">
+  <div><label>Lot</label><select id="lotSel"></select></div>
+  <div><label>Plan</label><select id="planSel"></select></div>
+  <div><label>Elevation</label><select id="elevSel"></select></div>
+  <div><label>Garage side (facing the house)</label>
+    <div class="seg"><button id="gL" class="on" onclick="setGar('L')">Left</button><button id="gR" onclick="setGar('R')">Right</button></div>
+  </div>
+  </div>
+  <div style="margin-left:auto;display:flex;gap:8px">
+    <button onclick="history.length>1?history.back():location.href='lot-map.html?c='+COMMUNITY">&larr; back to map</button>
+    <button onclick="window.print()">Print / Save as PDF</button>
+  </div>
+</div>
+
+<div class="sheet" id="sheet"></div>
+
+<script>
+/* =====================================================================
+   LOT FIT SHEET — one printable page per lot, drawn as line work.
+
+   Deliberately monochrome: this prints as a plain black-and-white page and
+   is meant to read like a plot plan, not a dashboard. Weight carries the
+   hierarchy — lot line heaviest, house outline next, setbacks and pad
+   dashed and light.
+
+   SURVEY-ACCURATE
+     · lot boundary — recorded final plat
+     · setbacks and porch encroachment — resolved against City-approved,
+       OCH-built plot plans
+     · building pad — the engineer's grading drawing, where one exists
+     · house outline — traced from the architectural first-floor plan,
+       validated against each sheet's own SLAB area
+     · garage opening — the overhead door reveal, read from the traced
+       outline at the alley face
+
+   APPROXIMATE, AND SAID SO ON THE SHEET
+     · driveway apron is drawn square from the door to the alley; the real
+       apron is on layer C-DRIV of the grading set and has not been extracted
+     · where no traced outline exists the home falls back to a plain
+       rectangle at its overall width and depth
+
+   A sales conversation aid. Not a plot plan, not a permit document.
+   ===================================================================== */
+
+/* Printed in the footer so you can tell at a glance which file is actually
+   live on the site. Bump it whenever this file changes. */
+const SHEET_BUILD='2026-10-13c';
+
+const QS=new URLSearchParams(location.search);
+const COMMUNITY=QS.get('c')||'heights-uptown';
+/* The map drives this sheet: ?lot=N-12&plan=addison_b&gar=L
+   The pickers are a fallback for opening the sheet on its own. */
+const WANT_LOT=QS.get('lot'), WANT_PLAN=QS.get('plan');
+let MAP=null, ORIENT=null, FOOT=null, LOT=null, GAR=(QS.get('gar')==='R')?'R':'L';
+
+/* =====================================================================
+   COMMUNITY STANDARDS — confirmed 9/28/26, not yet in the data files.
+   MUST MATCH the STANDARDS_PATCH block in lot-map.html. When these move
+   into the JSON meta blocks, delete them from BOTH files together.
+   ===================================================================== */
+const STANDARDS_PATCH={
+  'heights-uptown':{ maxGradeApproval:12.0 },
+  'grandoaks-1a':  { maxGradeApproval:12.0, sideInterior:5.0, sideCorner:15.0, rearBL:20.0 },
+  'grandoaks-1b':  { maxGradeApproval:12.0, sideInterior:5.0, sideCorner:15.0 }
+};
+
+const F=v=>v==null?'—':(Math.round(v*10)/10).toFixed(1)+"'";
+const FT=v=>{if(v==null)return '—';const f=Math.floor(v),i=Math.round((v-f)*12);
+  return i===0?f+"'-0\"":(i===12?(f+1)+"'-0\"":f+"'-"+i+'"');};
+
+/* ---------- geometry ---------- */
+const sub=(a,b)=>[a[0]-b[0],a[1]-b[1]];
+const mid=e=>[(e[0][0]+e[1][0])/2,(e[0][1]+e[1][1])/2];
+function centroid(p){let A=0,cx=0,cy=0;
+  for(let i=0;i<p.length;i++){const [x0,y0]=p[i],[x1,y1]=p[(i+1)%p.length];
+    const c=x0*y1-x1*y0;A+=c;cx+=(x0+x1)*c;cy+=(y0+y1)*c;}
+  if(Math.abs(A)<1e-9){const n=p.length;
+    return [p.reduce((s,q)=>s+q[0],0)/n,p.reduce((s,q)=>s+q[1],0)/n];}
+  A*=0.5;return [cx/(6*A),cy/(6*A)];}
+function rot(p,a,o){const c=Math.cos(a),s=Math.sin(a),dx=p[0]-o[0],dy=p[1]-o[1];
+  return [o[0]+dx*c-dy*s, o[1]+dx*s+dy*c];}
+
+/* ---------- front-edge resolution ----------
+   The orient file records a `front` segment per lot. On rectangular lots it is
+   reliable. On irregular lots — corner lots with a clipped corner, lots on a
+   curve — the derivation has in several cases tagged a SIDE line as the
+   frontage. L-17 (517 Banks Street) records a 110.2' front on a lot whose plat
+   frontage is 60.9'; 110.2' is its west side line. Rotating that to horizontal
+   lays the lot on its side and draws a confidently wrong plan, which on a sheet
+   headed to a buyer is the worst failure this tool has.
+
+   The plat gives an independent check: lot.lw IS the frontage width. So the
+   recorded segment is scored against lw, and where it plainly disagrees the
+   frontage is re-read from the polygon itself. At L-17 exactly one chord
+   matches — C->E at 60.9' — and that is the Banks Street frontage, bent around
+   the clipped corner at D.
+
+   Where the check cannot be made confidently the sheet REFUSES to draw rather
+   than draw something wrong. Nine lots in this community carry irregular:true
+   and several of them record a side line as the frontage. */
+function chords(pts){
+  const n=pts.length, out=[];
+  for(let i=0;i<n;i++) for(let k=1;k<n;k++){
+    const a=pts[i], b=pts[(i+k)%n];
+    out.push({a:a,b:b,len:Math.hypot(b[0]-a[0],b[1]-a[1]),
+              mx:(a[0]+b[0])/2, my:(a[1]+b[1])/2});
+  }
+  return out;
+}
+function resolveFront(lot,orient){
+  const rec=orient.front, lw=lot.lw;
+  const recLen=(rec&&rec.length===2)
+    ? Math.hypot(rec[1][0]-rec[0][0],rec[1][1]-rec[0][1]) : null;
+  if(recLen==null) return {ok:false,why:'no frontage segment is recorded for this lot'};
+  if(lw==null) return {ok:true,front:rec,src:'recorded'};
+
+  const tol=Math.max(3.0,lw*0.08);
+  if(Math.abs(recLen-lw)<=tol) return {ok:true,front:rec,src:'recorded'};
+
+  /* The recorded segment is not the frontage. Look for a chord that is. */
+  const hit=chords(lot.pts).filter(c=>Math.abs(c.len-lw)<=tol);
+  /* collapse chords that are the same line traversed either way */
+  const groups=[];
+  hit.forEach(c=>{ if(!groups.some(g=>Math.hypot(g.mx-c.mx,g.my-c.my)<1.0)) groups.push(c); });
+
+  const stem=`the frontage recorded for this lot is ${recLen.toFixed(1)}', but the plat frontage is ${lw.toFixed(1)}'`;
+  if(groups.length===0)
+    return {ok:false,why:`${stem}, and no edge of the lot polygon matches the plat`};
+  if(groups.length===1)
+    return {ok:true,front:[groups[0].a,groups[0].b],src:'re-derived',
+            why:`${stem}. The frontage has been re-read from the plat polygon.`};
+
+  /* Several chords match the plat. The recorded segment is still worth
+     something: there are two distinct ways it goes wrong and they are not
+     equally bad.
+
+       WRONG SIDE   L-17 named the lot's west SIDE line as the frontage. The
+                    recorded segment tells us nothing about where the street is.
+       TRUNCATED    K-21 named the 64.0' straight part of a frontage that is
+                    really 74.7' — the derivation missed the clipped corner at
+                    the north end. The segment is on the CORRECT side; it is
+                    merely short.
+
+     Truncation is the common case, so the recorded segment is trusted for which
+     side of the lot faces the street even when its length is wrong. Among the
+     matching chords, take the one sitting on top of it. It has to win clearly —
+     at least twice as close as the next — or we are guessing, and on a lot whose
+     ends genuinely both match the plat (a plain rectangle with a side line
+     recorded) nothing in the plat can settle it and the sheet still refuses. */
+  const rm=[(rec[0][0]+rec[1][0])/2,(rec[0][1]+rec[1][1])/2];
+  const near=groups.map(g=>({g:g,d:Math.hypot(g.mx-rm[0],g.my-rm[1])}))
+                   .sort((p,q)=>p.d-q.d);
+
+  /* TRUNCATED: a matching chord sits right on top of the recorded segment, so
+     the recorded segment IS part of the frontage and only its length was wrong.
+     Keep it — do NOT swap in the chord. The chord runs corner to corner across
+     the bend, which tilts the whole lot a few degrees on the page and tilts the
+     engineer's pad with it; the straight part gives a square, axis-aligned
+     drawing. At K-21 the recorded 64.0' segment is dead vertical and yields a
+     74.0 x 116.0 page exactly matching the plat, where the 74.7' chord yields a
+     skewed 86.9 x 123.5 bounding box. Same lot, worse picture. */
+  if(near[0].d <= 0.35*lw)
+    return {ok:true,front:rec,src:'recorded',
+            why:`the frontage recorded for this lot measures ${recLen.toFixed(1)}' against the plat's ${lw.toFixed(1)}' because it is only the straight part of a frontage that bends at a clipped corner. It is on the correct side of the lot, so it has been kept for the drawing.`};
+
+  if(near[0].d*2 < near[1].d){
+    const g=near[0].g;
+    return {ok:true,front:[g.a,g.b],src:'re-derived',
+            why:`${stem}. The frontage has been re-read from the plat polygon.`};
+  }
+  return {ok:false,why:`${stem}, and ${groups.length} different edges of the lot match it with none clearly matching the recorded frontage, so which one fronts the street cannot be settled from the plat alone`};
+}
+
+/* Rotate the lot so the frontage is horizontal with the street at the bottom
+   and the alley at the top. Returns the angle too, so a north arrow can be
+   drawn correctly on a sheet whose orientation is no longer the map's. */
+function orientLot(lot,orient,frontSeg){
+  const fr=frontSeg||orient.front, o=centroid(lot.pts);
+  const v=sub(fr[1],fr[0]);
+  let a=-Math.atan2(v[1],v[0]);
+  let pts=lot.pts.map(p=>rot(p,a,o));
+  let f=fr.map(p=>rot(p,a,o));
+  if(mid(f)[1] < centroid(pts)[1]){ a+=Math.PI;
+    pts=lot.pts.map(p=>rot(p,a,o)); f=fr.map(p=>rot(p,a,o)); }
+  return {pts:pts, front:f, angle:a, origin:o};
+}
+
+/* The overhead door position. footprints.json now carries it explicitly per plan
+   — Pearl's came out of the CAD file exactly, the rest off the door recess in
+   each traced outline. The recess reading is kept as a fallback so a plan added
+   without a door field still draws something sensible rather than nothing.
+   This is what makes the left/right choice mean something rather than just
+   mirroring the shape. */
+function garageOpening(fp){
+  if(!fp)return null;
+  if(fp.door&&fp.door.lo!=null&&fp.door.hi!=null){
+    const w=fp.door.hi-fp.door.lo;
+    if(w>=12&&w<=20)return {lo:fp.door.lo,hi:fp.door.hi,w:w,src:fp.door.source||'plan data'};
+  }
+  if(!fp.pts)return null;
+  const near=fp.pts.filter(q=>q[1]>0.2&&q[1]<1.6);
+  if(near.length<2)return null;
+  const xs=near.map(q=>q[0]);
+  const lo=Math.min(...xs), hi=Math.max(...xs);
+  const w=hi-lo;
+  if(w<12||w>20)return null;          /* not a plausible door — do not guess */
+  return {lo:lo,hi:hi,w:w,src:'inferred from the outline'};
+}
+
+/* ---------- boot ---------- */
+async function boot(){
+  const [m,o,f]=await Promise.all([
+    fetch('../data/'+COMMUNITY+'.json').then(r=>r.json()),
+    fetch('../data/'+COMMUNITY+'-orient.json').then(r=>r.json()).catch(()=>null),
+    fetch('../data/footprints.json').then(r=>r.json()).catch(()=>null)
+  ]);
+  MAP=m; ORIENT=o||{}; FOOT=(f&&f.plans)||{};
+  MAP.meta=MAP.meta||{};
+  const sp=STANDARDS_PATCH[COMMUNITY]||{};
+  Object.keys(sp).forEach(k=>{MAP.meta[k]=sp[k];});
+
+  const lots=MAP.lots.filter(l=>l.addr)
+    .sort((a,b)=>a.addr.localeCompare(b.addr,undefined,{numeric:true}));
+  const ls=document.getElementById('lotSel');
+  lots.forEach(l=>{const op=document.createElement('option');
+    op.value=l.b+'-'+l.l; op.textContent=l.addr+'  ·  '+l.b+'-'+l.l; ls.appendChild(op);});
+  ls.onchange=()=>{LOT=lots.find(x=>x.b+'-'+x.l===ls.value); fillPlans(); draw();};
+  LOT=(WANT_LOT&&lots.find(x=>x.b+'-'+x.l===WANT_LOT))||lots[0];
+  if(!LOT){document.getElementById('sheet').innerHTML=
+    '<p>No addressed lots in this community, so there is nothing to draw.</p>';return;}
+  ls.value=LOT.b+'-'+LOT.l;
+  fillPlans();
+  if(WANT_PLAN&&PLANNAMES[WANT_PLAN]){
+    document.getElementById('planSel').value=PLANNAMES[WANT_PLAN].split(' ')[0];
+    fillElevs();
+    document.getElementById('elevSel').value=WANT_PLAN;
+  }
+  if(GAR==='R'){document.getElementById('gL').classList.remove('on');
+                document.getElementById('gR').classList.add('on');}
+  if(WANT_LOT&&WANT_PLAN) document.getElementById('pickers').style.display='none';
+  draw();
+}
+function offered(){
+  const o=MAP.meta.offers;
+  if(!o)return [];
+  if(Array.isArray(o))return o;
+  const pr=LOT?LOT.prod:null;
+  return (pr!=null&&o[String(pr)])||Object.values(o).flat();
+}
+function liveOffered(){
+  const retired=MAP.meta.retiredPlans||[];
+  return offered().filter(id=>!retired.includes(id));
+}
+function fillPlans(){
+  const fams=[];
+  liveOffered().forEach(id=>{const n=PLANNAMES[id];
+    if(n){const f=n.split(' ')[0]; if(!fams.includes(f))fams.push(f);}});
+  const ps=document.getElementById('planSel'); const keep=ps.value;
+  ps.innerHTML=fams.map(f=>`<option ${f===keep?'selected':''}>${f}</option>`).join('');
+  ps.onchange=()=>{fillElevs(); draw();};
+  fillElevs();
+}
+function fillElevs(){
+  const fam=document.getElementById('planSel').value;
+  const ids=liveOffered().filter(id=>PLANNAMES[id]&&PLANNAMES[id].split(' ')[0]===fam);
+  const es=document.getElementById('elevSel'); const keep=es.value;
+  es.innerHTML=ids.map(id=>{const e=PLANNAMES[id].split(' ')[1]||'A';
+    return `<option value="${id}" ${id===keep?'selected':''}>${e}</option>`;}).join('');
+  es.onchange=draw;
+}
+function setGar(s){GAR=s;
+  document.getElementById('gL').classList.toggle('on',s==='L');
+  document.getElementById('gR').classList.toggle('on',s==='R'); draw();}
+
+/* ---------- plan dimensions ----------
+   SECOND COPY of the plan library — lot-map.html holds the other. Keep them in
+   step; the proper fix is a shared data/plans.json read by both. The check in
+   unknownPlans() below at least makes drift visible instead of silent. */
+const PLANNAMES={}, PLANDIMS={};
+[['addison_a','Addison A',34.833,84.5],['addison_b','Addison B',34.833,84.5],['addison_c','Addison C',34.833,84.5],
+ ['carmichael_a','Carmichael A',34.833,82.5],['carmichael_b','Carmichael B',34.833,82.5],['carmichael_c','Carmichael C',34.833,82.5],
+ ['crowder_a','Crowder A',30,80],['crowder_b','Crowder B',30,80],['crowder_c','Crowder C',30,80],
+ ['holland_a','Holland A',34.833,76.5],['holland_b','Holland B',34.833,77.5],['holland_c','Holland C',34.833,76.5],
+ ['knox_a','Knox A',34.917,74.5],['knox_b','Knox B',34.917,74.5],['knox_c','Knox C',34.917,77.5],
+ ['parker_a','Parker A',34.833,83],['parker_b','Parker B',34.833,83],['parker_c','Parker C',34.833,83],
+ ['pearl_a','Pearl A',29.917,79.917]
+].forEach(([id,n,w,d])=>{PLANNAMES[id]=n;PLANDIMS[id]={w,d};});
+function unknownPlans(){ return offered().filter(id=>!PLANNAMES[id]); }
+
+/* ---------- drawing primitives: plain line work ---------- */
+const NSVG=[];
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;');}
+/* architectural tick: a short 45-degree slash at each end of a dimension line */
+function tick(x,y,vertical){
+  const d=3.1;
+  return vertical
+    ? `<line x1="${x-d}" y1="${y+d}" x2="${x+d}" y2="${y-d}" stroke="#333" stroke-width=".9"/>`
+    : `<line x1="${x-d}" y1="${y+d}" x2="${x+d}" y2="${y-d}" stroke="#333" stroke-width=".9"/>`;
+}
+function dimH(x1,x2,y,label,extFrom){
+  if(Math.abs(x2-x1)<14)return '';
+  let s=`<line x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" stroke="#333" stroke-width=".7"/>`;
+  s+=tick(x1,y)+tick(x2,y);
+  if(extFrom!=null){
+    s+=`<line x1="${x1}" y1="${extFrom}" x2="${x1}" y2="${y+(y>extFrom?4:-4)}" stroke="#999" stroke-width=".5"/>`;
+    s+=`<line x1="${x2}" y1="${extFrom}" x2="${x2}" y2="${y+(y>extFrom?4:-4)}" stroke="#999" stroke-width=".5"/>`;
+  }
+  const cx=(x1+x2)/2, w=String(label).length*5.6+6;
+  s+=`<rect x="${cx-w/2}" y="${y-6.5}" width="${w}" height="13" fill="#fff"/>`;
+  s+=`<text x="${cx}" y="${y+3.4}" text-anchor="middle" font-family="IBM Plex Mono" font-size="9" fill="#000">${esc(label)}</text>`;
+  return s;
+}
+function dimV(y1,y2,x,label,extFrom){
+  if(Math.abs(y2-y1)<14)return '';
+  let s=`<line x1="${x}" y1="${y1}" x2="${x}" y2="${y2}" stroke="#333" stroke-width=".7"/>`;
+  s+=tick(x,y1,true)+tick(x,y2,true);
+  if(extFrom!=null){
+    s+=`<line x1="${extFrom}" y1="${y1}" x2="${x+(x>extFrom?-4:4)}" y2="${y1}" stroke="#999" stroke-width=".5"/>`;
+    s+=`<line x1="${extFrom}" y1="${y2}" x2="${x+(x>extFrom?-4:4)}" y2="${y2}" stroke="#999" stroke-width=".5"/>`;
+  }
+  const cy=(y1+y2)/2, w=String(label).length*5.6+6;
+  s+=`<g transform="translate(${x},${cy}) rotate(-90)">`
+   + `<rect x="${-w/2}" y="-6.5" width="${w}" height="13" fill="#fff"/>`
+   + `<text x="0" y="3.4" text-anchor="middle" font-family="IBM Plex Mono" font-size="9" fill="#000">${esc(label)}</text></g>`;
+  return s;
+}
+function note(x,y,txt,anchor){
+  return `<text x="${x}" y="${y}" text-anchor="${anchor||'middle'}" font-family="IBM Plex Mono" `
+       + `font-size="8.2" fill="#555" letter-spacing=".4">${esc(txt)}</text>`;
+}
+
+/* ---------- draw ---------- */
+function draw(){
+  if(!LOT)return;
+  const key=LOT.b+'-'+LOT.l;
+  const or=ORIENT[key];
+  const pid=document.getElementById('elevSel').value;
+  const plan=PLANDIMS[pid], pname=PLANNAMES[pid]||'—';
+  const M=MAP.meta;
+  const fbl=M.frontBL!=null?M.frontBL:10, rear=M.rearBL!=null?M.rearBL:20,
+        sideI=M.sideInterior!=null?M.sideInterior:5,
+        porch=M.porchEncroach!=null?M.porchEncroach:5;
+  const maxg=M.maxGrade!=null?M.maxGrade:10;
+  const ceil=M.maxGradeApproval!=null?M.maxGradeApproval:maxg;
+
+  let svg='<p style="font-size:11px;color:#555">Lot orientation is not recorded for this lot, so the plan cannot be drawn to scale. The figures below still apply.</p>';
+  let dm=null, wm=null, traced=false, doorFound=false, fpKey=null, rearClamp=0;
+  let frontNote='', drawBlocked=null;
+
+  const FR = or ? resolveFront(LOT,or) : null;
+  if(FR&&!FR.ok) drawBlocked=FR.why;
+  if(FR&&FR.ok&&FR.why) frontNote=FR.why;
+
+  /* ---------- the fit figures ----------
+     Computed HERE, before and outside the drawing, and from the plat and pad
+     numbers only — never from the rotated lot outline. They used to be worked
+     out inside the drawing block, which meant a lot whose drawing was refused
+     printed NOT CHECKED with empty margins while the refusal notice directly
+     above it claimed the figures were unaffected. They are two independent
+     questions: whether the home fits, and whether we can draw where it sits.
+     K-21 is the case in point — 19 plans fit it and the sheet said nothing. */
+  const availW = (LOT.padW!=null) ? LOT.padW
+               : (M.buildableWidth!=null) ? M.buildableWidth
+               : (LOT.lw!=null) ? LOT.lw-sideI*2 : null;
+  if(plan&&availW!=null) wm=availW-plan.w;
+  if(plan){
+    if(LOT.padD!=null)      dm=LOT.padD-(plan.d-porch);
+    else if(LOT.ld!=null)   dm=LOT.ld-(plan.d+fbl+rear-porch);
+  }
+
+  if(or&&!drawBlocked){
+    const O=orientLot(LOT,or,FR.front);
+    const xs=O.pts.map(p=>p[0]), ys=O.pts.map(p=>p[1]);
+    const minx=Math.min(...xs), maxx=Math.max(...xs),
+          miny=Math.min(...ys), maxy=Math.max(...ys);
+    const lotW=maxx-minx, lotD=maxy-miny;
+
+    /* Second, independent check: once rotated, the depth down the page must be
+       the plat depth. If it is not, the lot is still lying the wrong way round
+       and nothing below this point can be trusted. */
+    if(LOT.ld!=null&&Math.abs(lotD-LOT.ld)>Math.max(4.0,LOT.ld*0.10))
+      drawBlocked=`with the frontage as resolved, the lot measures ${lotD.toFixed(1)}' from street to alley but the plat records ${LOT.ld.toFixed(1)}'`;
+  }
+
+  /* A wrong drawing is worse than no drawing on a sheet a buyer may see, so a
+     lot that fails either check gets the reason and no plan. The fit figures
+     below do not depend on orientation and are still printed. */
+  if(drawBlocked)
+    svg='<div style="font-size:11px;color:#000;border:1px solid #000;padding:14px;line-height:1.7">'
+      + '<b>THE PLAN IS NOT DRAWN FOR THIS LOT.</b><br>'
+      + 'The lot geometry on file does not agree with the recorded plat, so any '
+      + 'drawing made from it would be wrong: ' + esc(drawBlocked) + '.<br><br>'
+      + 'This says nothing about whether the home fits. The verdict and margins '
+      + 'below come from the engineer\'s pad and the plan dimensions, which do '
+      + 'not depend on the lot outline, and they still stand. What is missing is '
+      + 'the picture of where the home sits. Correct this lot\'s frontage in the '
+      + 'orientation data to restore it.</div>';
+
+  if(or&&!drawBlocked){
+    const O=orientLot(LOT,or,FR.front);
+    const xs=O.pts.map(p=>p[0]), ys=O.pts.map(p=>p[1]);
+    const minx=Math.min(...xs), maxx=Math.max(...xs),
+          miny=Math.min(...ys), maxy=Math.max(...ys);
+    const lotW=maxx-minx, lotD=maxy-miny;
+
+    /* generous margins: the dimension strings live outside the lot */
+    const W=612, ML=62, MR=58, MT=34, MB=44;
+    const avail=W-ML-MR, availH=660;
+    const sc=Math.min(avail/lotW, availH/lotD);
+    const H=Math.round(lotD*sc+MT+MB);
+    const ox=ML+(avail-lotW*sc)/2, oy=MT;
+    const X=x=>ox+(x-minx)*sc, Y=y=>oy+(y-miny)*sc, S=v=>v*sc;
+
+    const frontY=maxy, rearY=miny;
+    const poly=O.pts.map(p=>X(p[0])+','+Y(p[1])).join(' ');
+
+    /* meet, not slice: the whole drawing is scaled uniformly into whatever box
+       the page leaves, so nothing is ever cropped and the graphic scale bar
+       below stays truthful at any size. */
+    let s=`<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">`;
+    s+=`<rect width="${W}" height="${H}" fill="#fff"/>`;
+
+    /* --- lot boundary: the heaviest line on the sheet --- */
+    s+=`<polygon points="${poly}" fill="none" stroke="#000" stroke-width="1.7" stroke-linejoin="round"/>`;
+
+    /* --- setback lines, dashed and labelled in place --- */
+    const sbl=(x1,y1,x2,y2)=>`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#777" stroke-width=".8" stroke-dasharray="7,4"/>`;
+    s+=sbl(X(minx),Y(frontY-fbl),X(maxx),Y(frontY-fbl));
+    s+=sbl(X(minx),Y(rearY+rear),X(maxx),Y(rearY+rear));
+    s+=sbl(X(minx+sideI),Y(rearY),X(minx+sideI),Y(frontY));
+    s+=sbl(X(maxx-sideI),Y(rearY),X(maxx-sideI),Y(frontY));
+    s+=note(X(minx)+7,Y(frontY-fbl)-4,fbl+"' B.L.",'start');
+    s+=note(X(minx)+7,Y(rearY+rear)+10,rear+"' B.L. TO ALLEY",'start');
+    s+=note(X(minx+sideI)+3,Y(rearY)+S(lotD/2),'',"start");
+    s+=`<g transform="translate(${X(minx+sideI)-4},${Y(rearY+lotD*0.32)}) rotate(-90)">`
+      +`<text x="0" y="0" text-anchor="middle" font-family="IBM Plex Mono" font-size="8.2" fill="#555">${sideI}' B.L.</text></g>`;
+    s+=`<g transform="translate(${X(maxx-sideI)+9},${Y(rearY+lotD*0.32)}) rotate(-90)">`
+      +`<text x="0" y="0" text-anchor="middle" font-family="IBM Plex Mono" font-size="8.2" fill="#555">${sideI}' B.L.</text></g>`;
+
+    /* --- engineer's pad, where the grading drawing gave one --- */
+    let padPts=null,padL=null,padR=null,padT=null,padB=null;
+    if(LOT.pad&&LOT.pad.length){
+      padPts=LOT.pad.map(p=>rot(p,O.angle,O.origin));
+      padL=Math.min(...padPts.map(p=>p[0])); padR=Math.max(...padPts.map(p=>p[0]));
+      padT=Math.min(...padPts.map(p=>p[1])); padB=Math.max(...padPts.map(p=>p[1]));
+      s+=`<polygon points="${padPts.map(p=>X(p[0])+','+Y(p[1])).join(' ')}" fill="none"
+            stroke="#AAA" stroke-width="1" stroke-dasharray="3,3"/>`;
+      s+=note(X(padR)-3,Y(padT)-4,'GRADED PAD','end');
+    }
+
+    if(plan){
+      /* Footprints are keyed by plan id where the elevations genuinely differ
+         (Holland and Knox each have three first-floor plans) and by family where
+         A, B and C share one floor plan and only the facade changes. Try the
+         elevation first, fall back to the family. */
+      const fam=(pname.split(' ')[0]||'').toLowerCase();
+      const fp=FOOT[pid]||FOOT[fam];
+      fpKey = FOOT[pid] ? pid : (FOOT[fam] ? fam : null);
+      /* buildable width and depth, best source first */
+      /* dm and wm were computed above, from the plat and the pad. Nothing here
+         recomputes them — the drawing reads them, it does not define them. */
+
+      /* anchor: rear (garage) face of the house to the alley edge of the pad,
+         centred across the pad width. Falls back to the setback envelope.
+
+         THE REAR BUILDING LINE IS A HARD STOP. The engineer's pad is a grading
+         limit, not a building envelope, and on some lots it is graded closer to
+         the alley than the rear B.L. allows. The house may not follow it there:
+         the rear face is clamped to the building line, and the depth the clamp
+         costs comes straight off the margin below so the verdict can never be
+         flattered by a pad that reaches past the line. `rear` is read from the
+         community meta — 20' at The Heights, whatever each community defines. */
+      const aL = padL!=null?padL:(minx+lotW/2-plan.w/2);
+      const aR = padR!=null?padR:(minx+lotW/2+plan.w/2);
+      const blT = rearY+rear;
+      let aT = padT!=null?padT:blT;
+      if(aT < blT){ rearClamp = blT-aT; aT = blT; }
+      /* The margin is NOT penalised by the clamp. dm is computed from padD, the
+         pad's DEPTH, and the depth model already assumes a home seated on the
+         rear B.L. — at 713 Lincoln Mews padD is 80.0', which is exactly the
+         110' lot less the 20' rear and 10' front building lines. A clamp here
+         means the pad POLYGON is drawn nearer the alley than its own depth
+         implies, which is a placement discrepancy in the pad geometry, not lost
+         buildable depth. Docking dm would have turned a built house's +0.5'
+         into -10.3'. Flagged in the notes instead. */
+      const cx = (aL+aR)/2;
+
+      let houseL,houseR,houseFrontY;
+      if(fp&&fp.pts&&fp.pts.length>3){
+        traced=true;
+        /* LEFT and RIGHT are read standing at the street looking at the house.
+           The sheet draws street at the bottom, alley at the top, so a viewer at
+           the street faces up the page and their left is the page's left.
+           Every plan is DRAWN with its garage on the high-x side, which is the
+           page's right — so the CAD plan as drawn is a RIGHT-hand garage, and it
+           is LEFT that mirrors. (The rectangle fallback below already had this
+           the right way round; this traced branch did not.) */
+        const px=v=>X(cx-fp.w/2+(GAR==='L'?(fp.w-v):v));
+        const py=v=>Y(aT+v);
+        s+=`<polygon points="${fp.pts.map(p=>px(p[0])+','+py(p[1])).join(' ')}"
+              fill="none" stroke="#000" stroke-width="1.35" stroke-linejoin="round"/>`;
+        houseL=cx-fp.w/2; houseR=cx+fp.w/2; houseFrontY=aT+fp.d;
+
+        /* the overhead door, from the trace */
+        const g=garageOpening(fp);
+        if(g){
+          doorFound=true;
+          const gl=GAR==='L'?(fp.w-g.hi):g.lo, gh=GAR==='L'?(fp.w-g.lo):g.hi;
+          const gx1=X(cx-fp.w/2+gl), gx2=X(cx-fp.w/2+gh);
+          /* door shown as a heavy segment on the alley face */
+          s+=`<line x1="${gx1}" y1="${Y(aT)}" x2="${gx2}" y2="${Y(aT)}" stroke="#000" stroke-width="3.4"/>`;
+          /* apron, door to alley */
+          s+=`<line x1="${gx1}" y1="${Y(aT)}" x2="${gx1}" y2="${Y(rearY)}" stroke="#777" stroke-width=".8" stroke-dasharray="4,3"/>`;
+          s+=`<line x1="${gx2}" y1="${Y(aT)}" x2="${gx2}" y2="${Y(rearY)}" stroke="#777" stroke-width=".8" stroke-dasharray="4,3"/>`;
+          s+=note((gx1+gx2)/2,Y(rearY)+S(rear)/2+3,'DRIVE');
+          s+=dimH(gx1,gx2,Y(aT)-13,FT(g.w),null);
+          s+=note((gx1+gx2)/2,Y(aT)-19,'16\'-0" O.H. DOOR — GARAGE '+(GAR==='L'?'LEFT':'RIGHT'));
+        }
+      } else {
+        /* no traced outline for this plan — plain rectangle, stated in the notes */
+        const hw=S(plan.w), hd=S(plan.d);
+        const hx=X(cx)-hw/2, hy=Y(aT);
+        s+=`<rect x="${hx}" y="${hy}" width="${hw}" height="${hd}" fill="none" stroke="#000" stroke-width="1.35"/>`;
+        houseL=cx-plan.w/2; houseR=cx+plan.w/2; houseFrontY=aT+plan.d;
+        const gw=hw*0.46, gx=(GAR==='L')?hx+hw*0.05:hx+hw-gw-hw*0.05;
+        s+=`<line x1="${gx}" y1="${hy}" x2="${gx+gw}" y2="${hy}" stroke="#000" stroke-width="3.4"/>`;
+        s+=note(gx+gw/2,hy-6,'GARAGE (INDICATIVE)');
+      }
+
+      /* --- dimensions --- */
+      const dimTop=Y(rearY)-16;
+      s+=dimH(X(houseL),X(houseR),dimTop,FT(plan.w),Y(rearY));
+      s+=dimV(Y(aT),Y(houseFrontY),X(maxx)+30,FT(plan.d),X(maxx));
+      /* side clearances, house to lot line */
+      if(houseL-minx>1.5) s+=dimH(X(minx),X(houseL),Y(houseFrontY)+15,FT(houseL-minx),Y(houseFrontY));
+      if(maxx-houseR>1.5) s+=dimH(X(houseR),X(maxx),Y(houseFrontY)+15,FT(maxx-houseR),Y(houseFrontY));
+      /* front face to front lot line */
+      if(frontY-houseFrontY>1.5)
+        s+=dimV(Y(houseFrontY),Y(frontY),X(minx)-18,FT(frontY-houseFrontY),X(minx));
+    }
+
+    /* --- overall lot dimensions, outermost --- */
+    s+=dimH(X(minx),X(maxx),Y(frontY)+30,FT(lotW),Y(frontY));
+    s+=dimV(Y(rearY),Y(frontY),X(maxx)+52,FT(lotD),X(maxx));
+
+    /* --- edge labels --- */
+    s+=note(W/2,Y(rearY)-24,'ALLEY');
+    s+=note(W/2,Y(frontY)+46,(LOT.street||'STREET').toUpperCase());
+
+    /* --- north arrow, only where the source frame states its orientation --- */
+    if(/north is up/i.test(M.orientation||'')){
+      const nx=W-26, ny=MT+16, L=15;
+      const dx=Math.sin(O.angle)*L, dy=-Math.cos(O.angle)*L;
+      s+=`<line x1="${nx-dx}" y1="${ny-dy}" x2="${nx+dx}" y2="${ny+dy}" stroke="#000" stroke-width="1"/>`;
+      s+=`<circle cx="${nx+dx}" cy="${ny+dy}" r="2.1" fill="#000"/>`;
+      s+=`<text x="${nx+dx*1.75}" y="${ny+dy*1.75+3}" text-anchor="middle" font-family="IBM Plex Mono" font-size="8.5" fill="#000">N</text>`;
+    }
+
+    /* --- graphic scale: correct whatever the printer does --- */
+    const sbFt=20, sbx=ML-4, sby=H-13, sbw=S(sbFt);
+    s+=`<line x1="${sbx}" y1="${sby}" x2="${sbx+sbw}" y2="${sby}" stroke="#000" stroke-width="1"/>`;
+    s+=`<line x1="${sbx}" y1="${sby-3.5}" x2="${sbx}" y2="${sby+3.5}" stroke="#000" stroke-width="1"/>`;
+    s+=`<line x1="${sbx+sbw/2}" y1="${sby-2.5}" x2="${sbx+sbw/2}" y2="${sby+2.5}" stroke="#000" stroke-width=".8"/>`;
+    s+=`<line x1="${sbx+sbw}" y1="${sby-3.5}" x2="${sbx+sbw}" y2="${sby+3.5}" stroke="#000" stroke-width="1"/>`;
+    s+=note(sbx,sby+13,'0','middle')+note(sbx+sbw,sby+13,sbFt+" FT",'middle');
+    s+='</svg>';
+    svg=s;
+  }
+
+  /* Whether a plan was actually drawn. The notes below describe the drawing,
+     so on a refused sheet most of them would be describing something that is
+     not on the page. */
+  const DRAWN = !drawBlocked && !!or;
+
+  /* --- verdict, in words rather than colour --- */
+  let verdict='NOT CHECKED', detail='';
+  if(dm!=null&&wm!=null){
+    if(dm<0||wm<0){
+      verdict='DOES NOT FIT';
+      detail=[dm<0?`short ${Math.abs(dm).toFixed(1)}' on depth`:null,
+              wm<0?`short ${Math.abs(wm).toFixed(1)}' on width`:null]
+             .filter(Boolean).join(' · ');
+    } else if(dm<2||wm<0.5){
+      verdict='FITS — TIGHT'; detail='confirm against the surveyed plot plan';
+    } else { verdict='FITS'; detail=''; }
+  }
+  const slopeTxt = LOT.sl21==null ? 'not recorded'
+    : LOT.sl21<=maxg ? LOT.sl21.toFixed(1)+'%'
+    : LOT.sl21<=ceil ? LOT.sl21.toFixed(1)+'% — over '+maxg+'%, needs City approval'
+    : LOT.sl21.toFixed(1)+'% — over the '+ceil+'% approval ceiling';
+
+  const unk=unknownPlans();
+
+  document.getElementById('sheet').innerHTML=`
+    <div class="title">
+      <div>
+        <div class="addr">${esc(LOT.addr||(LOT.b+'-'+LOT.l))}</div>
+        <div class="bl">BLOCK ${esc(LOT.b)} &nbsp;·&nbsp; LOT ${esc(LOT.l)} &nbsp;·&nbsp; ${esc(MAP.meta.name||'')}</div>
+      </div>
+      <div class="right"><b>OLIVIA CLARKE HOMES</b>LOT FIT SHEET &nbsp;·&nbsp; BUILD ${SHEET_BUILD}<br>${new Date().toLocaleDateString()}</div>
+    </div>
+
+    <div class="specs">
+      <div><span>PLAN </span><b>${esc(pname)}</b></div>
+      <div><span>GARAGE </span><b>${GAR==='L'?'LEFT':'RIGHT'}</b><span> side, facing the house from the street</span></div>
+      <div><span>HOUSE </span><b>${plan?FT(plan.w)+' × '+FT(plan.d):'—'}</b></div>
+      <div><span>LOT </span><b>${F(LOT.lw)} × ${F(LOT.ld)}</b></div>
+      <div><span>PAD </span><b>${LOT.padW!=null?FT(LOT.padW)+' × '+FT(LOT.padD):'not graded'}</b></div>
+      <div><span>DRIVE SLOPE </span><b>${esc(slopeTxt)}</b></div>
+    </div>
+
+    <div class="draw">${svg}</div>
+
+    <div class="result">
+      <div class="verdict">${verdict}</div>
+      <div class="margins">
+        Depth margin ${dm==null?'—':(dm>=0?'+':'')+dm.toFixed(1)+"'"} &nbsp;·&nbsp;
+        Width margin ${wm==null?'—':(wm>=0?'+':'')+wm.toFixed(1)+"'"}${detail?'<br>'+esc(detail):''}
+      </div>
+    </div>
+
+    <div class="notes">
+      ${DRAWN?`<b>Lot line and setbacks</b> are to scale from the recorded plat and the City-approved
+      setbacks: ${fbl}' front, ${rear}' rear to alley, ${sideI}' sides, with a ${porch}' porch
+      encroachment allowed into the front building line.`
+      :`<b>The setbacks used for the figures above</b> are the City-approved ones: ${fbl}' front,
+      ${rear}' rear to alley, ${sideI}' sides, with a ${porch}' porch encroachment allowed into the
+      front building line.`}
+      ${frontNote?`<b>This lot's recorded frontage disagrees with the plat.</b> ${esc(frontNote)} Worth fixing in the orientation data so the map agrees. `:''}
+      ${DRAWN?`<b>The rear of the house is held at the ${rear}' building line to the alley</b> and is never placed closer than that.`:''}
+      ${DRAWN&&rearClamp>0?`<b>The drawn pad outline on this lot sits ${rearClamp.toFixed(1)}' nearer the alley than that line</b>, so the home is held at the line rather than at the pad edge. The depth margin above is unaffected — it is figured from the pad's ${F(LOT.padD)} depth, which already seats the home on the building line. Worth checking the pad geometry for this lot. `:''}
+      ${LOT.pad?`<b>The graded pad is the engineer's</b>, from the grading drawing — not derived from setbacks.`
+               :`No graded pad was recorded for this lot, so the home is measured against the setback envelope.`}
+      ${DRAWN&&traced&&fpKey&&fpKey.indexOf('_')<0?`<b>Outline is the plan's single first-floor plan</b>, shared by elevations A, B and C — on this plan the elevations change the front facade, not the footprint. `:''}
+      ${DRAWN&&traced&&fpKey&&fpKey.indexOf('_')>=0?`<b>Outline is elevation ${fpKey.split('_')[1].toUpperCase()}'s own first-floor plan.</b> This plan has a different footprint per elevation. `:''}
+      ${!DRAWN?'' : traced?`<b>The outline comes from the architectural CAD file</b>  — the finish-face area polylines, unioned — so bump-outs and jogs are exact, not traced.`
+              :`<b>No traced outline exists for this plan, so the house is drawn as a plain rectangle</b> at its overall width and depth — bump-outs and jogs are not shown.`}
+      ${!DRAWN?'' : doorFound?`The overhead door is read from the traced outline at the alley face.`
+                 :`<b>The garage position is indicative only</b>, not the true opening.`}
+      ${DRAWN?`<b>Left and right are read standing at the street looking at the house</b>, matching how OCH designates a plan. The drawing is a view from above with the street at the bottom, so the garage side shown is the side you would see it on in person.
+      The driveway is drawn square from the door to the alley; the surveyed apron has not been extracted.`:''}
+      ${LOT.wall?`A retaining wall is recorded on this lot${LOT.wexp!=null?` at ${LOT.wexp.toFixed(1)}' exposed`:''}${DRAWN?' and is not drawn':''}.`:''}
+      ${unk.length?`<b>${unk.length} offered plan(s) are not in this sheet's plan table</b> (${esc(unk.join(', '))}) — the library has drifted, check lot-map.html.`:''}
+      <br><b>A sales conversation aid — not a plot plan and not a permit document.</b>
+      Confirm against the surveyed plot plan before making commitments to a buyer.
+    </div>
+
+    <div class="foot">
+      <span>${esc(MAP.meta.name||'')} · ${esc(MAP.meta.city||'')}</span>
+      <span>${esc(MAP.meta.platSource||'')} &nbsp;·&nbsp; SHEET ${SHEET_BUILD}</span>
+    </div>`;
+}
+boot();
+</script>
+</body>
+</html>

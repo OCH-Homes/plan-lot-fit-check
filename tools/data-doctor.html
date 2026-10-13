@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Data Doctor — Olivia Clarke Homes</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{ --ink:#111; --mid:#5A5F63; --light:#8A9095; --faint:#D8DCDF; --bg:#F4F5F3;
+         --bad:#8C2F23; --warn:#8A6410; --good:#2B6140; }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+       font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:13px;line-height:1.55}
+  header{background:#fff;border-bottom:1px solid var(--ink);padding:16px 22px}
+  h1{margin:0;font-size:17px;font-weight:600;letter-spacing:-.2px}
+  .sub{color:var(--mid);font-size:11px;margin-top:3px;letter-spacing:.3px}
+  .bar{background:#fff;border-bottom:1px solid var(--faint);padding:11px 22px;
+       display:flex;gap:14px;align-items:flex-end;flex-wrap:wrap}
+  label{font-size:10px;color:var(--mid);text-transform:uppercase;letter-spacing:.6px;
+        display:block;margin-bottom:3px}
+  select,button{font-family:inherit;font-size:13px;padding:6px 10px;
+                border:1px solid var(--light);background:#fff;color:var(--ink);border-radius:0}
+  button{cursor:pointer}
+  button.primary{background:var(--ink);color:#fff;border-color:var(--ink)}
+  button:disabled{opacity:.4;cursor:default}
+  main{padding:22px;max-width:1500px}
+  section{background:#fff;border:1px solid var(--faint);margin-bottom:18px}
+  section > h2{margin:0;font-size:12px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;
+               padding:11px 16px;border-bottom:1px solid var(--faint);background:#FAFBFA}
+  .body{padding:14px 16px}
+  .cards{display:flex;gap:12px;flex-wrap:wrap;padding:14px 16px}
+  .card{border:1px solid var(--faint);padding:10px 14px;min-width:132px}
+  .card .n{font-size:21px;font-weight:600;letter-spacing:-.5px}
+  .card .k{font-size:10px;color:var(--mid);text-transform:uppercase;letter-spacing:.6px;margin-top:2px}
+  .card.bad .n{color:var(--bad)} .card.warn .n{color:var(--warn)} .card.good .n{color:var(--good)}
+  table{border-collapse:collapse;width:100%;font-size:12px}
+  th{text-align:left;font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.6px;
+     color:var(--mid);padding:8px 10px;border-bottom:1px solid var(--ink);white-space:nowrap;
+     position:sticky;top:0;background:#fff}
+  td{padding:7px 10px;border-bottom:1px solid var(--faint);vertical-align:top}
+  td.num{text-align:right;white-space:nowrap}
+  tr.bad td:first-child{box-shadow:inset 3px 0 0 var(--bad)}
+  tr.warn td:first-child{box-shadow:inset 3px 0 0 var(--warn)}
+  tr.ok td:first-child{box-shadow:inset 3px 0 0 var(--faint)}
+  .tag{font-size:10px;letter-spacing:.5px;text-transform:uppercase;font-weight:600;white-space:nowrap}
+  .tag.bad{color:var(--bad)} .tag.warn{color:var(--warn)} .tag.ok{color:var(--good)}
+  .why{color:var(--mid);font-size:11px;max-width:620px}
+  .scroll{max-height:none;overflow:visible}
+  .note{color:var(--mid);font-size:11.5px}
+  code{background:#F0F1EF;padding:1px 4px;font-size:11.5px}
+  .err{color:var(--bad);padding:14px 16px}
+  .filters{display:flex;gap:7px;padding:11px 16px;border-bottom:1px solid var(--faint);flex-wrap:wrap}
+  .filters button{font-size:11px;padding:4px 10px}
+  .filters button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Data Doctor</h1>
+  <div class="sub">Audits a community's lot data against its own recorded plat, and writes a corrected orientation file.</div>
+</header>
+
+<div class="bar">
+  <div><label>Community</label>
+    <select id="comm">
+      <option value="heights-uptown">The Heights at Uptown</option>
+      <option value="grandoaks-1a">Grand Oaks at Green Meadows — Ph 1A</option>
+      <option value="grandoaks-1b">Grand Oaks at Green Meadows — Ph 1B</option>
+    </select>
+  </div>
+  <button class="primary" id="run">Run the audit</button>
+  <div style="margin-left:auto;display:flex;gap:8px">
+    <button id="dlOrient" disabled>Download corrected orientation file</button>
+    <button id="dlCsv" disabled>Download the table as CSV</button>
+  </div>
+</div>
+
+<main id="out"></main>
+
+<script>
+/* =====================================================================
+   DATA DOCTOR — reads a community's own data files and reports where they
+   contradict themselves, then writes a corrected orientation file.
+
+   This exists because the lot fit sheet had grown a runtime workaround for
+   bad data: every time a lot drew wrong, the sheet learned to detect and
+   compensate. That is the wrong place for the fix. The plat is the authority,
+   the data files should agree with it, and the tools should be able to trust
+   them. This page closes that loop without a terminal — it runs in the
+   browser, against the live files, and hands back a file to commit.
+
+   WHAT IT CHECKS
+
+   1  FRONTAGE.  <community>-orient.json records, per lot, the segment that
+      fronts the street. The sheet rotates the lot so that segment is
+      horizontal with the street at the bottom. The plat's `lw` IS the
+      frontage width, so it is an independent check. Two failure modes:
+
+        WRONG SIDE   a side line is recorded as the frontage (L-17 records
+                     110.2' on a lot whose frontage is 60.9'). The segment
+                     tells us nothing about where the street is. REPLACE it.
+        TRUNCATED    only the straight part of a frontage that bends at a
+                     clipped corner is recorded (K-21 records 64.0' of a
+                     74.7' frontage). The segment is on the correct side and
+                     gives a squarer drawing than the corner-to-corner chord.
+                     KEEP it.
+
+      Distinguished by whether the best-matching chord sits on top of the
+      recorded segment. See resolveFront below — same logic as the sheet.
+
+   2  PAD PLACEMENT.  padD is the pad's depth and is trusted; the pad polygon
+      is its outline. On lots measured so far the outline sits 5–11' nearer
+      the alley than its own depth implies, which is why the sheet clamps the
+      home to the rear building line. This counts how widespread that is.
+
+   3  OCH OWNERSHIP.  ownership is currently inferred from whether a lot has
+      an address, which overcounts. This reports the gap.
+
+   NOTHING HERE WRITES TO THE REPO. It produces a file to download and commit.
+   ===================================================================== */
+
+const $=id=>document.getElementById(id);
+let LAST=null;
+
+/* ---------- geometry, identical to lot-fit-sheet.html ---------- */
+const sub=(a,b)=>[a[0]-b[0],a[1]-b[1]];
+const mid=e=>[(e[0][0]+e[1][0])/2,(e[0][1]+e[1][1])/2];
+function centroid(p){let A=0,cx=0,cy=0;
+  for(let i=0;i<p.length;i++){const [x0,y0]=p[i],[x1,y1]=p[(i+1)%p.length];
+    const c=x0*y1-x1*y0;A+=c;cx+=(x0+x1)*c;cy+=(y0+y1)*c;}
+  if(Math.abs(A)<1e-9){const n=p.length;
+    return [p.reduce((s,q)=>s+q[0],0)/n,p.reduce((s,q)=>s+q[1],0)/n];}
+  A*=0.5;return [cx/(6*A),cy/(6*A)];}
+function rot(p,a,o){const c=Math.cos(a),s=Math.sin(a),dx=p[0]-o[0],dy=p[1]-o[1];
+  return [o[0]+dx*c-dy*s, o[1]+dx*s+dy*c];}
+function orientLot(lot,frontSeg){
+  const fr=frontSeg, o=centroid(lot.pts);
+  const v=sub(fr[1],fr[0]);
+  let a=-Math.atan2(v[1],v[0]);
+  let pts=lot.pts.map(p=>rot(p,a,o));
+  let f=fr.map(p=>rot(p,a,o));
+  if(mid(f)[1] < centroid(pts)[1]){ a+=Math.PI;
+    pts=lot.pts.map(p=>rot(p,a,o)); f=fr.map(p=>rot(p,a,o)); }
+  return {pts:pts, front:f, angle:a, origin:o};
+}
+function chords(pts){
+  const n=pts.length, out=[];
+  for(let i=0;i<n;i++) for(let k=1;k<n;k++){
+    const a=pts[i], b=pts[(i+k)%n];
+    out.push({a:a,b:b,len:Math.hypot(b[0]-a[0],b[1]-a[1]),
+              mx:(a[0]+b[0])/2, my:(a[1]+b[1])/2});
+  }
+  return out;
+}
+function resolveFront(lot,orient){
+  const rec=orient.front, lw=lot.lw;
+  const recLen=(rec&&rec.length===2)
+    ? Math.hypot(rec[1][0]-rec[0][0],rec[1][1]-rec[0][1]) : null;
+  if(recLen==null) return {ok:false,code:'NO RECORD',why:'no frontage segment is recorded for this lot'};
+  if(lw==null) return {ok:true,front:rec,code:'NO PLAT WIDTH',src:'recorded',
+    why:'the plat frontage (lw) is missing for this lot, so the recorded segment cannot be checked'};
+
+  const tol=Math.max(3.0,lw*0.08);
+  if(Math.abs(recLen-lw)<=tol)
+    return {ok:true,front:rec,src:'recorded',code:'OK',recLen:recLen};
+
+  const hit=chords(lot.pts).filter(c=>Math.abs(c.len-lw)<=tol);
+  const groups=[];
+  hit.forEach(c=>{ if(!groups.some(g=>Math.hypot(g.mx-c.mx,g.my-c.my)<1.0)) groups.push(c); });
+
+  const stem=`recorded frontage ${recLen.toFixed(1)}' against a plat frontage of ${lw.toFixed(1)}'`;
+  if(groups.length===0)
+    return {ok:false,code:'NO MATCH',recLen:recLen,
+      why:`${stem}, and no edge of the lot polygon matches the plat`};
+
+  const rm=mid(rec);
+  const near=groups.map(g=>({g:g,d:Math.hypot(g.mx-rm[0],g.my-rm[1])}))
+                   .sort((p,q)=>p.d-q.d);
+
+  if(near[0].d <= 0.35*lw)
+    return {ok:true,front:rec,src:'recorded',code:'TRUNCATED',recLen:recLen,full:near[0].g.len,
+      why:`${stem}. It is the straight part of a frontage that bends at a clipped corner — correct side, short by ${(near[0].g.len-recLen).toFixed(1)}'. Kept.`};
+
+  if(groups.length===1 || near[0].d*2 < near[1].d){
+    const g=near[0].g;
+    return {ok:true,front:[g.a,g.b],src:'re-derived',code:'WRONG SIDE',recLen:recLen,full:g.len,
+      why:`${stem}. The recorded segment is on a different edge of the lot. Replaced with the ${g.len.toFixed(1)}' chord that matches the plat.`};
+  }
+  return {ok:false,code:'AMBIGUOUS',recLen:recLen,
+    why:`${stem}, and ${groups.length} edges match it with none clearly matching the recorded segment, so which one fronts the street cannot be settled from the plat alone`};
+}
+
+/* ---------- the audit ---------- */
+async function audit(comm){
+  const [m,o]=await Promise.all([
+    fetch('../data/'+comm+'.json').then(r=>{if(!r.ok)throw new Error(comm+'.json — '+r.status);return r.json();}),
+    fetch('../data/'+comm+'-orient.json').then(r=>{if(!r.ok)throw new Error(comm+'-orient.json — '+r.status);return r.json();})
+  ]);
+  const M=m.meta||{};
+  const rearBL=M.rearBL!=null?M.rearBL:20;
+  const rows=[];
+
+  m.lots.forEach(lot=>{
+    const key=lot.b+'-'+lot.l;
+    const or=o[key];
+    if(!or) return;                       /* no orientation record: not this file's problem */
+    const r=resolveFront(lot,or);
+    const row={key:key, addr:lot.addr||'', lw:lot.lw, ld:lot.ld,
+               code:r.code, why:r.why||'', recLen:r.recLen, front:r.ok?r.front:null,
+               changed:!!(r.ok&&r.src==='re-derived'), depth:null, padOff:null};
+
+    if(r.ok){
+      const O=orientLot(lot,r.front);
+      const ys=O.pts.map(p=>p[1]);
+      const miny=Math.min(...ys), maxy=Math.max(...ys);
+      row.depth=maxy-miny;
+      if(lot.ld!=null && Math.abs(row.depth-lot.ld)>Math.max(4.0,lot.ld*0.10)){
+        row.code='DEPTH MISMATCH';
+        row.why=`with this frontage the lot measures ${row.depth.toFixed(1)}' street to alley, but the plat records ${lot.ld.toFixed(1)}'`;
+        row.changed=false; row.front=null;
+      }
+      /* pad outline against the rear building line */
+      if(lot.pad&&lot.pad.length){
+        const pp=lot.pad.map(p=>rot(p,O.angle,O.origin));
+        const padT=Math.min(...pp.map(p=>p[1]));
+        const off=(miny+rearBL)-padT;
+        if(off>0.5) row.padOff=off;
+      }
+    }
+    rows.push(row);
+  });
+
+  /* OCH ownership, as currently inferred */
+  const addressed=m.lots.filter(l=>l.addr).length;
+  const flagged=m.lots.filter(l=>l.och===true).length;
+
+  return {comm:comm, meta:M, orient:o, rows:rows, rearBL:rearBL,
+          totalLots:m.lots.length, orientRecords:Object.keys(o).length,
+          addressed:addressed, flagged:flagged};
+}
+
+/* ---------- rendering ---------- */
+const SEV={'OK':'ok','TRUNCATED':'warn','NO PLAT WIDTH':'warn','WRONG SIDE':'bad',
+           'AMBIGUOUS':'bad','NO MATCH':'bad','NO RECORD':'bad','DEPTH MISMATCH':'bad'};
+let FILTER='all';
+
+function render(A){
+  const n=c=>A.rows.filter(r=>r.code===c).length;
+  const broken=A.rows.filter(r=>SEV[r.code]==='bad').length;
+  const pads=A.rows.filter(r=>r.padOff!=null);
+  const padAvg=pads.length?pads.reduce((s,r)=>s+r.padOff,0)/pads.length:0;
+
+  let h='';
+  h+=`<section><h2>Frontage — ${A.rows.length} lots with an orientation record, of ${A.totalLots} in the plat</h2>
+    <div class="cards">
+      <div class="card good"><div class="n">${n('OK')}</div><div class="k">agree with the plat</div></div>
+      <div class="card warn"><div class="n">${n('TRUNCATED')}</div><div class="k">truncated · kept</div></div>
+      <div class="card bad"><div class="n">${n('WRONG SIDE')}</div><div class="k">wrong side · replaced</div></div>
+      <div class="card bad"><div class="n">${n('AMBIGUOUS')+n('NO MATCH')+n('DEPTH MISMATCH')+n('NO RECORD')}</div><div class="k">cannot resolve</div></div>
+    </div>
+    <div class="body note">A lot marked <b>wrong side</b> records a segment on a different edge of the lot than the frontage; the corrected file replaces it. A lot marked <b>truncated</b> records only the straight part of a frontage that bends — it is on the right side and is kept, because the corner-to-corner chord tilts the drawing. A lot that <b>cannot be resolved</b> is left exactly as it is and needs a human eye.</div>
+  </section>`;
+
+  h+=`<section><h2>Pad outlines against the ${A.rearBL}' rear building line</h2>
+    <div class="cards">
+      <div class="card ${pads.length?'bad':'good'}"><div class="n">${pads.length}</div><div class="k">pads past the line</div></div>
+      <div class="card"><div class="n">${padAvg?padAvg.toFixed(1)+"'":'—'}</div><div class="k">average overhang</div></div>
+      <div class="card"><div class="n">${pads.length?Math.max(...pads.map(r=>r.padOff)).toFixed(1)+"'":'—'}</div><div class="k">worst</div></div>
+    </div>
+    <div class="body note">The pad <b>depth</b> (<code>padD</code>) is trusted and the fit margins come from it, so these lots still size correctly. What is off is where the pad <b>outline</b> is drawn. The fit sheet already holds the home at the building line rather than following the pad edge, so this is a data-quality finding, not a live error. <b>This page does not change pad geometry</b> — fixing it means going back to the grading drawings.</div>
+  </section>`;
+
+  h+=`<section><h2>OCH ownership</h2>
+    <div class="cards">
+      <div class="card"><div class="n">${A.totalLots}</div><div class="k">lots in the plat</div></div>
+      <div class="card ${A.flagged?'good':'warn'}"><div class="n">${A.flagged||'—'}</div><div class="k">flagged <code>och:true</code></div></div>
+      <div class="card warn"><div class="n">${A.addressed}</div><div class="k">inferred, by address</div></div>
+    </div>
+    <div class="body note">${A.flagged
+      ? `This community carries an explicit <code>och</code> flag, which is the right way round.`
+      : `No lot in this community carries an <code>och</code> flag, so the tools infer ownership from whether a lot has an address — which counts <b>${A.addressed}</b>. Until the flag exists, any count of "OCH lots" in this community is that number, not the real one.`}</div>
+  </section>`;
+
+  h+=`<section><h2>Every lot</h2>
+    <div class="filters">
+      ${['all','needs attention','changed','ok'].map(f=>
+        `<button class="${FILTER===f?'on':''}" onclick="setFilter('${f}')">${f}</button>`).join('')}
+    </div>
+    <div class="scroll"><table><thead><tr>
+      <th>Lot</th><th>Address</th><th>Plat W×D</th><th>Recorded</th><th>Status</th><th>Pad</th><th>What it means</th>
+    </tr></thead><tbody>`;
+
+  A.rows.filter(r=>{
+    if(FILTER==='needs attention') return SEV[r.code]!=='ok';
+    if(FILTER==='changed') return r.changed;
+    if(FILTER==='ok') return r.code==='OK';
+    return true;
+  }).forEach(r=>{
+    h+=`<tr class="${SEV[r.code]}">
+      <td><b>${r.key}</b></td>
+      <td>${r.addr||'<span class="note">—</span>'}</td>
+      <td class="num">${r.lw!=null?r.lw.toFixed(1):'—'} × ${r.ld!=null?r.ld.toFixed(1):'—'}</td>
+      <td class="num">${r.recLen!=null?r.recLen.toFixed(1)+"'":'—'}</td>
+      <td><span class="tag ${SEV[r.code]}">${r.code}</span></td>
+      <td class="num">${r.padOff!=null?'<span class="tag warn">+'+r.padOff.toFixed(1)+"'</span>":''}</td>
+      <td class="why">${r.why||''}</td>
+    </tr>`;
+  });
+  h+='</tbody></table></div></section>';
+
+  const changed=A.rows.filter(r=>r.changed).length;
+  h+=`<section><h2>The corrected file</h2><div class="body note">
+    <b>${changed}</b> frontage${changed===1?'':'s'} would change. Everything else in
+    <code>${A.comm}-orient.json</code> is carried through untouched, including lots this page
+    could not resolve. Each corrected record gains <code>frontSource</code> so the change is
+    visible in the diff, and each unresolved one gains <code>review:true</code>.
+    <br><br><b>Before you commit it:</b> read the changed rows above. This page reasons from the
+    plat polygon alone — it has never seen the recorded plat drawing, and it does not know which
+    street a corner lot is addressed from.
+  </div></section>`;
+
+  $('out').innerHTML=h;
+  $('dlOrient').disabled=false; $('dlCsv').disabled=false;
+}
+function setFilter(f){ FILTER=f; render(LAST); }
+
+/* ---------- output ---------- */
+function correctedOrient(A){
+  const out={};
+  Object.keys(A.orient).forEach(k=>{
+    const src=A.orient[k], row=A.rows.find(r=>r.key===k);
+    const rec=Object.assign({},src);
+    if(row){
+      if(row.changed&&row.front){
+        rec.front=[[+row.front[0][0].toFixed(2),+row.front[0][1].toFixed(2)],
+                   [+row.front[1][0].toFixed(2),+row.front[1][1].toFixed(2)]];
+        rec.frontLen=+Math.hypot(rec.front[1][0]-rec.front[0][0],
+                                 rec.front[1][1]-rec.front[0][1]).toFixed(1);
+        rec.frontSource='plat-rederived 2026-10-13';
+      } else if(row.code==='TRUNCATED'){
+        rec.frontSource='recorded, truncated at a clipped corner — verified against the plat';
+      } else if(SEV[row.code]==='bad'){
+        rec.review=true;
+        rec.reviewWhy=row.why;
+      }
+    }
+    out[k]=rec;
+  });
+  return out;
+}
+function save(name,text,type){
+  const b=new Blob([text],{type:type||'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(b); a.download=name; a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+}
+$('dlOrient').onclick=()=>{
+  save(LAST.comm+'-orient.json', JSON.stringify(correctedOrient(LAST),null,1));
+};
+$('dlCsv').onclick=()=>{
+  const q=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"';
+  const head=['lot','address','platW','platD','recordedFrontLen','status','padOverhangFt','note'];
+  const body=LAST.rows.map(r=>[r.key,r.addr,r.lw,r.ld,
+    r.recLen!=null?r.recLen.toFixed(1):'',r.code,
+    r.padOff!=null?r.padOff.toFixed(1):'',r.why].map(q).join(','));
+  save(LAST.comm+'-audit.csv',[head.map(q).join(','),...body].join('\n'),'text/csv');
+};
+
+$('run').onclick=async()=>{
+  $('out').innerHTML='<section><div class="body note">Reading the data files…</div></section>';
+  $('dlOrient').disabled=true; $('dlCsv').disabled=true;
+  try{
+    LAST=await audit($('comm').value);
+    FILTER='needs attention';
+    render(LAST);
+  }catch(e){
+    $('out').innerHTML='<section><h2>Could not run</h2><div class="err">'
+      +String(e.message||e)+'<br><br>This page expects to sit in <code>tools/</code> alongside the other tools, '
+      +'so that <code>../data/</code> reaches the data files.</div></section>';
+  }
+};
+$('out').innerHTML='<section><div class="body note">Pick a community and run the audit. '
+  +'Nothing is written anywhere — the page reads the live data files and produces a corrected '
+  +'file for you to download and commit.</div></section>';
+</script>
+</body>
+</html>
