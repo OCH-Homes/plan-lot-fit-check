@@ -692,5 +692,27 @@
   }
  },
  "validation": "Every footprint matches the plan library's width and depth and the sheet's stated slab area to within a square foot. Unlike the 9/22 raster traces there is no wall-line undercount, so areaSf equals slabSf rather than running 49-59 sf under it.",
- "openDoors": "RESOLVED 10/3/26. Every overhead door is 16'-0\" (OCH spec, confirmed by Brandi) and sits centred on the garage. Garage positions come from the A-Area-Masonry polygons, so every door is now CAD-derived rather than read off a raster trace.\n\nThe rule was validated against the one plan where the door is measured directly: Pearl's DWG carries a full A-Wall layer, and the gap between wall runs on its alley face gives 11.63 -> 27.63 ft. Pearl's garage centre is 19.63, so centre +/- 8.00 gives 11.63 -> 27.63. Exact, to the hundredth.\n\nThe previous traced values ran 15.29-15.93 ft wide and sat 0.05-0.45 ft off centre; the largest correction was Parker at 0.45 ft. A-Wall-Open was investigated as a direct source and does NOT carry the overhead door on any of these files \u2014 its longest runs are 13-14.7 ft and belong to other openings.\n\nHolland and Knox have three first-floor plans each, but the garage sits at an IDENTICAL x in all three (Holland 14.25-34.83, Knox 14.33-34.92), so one door position is correct for every elevation. That is measured, not inherited."
+ "openDoors": "RESOLVED 10/3/26. Every overhead door is 16'-0\" (OCH spec, confirmed by Brandi) and sits centred on the garage. Garage positions come from the A-Area-Masonry polygons, so every door is now CAD-derived rather than read off a raster trace.\n\nThe rule was validated against the one plan where the door is measured directly: Pearl's DWG carries a full A-Wall layer, and the gap between wall runs on its alley face gives 11.63 -> 27.63 ft. Pearl's garage centre is 19.63, so centre +/- 8.00 gives 11.63 -> 27.63. Exact, to the hundredth.\n\nThe previous traced values ran 15.29-15.93 ft wide and sat 0.05-0.45 ft off centre; the largest correction was Parker at 0.45 ft. A-Wall-Open was investigated as a direct source and does NOT carry the overhead door on any of these files \u2014 its longest runs are 13-14.7 ft and belong to other openings.\n\nHolland and Knox have three first-floor plans each, but the garage sits at an IDENTICAL x in all three (Holland 14.25-34.83, Knox 14.33-34.92), so one door position is correct for every elevation. That is measured, not inherited.",
+ "porchByPlan": {
+  "addison_a": 7.0,
+  "addison_b": 7.0,
+  "addison_c": 4.0,
+  "carmichael_a": 7.5,
+  "carmichael_b": 7.5,
+  "carmichael_c": 7.5,
+  "crowder_a": 0.0,
+  "crowder_b": 0.0,
+  "crowder_c": 0.0,
+  "holland_a": 0.0,
+  "holland_b": 0.0,
+  "holland_c": 0.0,
+  "knox_a": 0.0,
+  "knox_b": 0.0,
+  "knox_c": 3.0,
+  "parker_a": 8.0,
+  "parker_b": 6.5,
+  "parker_c": 6.25,
+  "pearl_a": 0.0
+ },
+ "porchNote": "Depth the front porch projects ahead of the living area, in feet, per ELEVATION. Only a porch may encroach into the front building line; living space never may. The community porchEncroach figure is the CAP (5' at Celina) \u2014 a deeper porch is still capped, a shallower one gets only what it has. Confirmed by Brandi 13-14 Oct 2026 against the elevations, not inferred from CAD geometry: Knox C and Addison C both differ from what the geometry suggested."
 }
