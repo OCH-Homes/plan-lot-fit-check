@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lot Finder — Olivia Clarke Homes</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{ --ink:#14181A; --mid:#5A6166; --light:#8E979C; --line:#DFE3E5; --bg:#F5F6F4;
+         --no:#8C2F23; --tight:#8A6410; --yes:#2B6140; }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+       font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:15px;line-height:1.5}
+
+  header{background:#fff;border-bottom:1px solid var(--ink);padding:18px 26px}
+  h1{margin:0;font-size:19px;font-weight:600;letter-spacing:-.2px}
+  header .sub{color:var(--mid);font-size:12px;margin-top:3px}
+
+  main{max-width:1180px;margin:0 auto;padding:26px}
+  .crumb{display:flex;align-items:center;gap:10px;margin-bottom:18px;font-size:13px;flex-wrap:wrap}
+  .crumb button{font-family:inherit;font-size:13px;background:none;border:0;color:var(--mid);
+                cursor:pointer;padding:4px 0;text-decoration:underline}
+  .crumb span{color:var(--light)}
+  .crumb b{font-weight:600}
+
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:14px}
+  .card{background:#fff;border:1px solid var(--line);padding:18px 20px;cursor:pointer;
+        text-align:left;font-family:inherit;font-size:inherit;color:inherit;width:100%;
+        display:block;transition:border-color .12s}
+  .card:hover{border-color:var(--ink)}
+  .card h2{margin:0 0 4px;font-size:17px;font-weight:600}
+  .card .meta{color:var(--mid);font-size:12.5px}
+
+  table{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--line)}
+  th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.7px;color:var(--mid);
+     font-weight:600;padding:11px 14px;border-bottom:1px solid var(--ink);white-space:nowrap}
+  td{padding:12px 14px;border-bottom:1px solid var(--line);vertical-align:middle}
+  tr.row{cursor:pointer}
+  tr.row:hover td{background:#FAFBF9}
+  td.num{text-align:right;white-space:nowrap;color:var(--mid);font-size:13.5px}
+  .addr{font-weight:600}
+  .bl{color:var(--light);font-size:12px}
+
+  .tag{display:inline-block;font-size:11px;letter-spacing:.5px;text-transform:uppercase;
+       font-weight:600;padding:3px 8px;border:1px solid currentColor;white-space:nowrap}
+  .t-yes{color:var(--yes)} .t-tight{color:var(--tight)} .t-no{color:var(--no)} .t-na{color:var(--light)}
+
+  .panel{background:#fff;border:1px solid var(--line);padding:22px 24px;margin-bottom:16px}
+  .panel h2{margin:0;font-size:20px;font-weight:600}
+  .panel .bl{margin-top:2px}
+  .facts{display:flex;gap:26px;flex-wrap:wrap;margin-top:14px;padding-top:14px;
+         border-top:1px solid var(--line);font-size:13.5px}
+  .facts div span{color:var(--mid)}
+  .facts div b{font-weight:600}
+
+  .seg{display:inline-flex;border:1px solid var(--light)}
+  .seg button{font-family:inherit;font-size:13px;padding:7px 16px;border:0;background:#fff;
+              color:var(--ink);cursor:pointer}
+  .seg button.on{background:var(--ink);color:#fff}
+
+  .plans h3{font-size:12px;text-transform:uppercase;letter-spacing:.7px;color:var(--mid);
+            font-weight:600;margin:22px 0 8px}
+  .open{font-family:inherit;font-size:13px;padding:7px 14px;border:1px solid var(--ink);
+        background:var(--ink);color:#fff;cursor:pointer;white-space:nowrap}
+  .open.ghost{background:#fff;color:var(--ink)}
+  .why{color:var(--mid);font-size:12.5px}
+  .note{color:var(--mid);font-size:12.5px;margin-top:18px;line-height:1.65}
+  .err{color:var(--no);background:#fff;border:1px solid var(--no);padding:16px 18px}
+  @media (max-width:640px){
+    main{padding:16px} .facts{gap:16px}
+    th:nth-child(3),td:nth-child(3),th:nth-child(4),td:nth-child(4){display:none}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Lot Finder</h1>
+  <div class="sub">Pick a community, pick a lot, see what fits — and print the sheet.</div>
+</header>
+
+<main id="app"></main>
+
+<script>
+/* =====================================================================
+   LOT FINDER — the sales-facing front door.
+
+   The community map is the working surface: monotony rules, plan assignment,
+   grading, ownership, every lot in the plat. It is the right tool for Brandi
+   and the wrong one for a salesperson standing with a buyer, which is what
+   prompted this — the concern raised was that the map would overwhelm them.
+
+   So this page does one thing. Community, lot, what fits, print. No assignment,
+   no monotony, no editing, nothing that can be broken by clicking it. It is
+   read-only by construction: it fetches the same data files everything else
+   reads and writes nothing anywhere.
+
+   Lots that do NOT work are shown and marked, not hidden, so that a
+   salesperson asked about a specific lot gets a real answer instead of finding
+   it missing from the list.
+
+   The fit arithmetic here MUST agree with the fit sheet. Both read the same
+   plans.json and the same community meta, and both apply the porch credit per
+   elevation, capped at the community allowance. If they ever disagree, the
+   sheet is authoritative — it is the thing that gets printed.
+   ===================================================================== */
+
+const COMMUNITIES=[
+  {id:'heights-uptown', name:'The Heights at Uptown', where:'Celina'},
+  {id:'grandoaks-1a',   name:'Grand Oaks at Green Meadows — Phase 1A', where:'Celina ETJ'},
+  {id:'grandoaks-1b',   name:'Grand Oaks at Green Meadows — Phase 1B', where:'Celina ETJ'}
+];
+
+/* Community standards confirmed 9/28/26 and not yet in the data files.
+   MUST MATCH the STANDARDS_PATCH blocks in lot-map.html and lot-fit-sheet.html. */
+const STANDARDS_PATCH={
+  'heights-uptown':{ maxGradeApproval:12.0 },
+  'grandoaks-1a':  { maxGradeApproval:12.0, sideInterior:5.0, sideCorner:15.0, rearBL:20.0 },
+  'grandoaks-1b':  { maxGradeApproval:12.0, sideInterior:5.0, sideCorner:15.0 }
+};
+
+const $=id=>document.getElementById(id);
+const esc=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;');
+const FT=v=>{ if(v==null)return '—';
+  const f=Math.floor(v), i=Math.round((v-f)*12);
+  return i===0?f+"'":(i===12?(f+1)+"'":f+"'-"+i+'"'); };
+
+let COMM=null, MAP=null, PLANS=null, LOT=null, GAR='L';
+
+/* ---------- fit, identical in spirit to the sheet ---------- */
+function porchCredit(plan,meta){
+  const cap=meta.porchEncroach!=null?meta.porchEncroach:5;
+  return plan.porch!=null?Math.min(plan.porch,cap):cap;
+}
+function fitOf(lot,plan,meta){
+  if(plan.w==null||plan.d==null) return {state:'na',why:'this plan has never been measured'};
+  const sideI=meta.sideInterior!=null?meta.sideInterior:5;
+  const fbl=meta.frontBL!=null?meta.frontBL:10, rear=meta.rearBL!=null?meta.rearBL:20;
+  const credit=porchCredit(plan,meta);
+
+  const availW=(lot.padW!=null)?lot.padW
+             :(meta.buildableWidth!=null)?meta.buildableWidth
+             :(lot.lw!=null)?lot.lw-sideI*2:null;
+  let dm=null;
+  if(lot.padD!=null)    dm=lot.padD-(plan.d-credit);
+  else if(lot.ld!=null) dm=lot.ld-(plan.d+fbl+rear-credit);
+  const wm=(availW!=null)?availW-plan.w:null;
+  if(dm==null||wm==null) return {state:'na',why:'this lot has no pad or plat dimensions recorded'};
+
+  const short=[];
+  if(dm<0) short.push(FT(Math.abs(dm))+' short on depth');
+  if(wm<0) short.push(FT(Math.abs(wm))+' short on width');
+  if(short.length) return {state:'no',dm:dm,wm:wm,why:short.join(' · ')};
+  if(dm<2||wm<0.5)  return {state:'tight',dm:dm,wm:wm,
+    why:'clears by '+FT(Math.min(dm,wm))+' — confirm against the surveyed plot plan'};
+  return {state:'yes',dm:dm,wm:wm,why:''};
+}
+function offeredPlans(){
+  const o=MAP.meta.offers, retired=MAP.meta.retiredPlans||[];
+  let ids;
+  if(!o) ids=PLANS.map(p=>p.id);
+  else if(Array.isArray(o)) ids=o;
+  else { const pr=LOT?LOT.prod:null;
+         ids=(pr!=null&&o[String(pr)])||Object.keys(o).reduce((a,k)=>a.concat(o[k]),[]); }
+  return PLANS.filter(p=>ids.indexOf(p.id)>=0 && retired.indexOf(p.id)<0 && !p.retired);
+}
+function ochLots(){
+  /* Ownership is inferred from whether a lot carries an OCH address, because no
+     per-lot `och` flag exists yet. Noted on the page rather than hidden, since
+     it means these counts are an upper bound. */
+  return MAP.lots.filter(l=>l.type==='Residential'&&l.addr)
+    .sort((a,b)=>String(a.addr).localeCompare(String(b.addr),undefined,{numeric:true}));
+}
+
+/* ---------- screens ---------- */
+function screenCommunities(){
+  $('app').innerHTML='<div class="grid">'+COMMUNITIES.map(c=>
+    `<button class="card" onclick="pickCommunity('${c.id}')">
+       <h2>${esc(c.name)}</h2><div class="meta">${esc(c.where)}</div></button>`).join('')+'</div>';
+}
+async function pickCommunity(id){
+  COMM=id;
+  $('app').innerHTML='<div class="panel">Loading…</div>';
+  try{
+    const [m,p]=await Promise.all([
+      fetch('../data/'+id+'.json').then(r=>{if(!r.ok)throw new Error(id+'.json — '+r.status);return r.json();}),
+      fetch('../data/plans.json').then(r=>{if(!r.ok)throw new Error('plans.json — '+r.status);return r.json();})
+    ]);
+    MAP=m; MAP.meta=MAP.meta||{}; PLANS=p.plans||[];
+    const sp=STANDARDS_PATCH[id]||{};
+    Object.keys(sp).forEach(k=>{MAP.meta[k]=sp[k];});
+    screenLots();
+  }catch(e){
+    $('app').innerHTML='<div class="err"><b>Could not load this community.</b><br>'+esc(e.message)
+      +'<br><br>This page expects to sit in <b>tools/</b> alongside the other tools.</div>';
+  }
+}
+function crumbs(parts){
+  return '<div class="crumb">'+parts.map((p,i)=>
+    (p.go?`<button onclick="${p.go}">${esc(p.t)}</button>`:`<b>${esc(p.t)}</b>`)
+    +(i<parts.length-1?'<span>›</span>':'')).join('')+'</div>';
+}
+function screenLots(){
+  LOT=null;
+  const meta=MAP.meta, lots=ochLots();
+  const cm=COMMUNITIES.filter(c=>c.id===COMM)[0]||{name:COMM};
+  const maxg=meta.maxGrade!=null?meta.maxGrade:10;
+  const ceil=meta.maxGradeApproval!=null?meta.maxGradeApproval:maxg;
+
+  let rows='';
+  lots.forEach(l=>{
+    LOT=l; const offers=offeredPlans(); LOT=null;
+    let yes=0,tight=0,n=0;
+    offers.forEach(p=>{const f=fitOf(l,p,meta);
+      if(f.state==='yes')yes++; else if(f.state==='tight')tight++;
+      if(f.state!=='na')n++;});
+    /* Headline the count that FITS AT ALL, and flag only what does not.
+       At The Heights every 35' plan on a 35' pad clears width by about two
+       inches, so a strict reading makes almost every plan "tight" and a list of
+       "19 tight" on every row tells a salesperson nothing. The tight nuance is
+       real and belongs on the lot page, where there is room to say why. */
+    const fits=yes+tight, miss=n-fits;
+    const tag = n===0 ? '<span class="tag t-na">no data</span>'
+      : fits===0 ? '<span class="tag t-no">nothing fits</span>'
+      : '<span class="tag t-yes">'+fits+' of '+n+' fit</span>'
+        +(miss?' <span class="tag t-no">'+miss+' do not</span>':'');
+    const sl = l.sl21==null?'<span class="t-na">—</span>'
+      : l.sl21<=maxg ? l.sl21.toFixed(1)+'%'
+      : l.sl21<=ceil ? '<span class="t-tight">'+l.sl21.toFixed(1)+'% needs City approval</span>'
+      : '<span class="t-no">'+l.sl21.toFixed(1)+'% over the limit</span>';
+    rows+=`<tr class="row" onclick="pickLot(${l.i})">
+      <td><div class="addr">${esc(l.addr)}</div><div class="bl">Block ${esc(l.b)} · Lot ${esc(l.l)}</div></td>
+      <td>${tag}</td>
+      <td class="num">${l.padW!=null?FT(l.padW)+' × '+FT(l.padD):'no pad'}</td>
+      <td class="num">${sl}</td></tr>`;
+  });
+
+  $('app').innerHTML=
+    crumbs([{t:'Communities',go:'screenCommunities()'},{t:cm.name}])
+    +`<table><thead><tr><th>Lot</th><th>What fits</th><th>Graded pad</th><th>Driveway slope</th></tr></thead>
+      <tbody>${rows||'<tr><td colspan="4">No addressed lots in this community.</td></tr>'}</tbody></table>
+      <div class="note"><b>${lots.length} lots shown.</b> These are the lots carrying an OCH address.
+      There is no explicit ownership flag in the data yet, so treat this as the lots OCH expects to build,
+      not a confirmed list. Lots where nothing fits are listed too, and marked — so a question about a
+      specific lot has an answer here.</div>`;
+}
+function pickLot(i){
+  LOT=MAP.lots.filter(l=>l.i===i)[0];
+  if(LOT) screenLot();
+}
+function setGar(g){ GAR=g; screenLot(); }
+function sheetHref(plan){
+  return 'lot-fit-sheet.html?c='+encodeURIComponent(COMM)
+    +'&lot='+encodeURIComponent(LOT.b+'-'+LOT.l)
+    +'&gar='+GAR+(plan?'&plan='+encodeURIComponent(plan.id):'');
+}
+function screenLot(){
+  const l=LOT, meta=MAP.meta;
+  const cm=COMMUNITIES.filter(c=>c.id===COMM)[0]||{name:COMM};
+  const maxg=meta.maxGrade!=null?meta.maxGrade:10;
+  const ceil=meta.maxGradeApproval!=null?meta.maxGradeApproval:maxg;
+  const scored=offeredPlans().map(p=>({p:p,f:fitOf(l,p,meta)}));
+  const ok=scored.filter(x=>x.f.state==='yes'||x.f.state==='tight')
+                 .sort((a,b)=>(b.f.dm+b.f.wm)-(a.f.dm+a.f.wm));
+  const no=scored.filter(x=>x.f.state==='no');
+  const na=scored.filter(x=>x.f.state==='na');
+
+  const row=(x,showWhy)=>`<tr>
+      <td><div class="addr">${esc(x.p.name)}</div><div class="bl">${esc(x.p.collection||'')}</div></td>
+      <td><span class="tag t-${x.f.state==='yes'?'yes':x.f.state==='tight'?'tight':x.f.state==='no'?'no':'na'}">${
+        x.f.state==='yes'?'fits':x.f.state==='tight'?'fits — tight':x.f.state==='no'?'does not fit':'not measured'}</span></td>
+      <td class="why">${esc(showWhy?x.f.why:'')}</td>
+      <td class="num">${x.f.dm!=null?(x.f.dm>=0?'+':'')+FT(Math.abs(x.f.dm)).replace("'","'")+' deep · '+(x.f.wm>=0?'+':'')+FT(Math.abs(x.f.wm))+' wide':''}</td>
+      <td><button class="open${x.f.state==='no'?' ghost':''}" onclick="location.href='${sheetHref(x.p)}'">Sheet</button></td>
+    </tr>`;
+
+  const slopeLine = l.sl21==null ? 'not recorded'
+    : l.sl21<=maxg ? l.sl21.toFixed(1)+'%'
+    : l.sl21<=ceil ? l.sl21.toFixed(1)+'% — over the '+maxg+'% design max, needs City approval'
+    : l.sl21.toFixed(1)+'% — over the '+ceil+'% approval ceiling';
+
+  $('app').innerHTML=
+    crumbs([{t:'Communities',go:'screenCommunities()'},{t:cm.name,go:'screenLots()'},{t:l.addr||(l.b+'-'+l.l)}])
+    +`<div class="panel">
+        <h2>${esc(l.addr||('Block '+l.b+' · Lot '+l.l))}</h2>
+        <div class="bl">Block ${esc(l.b)} · Lot ${esc(l.l)}${l.note?' · '+esc(l.note):''}</div>
+        <div class="facts">
+          <div><span>Lot </span><b>${l.lw!=null?FT(l.lw)+' × '+FT(l.ld):'—'}</b></div>
+          <div><span>Graded pad </span><b>${l.padW!=null?FT(l.padW)+' × '+FT(l.padD):'not graded'}</b></div>
+          <div><span>Driveway slope </span><b>${esc(slopeLine)}</b></div>
+          <div><span>Garage side </span>
+            <span class="seg"><button class="${GAR==='L'?'on':''}" onclick="setGar('L')">Left</button
+            ><button class="${GAR==='R'?'on':''}" onclick="setGar('R')">Right</button></span></div>
+        </div>
+      </div>
+
+      <div class="plans">
+        <h3>Fits — ${ok.length}${ok.length&&ok.every(x=>x.f.state==='tight'&&x.f.wm<0.5&&x.f.dm>=2)
+          ? ' · all tight on width only' : ''}</h3>
+        ${ok.length&&ok.every(x=>x.f.wm!=null&&x.f.wm<0.5) ? `<div class="why" style="margin-bottom:8px">Width is tight on every plan here — a ${FT(ok[0].p.w)} plan on a ${FT(l.padW)} pad leaves about ${FT(ok[0].f.wm)}. That is normal for this product. Depth is where these lots differ.</div>` : ''}
+        ${ok.length?`<table><tbody>${ok.map(x=>row(x,true)).join('')}</tbody></table>`
+                   :'<div class="panel">No offered plan fits this lot.</div>'}
+        ${no.length?`<h3>Does not fit — ${no.length}</h3>
+          <table><tbody>${no.map(x=>row(x,true)).join('')}</tbody></table>`:''}
+        ${na.length?`<h3>Not measured — ${na.length}</h3>
+          <table><tbody>${na.map(x=>row(x,true)).join('')}</tbody></table>`:''}
+      </div>
+
+      <div class="note">
+        <b>Left and right are read standing at the street looking at the house</b>, the way OCH designates a plan.
+        Margins are measured against the engineer's graded pad where one exists, with the front porch allowed to
+        encroach into the front building line by its own depth, capped at ${meta.porchEncroach!=null?meta.porchEncroach:5}'.
+        Living space never encroaches.
+        <br><br><b>Preliminary — not a plot plan.</b> Every lot is confirmed against a surveyed plot plan before
+        anything is committed to a buyer.
+      </div>`;
+}
+
+screenCommunities();
+</script>
+</body>
+</html>
