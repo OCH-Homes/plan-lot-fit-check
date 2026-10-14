@@ -241,19 +241,30 @@ function resolveFront(lot,orient,frontBL,rearBL){
   const front=[[anchor[0]-px*10,anchor[1]-py*10],[anchor[0]+px*10,anchor[1]+py*10]];
 
   let code='OK', why='';
+  /* Scoring picks the best direction, but on a plain rectangular lot the
+     recorded frontage and the pad's perpendicular are the same line to within a
+     rounding error, and whichever wins by a hair gets reported. That produced
+     26 lots carrying "the recorded frontage does not lay the lot out to its
+     platted dimensions" when it laid it out to within 0.1 ft. Only say the
+     recorded frontage was wrong when it was MATERIALLY wrong. */
+  let recScore=null;
+  for(let i=0;i<cands.length;i++) if(cands[i].src==='recorded'&&(recScore===null||cands[i].score<recScore)) recScore=cands[i].score;
+  const recMateriallyWorse = recScore!=null && (recScore-win.score)>1.0;
+  const recMissing = recScore===null;
+
   if(recAtStreet===false){
     code='TURNED ROUND';
     why='the frontage recorded for this lot sits at the ALLEY end. The engineer\'s graded pad places the street at the opposite end, so the lot has been turned round — it was previously drawn with the garage facing the street.';
-  } else if(win.src==='pad'){
+  } else if(win.src==='pad'&&(recMateriallyWorse||recMissing)){
     code='PAD-DERIVED';
-    why='the frontage recorded for this lot does not lay the lot out to its platted '+(lw!=null?lw.toFixed(1)+"' x "+ld.toFixed(1)+"'":'dimensions')+'. The street-to-alley direction has been taken from the engineer\'s graded pad, which reproduces them.';
-  } else if(win.src==='chord'){
+    why='the frontage recorded for this lot does not lay the lot out to its platted '+(lw!=null?lw.toFixed(1)+"' x "+ld.toFixed(1)+"'":'dimensions')+' — it is out by '+(recMissing?'an unknown amount':(recScore-win.score).toFixed(1)+"'")+'. The street-to-alley direction has been taken from the engineer\'s graded pad, which reproduces them.';
+  } else if(win.src==='chord'&&(recMateriallyWorse||recMissing)){
     code='RE-READ';
     why='the frontage recorded for this lot does not match the plat, so it has been re-read from the plat polygon.';
   }
   if(win.score>6){
     code='POOR FIT';
-    why=(why?why+' ':'')+'Even so, the lot lays out '+win.bb.w.toFixed(1)+"' x "+win.bb.d.toFixed(1)+"' against a plat of "+(lw!=null?lw.toFixed(1):'?')+"' x "+(ld!=null?ld.toFixed(1):'?')+"' — the plat and the polygon disagree about this lot.";
+    why=(why?why+' ':'')+'The lot lays out '+win.bb.w.toFixed(1)+"' x "+win.bb.d.toFixed(1)+"' against a plat of "+(lw!=null?lw.toFixed(1):'?')+"' x "+(ld!=null?ld.toFixed(1):'?')+"' — the plat and the polygon disagree about this lot.";
   }
   return {ok:true,front:front,src:win.src,endSrc:endSrc,code:code,why:why,
           pageW:win.bb.w,pageD:win.bb.d,score:win.score};
