@@ -130,7 +130,7 @@
 
 /* Printed in the footer so you can tell at a glance which file is actually
    live on the site. Bump it whenever this file changes. */
-const SHEET_BUILD='2026-10-14d';
+const SHEET_BUILD='2026-10-14e';
 
 const QS=new URLSearchParams(location.search);
 const COMMUNITY=QS.get('c')||'heights-uptown';
@@ -215,7 +215,55 @@ function chords(pts){
    86.7 x 111.4, K-21 74.1 x 116.0 against 74.0 x 116.0, and L-17 60.9 x 111.9
    against 60.9 x 111.8 — the last of those closer to the plat than the chord
    search manages. */
+/* The pad's depth axis and which end of it is the street, or null when the pad
+   cannot say. Shared by padFront (which derives a frontage) and padVerify
+   (which checks one we already have). */
+function padAxis(lot,frontBL,rearBL){
+  const pad=lot.pad;
+  if(!pad||pad.length<4)return null;
+  let best=null;
+  for(let i=0;i<pad.length;i++){
+    const a=pad[i],b=pad[(i+1)%pad.length];
+    const L=Math.hypot(b[0]-a[0],b[1]-a[1]);
+    if(!best||L>best.L)best={L:L,ux:(b[0]-a[0])/L,uy:(b[1]-a[1])/L};
+  }
+  if(!best||best.L<20)return null;
+  const ux=best.ux,uy=best.uy,pr=q=>q[0]*ux+q[1]*uy;
+  const lotP=lot.pts.map(pr),padP=pad.map(pr);
+  const lo=Math.min.apply(null,lotP),hi=Math.max.apply(null,lotP);
+  const gapLo=Math.min.apply(null,padP)-lo,gapHi=hi-Math.max.apply(null,padP);
+  const fits=(g,o)=>Math.abs(g-frontBL)<=4.0&&o>=rearBL-4.0;
+  const loSt=fits(gapLo,gapHi),hiSt=fits(gapHi,gapLo);
+  if(loSt===hiSt)return null;
+  return {ux:ux,uy:uy,pr:pr,lo:lo,hi:hi,street:loSt?lo:hi,alley:loSt?hi:lo,
+          gapLo:gapLo,gapHi:gapHi};
+}
+
+/* A recorded frontage whose LENGTH matches the plat still gets trusted by the
+   fast path — but on a lot whose two ends are a similar width, the segment on
+   file may be the ALLEY end, not the street. The lot then draws the right shape
+   upside down, with the garage facing the street, which looks plausible and is
+   completely wrong. Where the pad can tell the ends apart, check it. */
+function padVerify(lot,front,frontBL,rearBL){
+  const ax=padAxis(lot,frontBL,rearBL);
+  if(!ax)return null;
+  const fm=[(front[0][0]+front[1][0])/2,(front[0][1]+front[1][1])/2];
+  const f=ax.pr(fm);
+  if(Math.abs(f-ax.street)<=Math.abs(f-ax.alley))return {ok:true};
+  return {ok:false,front:frontAt(lot,ax,ax.street)};
+}
+function frontAt(lot,ax,target){
+  let anchor=lot.pts[0],bd=Infinity;
+  lot.pts.forEach(function(q){const d=Math.abs(ax.pr(q)-target);if(d<bd){bd=d;anchor=q;}});
+  const px=-ax.uy,py=ax.ux;
+  return [[anchor[0]-px*10,anchor[1]-py*10],[anchor[0]+px*10,anchor[1]+py*10]];
+}
 function padFront(lot,frontBL,rearBL){
+  const ax=padAxis(lot,frontBL,rearBL);
+  if(!ax)return null;
+  return {front:frontAt(lot,ax,ax.street),gapLo:ax.gapLo,gapHi:ax.gapHi};
+}
+function padFront_OLD(lot,frontBL,rearBL){
   const pad=lot.pad;
   if(!pad||pad.length<4)return null;
   let best=null;
@@ -247,7 +295,16 @@ function resolveFront(lot,orient,frontBL,rearBL){
   if(lw==null) return {ok:true,front:rec,src:'recorded'};
 
   const tol=Math.max(3.0,lw*0.08);
-  if(Math.abs(recLen-lw)<=tol) return {ok:true,front:rec,src:'recorded'};
+  if(Math.abs(recLen-lw)<=tol){
+    /* Length agrees with the plat — but is it the STREET end? On a lot whose
+       two ends are a similar width the recorded segment may be the alley end,
+       and the sheet would draw the lot upside down with the garage on the
+       street. The pad settles it where it can. */
+    const v=padVerify(lot,rec,frontBL,rearBL);
+    if(v&&!v.ok) return {ok:true,front:v.front,src:'pad-corrected',
+      why:`the frontage recorded for this lot is the right length but sits at the ALLEY end of the lot. The engineer's graded pad places the street at the opposite end, so the lot has been turned round — it was previously drawn with the garage facing the street.`};
+    return {ok:true,front:rec,src:'recorded'};
+  }
 
   /* The recorded segment is not the frontage. Look for a chord that is. */
   const hit=chords(lot.pts).filter(c=>Math.abs(c.len-lw)<=tol);
