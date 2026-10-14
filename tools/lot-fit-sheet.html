@@ -37,6 +37,15 @@
   .title .right{text-align:right;font-size:10px;color:var(--mid);line-height:1.6;letter-spacing:.4px}
   .title .right b{display:block;font-size:11.5px;color:var(--ink);letter-spacing:.9px;font-weight:600}
 
+  /* Verdict banner, directly under the address. Monochrome like everything else
+     — weight and a heavy rule carry it, not colour, because this page is printed
+     black and white. */
+  .banner{border:2.5px solid var(--ink);padding:8px 12px;margin-top:8px;
+          display:flex;align-items:baseline;gap:14px}
+  .banner .w{font-size:17px;font-weight:600;letter-spacing:1.2px;white-space:nowrap}
+  .banner .d{font-size:10.5px;color:var(--mid);letter-spacing:.3px}
+  .banner.soft{border-width:1px;border-style:dashed}
+
   .specs{display:flex;gap:26px;flex-wrap:wrap;padding:7px 0;
          border-bottom:1px solid var(--faint);font-size:11px}
   .specs div span{color:var(--mid)}
@@ -121,14 +130,14 @@
 
 /* Printed in the footer so you can tell at a glance which file is actually
    live on the site. Bump it whenever this file changes. */
-const SHEET_BUILD='2026-10-13c';
+const SHEET_BUILD='2026-10-14c';
 
 const QS=new URLSearchParams(location.search);
 const COMMUNITY=QS.get('c')||'heights-uptown';
 /* The map drives this sheet: ?lot=N-12&plan=addison_b&gar=L
    The pickers are a fallback for opening the sheet on its own. */
 const WANT_LOT=QS.get('lot'), WANT_PLAN=QS.get('plan');
-let MAP=null, ORIENT=null, FOOT=null, LOT=null, GAR=(QS.get('gar')==='R')?'R':'L';
+let MAP=null, ORIENT=null, FOOT=null, PORCH=null, LOT=null, GAR=(QS.get('gar')==='R')?'R':'L';
 
 /* =====================================================================
    COMMUNITY STANDARDS — confirmed 9/28/26, not yet in the data files.
@@ -200,9 +209,14 @@ function resolveFront(lot,orient){
   const groups=[];
   hit.forEach(c=>{ if(!groups.some(g=>Math.hypot(g.mx-c.mx,g.my-c.my)<1.0)) groups.push(c); });
 
+  /* Where the frontage cannot be settled, the recorded segment is still the
+     best guess available, and a drawn-but-flagged sheet beats an empty box on
+     a preliminary tool that is always followed by a surveyed plot plan. Every
+     unresolved return therefore carries `guess` for the drawing to fall back
+     on, while `ok` stays false so the banner fires. */
   const stem=`the frontage recorded for this lot is ${recLen.toFixed(1)}', but the plat frontage is ${lw.toFixed(1)}'`;
   if(groups.length===0)
-    return {ok:false,why:`${stem}, and no edge of the lot polygon matches the plat`};
+    return {ok:false,guess:rec,why:`${stem}, and no edge of the lot polygon matches the plat`};
   if(groups.length===1)
     return {ok:true,front:[groups[0].a,groups[0].b],src:'re-derived',
             why:`${stem}. The frontage has been re-read from the plat polygon.`};
@@ -245,7 +259,7 @@ function resolveFront(lot,orient){
     return {ok:true,front:[g.a,g.b],src:'re-derived',
             why:`${stem}. The frontage has been re-read from the plat polygon.`};
   }
-  return {ok:false,why:`${stem}, and ${groups.length} different edges of the lot match it with none clearly matching the recorded frontage, so which one fronts the street cannot be settled from the plat alone`};
+  return {ok:false,guess:rec,why:`${stem}, and ${groups.length} different edges of the lot match it with none clearly matching the recorded frontage, so which one fronts the street cannot be settled from the plat alone`};
 }
 
 /* Rotate the lot so the frontage is horizontal with the street at the bottom
@@ -291,7 +305,7 @@ async function boot(){
     fetch('../data/'+COMMUNITY+'-orient.json').then(r=>r.json()).catch(()=>null),
     fetch('../data/footprints.json').then(r=>r.json()).catch(()=>null)
   ]);
-  MAP=m; ORIENT=o||{}; FOOT=(f&&f.plans)||{};
+  MAP=m; ORIENT=o||{}; FOOT=(f&&f.plans)||{}; PORCH=(f&&f.porchByPlan)||{};
   MAP.meta=MAP.meta||{};
   const sp=STANDARDS_PATCH[COMMUNITY]||{};
   Object.keys(sp).forEach(k=>{MAP.meta[k]=sp[k];});
@@ -440,9 +454,29 @@ function draw(){
                : (M.buildableWidth!=null) ? M.buildableWidth
                : (LOT.lw!=null) ? LOT.lw-sideI*2 : null;
   if(plan&&availW!=null) wm=availW-plan.w;
+
+  /* The porch credit is PER PLAN. Only a porch may project into the front
+     building line — living space never can — and whether a plan has one is a
+     property of the ELEVATION, decided by whether there is living space above
+     the front door. `porch` from the community meta is the CAP (5' at Celina,
+     and nothing more), not the entitlement.
+
+     All 19 elevations were confirmed against the elevation drawings on 13-14 Oct
+     2026. An elevation missing from the table falls back to the community figure
+     and is flagged on the sheet as unconfirmed.
+
+     The figure lives in ONE place — `porchByPlan` in footprints.json, keyed by
+     elevation — deliberately not beside the geometry. Addison's three elevations
+     share one floor plan but NOT one porch (A and B project 7', C only 4'), so a
+     porch attached to the footprint would sit at the wrong level and Addison C
+     would silently inherit A's. See claude/porch-encroachment-per-plan.md. */
+  const projection = (PORCH && pid && PORCH[pid]!=null) ? PORCH[pid] : null;
+  const porchKnown = projection!=null;
+  const credit = porchKnown ? Math.min(projection,porch) : porch;
+
   if(plan){
-    if(LOT.padD!=null)      dm=LOT.padD-(plan.d-porch);
-    else if(LOT.ld!=null)   dm=LOT.ld-(plan.d+fbl+rear-porch);
+    if(LOT.padD!=null)      dm=LOT.padD-(plan.d-credit);
+    else if(LOT.ld!=null)   dm=LOT.ld-(plan.d+fbl+rear-credit);
   }
 
   if(or&&!drawBlocked){
@@ -459,9 +493,17 @@ function draw(){
       drawBlocked=`with the frontage as resolved, the lot measures ${lotD.toFixed(1)}' from street to alley but the plat records ${LOT.ld.toFixed(1)}'`;
   }
 
-  /* A wrong drawing is worse than no drawing on a sheet a buyer may see, so a
-     lot that fails either check gets the reason and no plan. The fit figures
-     below do not depend on orientation and are still printed. */
+  /* These sheets are preliminary and are always followed by a surveyed plot plan
+     before anything is committed, so an empty box serves nobody — an approximate
+     drawing carrying a visible caveat tells you more. The sheet therefore draws
+     its best reading of an ambiguous lot and says so at the top, rather than
+     refusing. `geomDoubt` carries the reason up to the banner. */
+  const geomDoubt = drawBlocked;
+  if(drawBlocked && FR && (FR.guess||FR.front)){
+    FR.front = FR.front || FR.guess;      /* a depth mismatch still has a frontage */
+    drawBlocked = null;
+  }
+
   if(drawBlocked)
     svg='<div style="font-size:11px;color:#000;border:1px solid #000;padding:14px;line-height:1.7">'
       + '<b>THE PLAN IS NOT DRAWN FOR THIS LOT.</b><br>'
@@ -649,6 +691,15 @@ function draw(){
      not on the page. */
   const DRAWN = !drawBlocked && !!or;
 
+  /* --- the banner, directly under the address ---
+     Two separate facts, never merged. DOES NOT FIT means the margins are
+     negative; the home will not go on this pad. GEOMETRY UNVERIFIED means the
+     lot outline on file disagrees with the plat, so the drawing is approximate —
+     it says nothing about fit, and a lot can carry it while fitting comfortably.
+     812 Garrett was exactly that: undrawable, and 19 plans fit it. */
+  let banner='';
+  const bnr=(w,d,soft)=>`<div class="banner${soft?' soft':''}"><div class="w">${w}</div><div class="d">${d}</div></div>`;
+
   /* --- verdict, in words rather than colour --- */
   let verdict='NOT CHECKED', detail='';
   if(dm!=null&&wm!=null){
@@ -661,6 +712,14 @@ function draw(){
       verdict='FITS — TIGHT'; detail='confirm against the surveyed plot plan';
     } else { verdict='FITS'; detail=''; }
   }
+  if(verdict==='DOES NOT FIT')
+    banner+=bnr(esc(pname)+' DOES NOT FIT THIS LOT', esc(detail));
+  if(geomDoubt)
+    banner+=bnr('GEOMETRY UNVERIFIED — PLAN SHOWN IS APPROXIMATE',
+      'The lot outline on file disagrees with the plat, so where the home sits is a best reading, not a measurement. '
+      +'This does not affect whether it fits: the figures below come from the pad and plan dimensions. '
+      +esc(geomDoubt)+'.', true);
+
   const slopeTxt = LOT.sl21==null ? 'not recorded'
     : LOT.sl21<=maxg ? LOT.sl21.toFixed(1)+'%'
     : LOT.sl21<=ceil ? LOT.sl21.toFixed(1)+'% — over '+maxg+'%, needs City approval'
@@ -676,6 +735,7 @@ function draw(){
       </div>
       <div class="right"><b>OLIVIA CLARKE HOMES</b>LOT FIT SHEET &nbsp;·&nbsp; BUILD ${SHEET_BUILD}<br>${new Date().toLocaleDateString()}</div>
     </div>
+    ${banner}
 
     <div class="specs">
       <div><span>PLAN </span><b>${esc(pname)}</b></div>
@@ -703,6 +763,11 @@ function draw(){
       :`<b>The setbacks used for the figures above</b> are the City-approved ones: ${fbl}' front,
       ${rear}' rear to alley, ${sideI}' sides, with a ${porch}' porch encroachment allowed into the
       front building line.`}
+      ${porchKnown
+        ? (credit>0
+            ? `<b>This elevation's porch projects, so it takes a ${credit.toFixed(1)}' encroachment</b> into the front building line — capped at the City's ${porch}'.`
+            : `<b>This elevation has no encroaching porch</b>, so it takes no front encroachment. Living space may never project into the front building line.`)
+        : `<b>The ${porch}' porch encroachment is the community default and has not yet been confirmed for this elevation.</b> Only a projecting porch earns it — living space never can — so this figure may be generous by up to ${porch}'.`}
       ${frontNote?`<b>This lot's recorded frontage disagrees with the plat.</b> ${esc(frontNote)} Worth fixing in the orientation data so the map agrees. `:''}
       ${DRAWN?`<b>The rear of the house is held at the ${rear}' building line to the alley</b> and is never placed closer than that.`:''}
       ${DRAWN&&rearClamp>0?`<b>The drawn pad outline on this lot sits ${rearClamp.toFixed(1)}' nearer the alley than that line</b>, so the home is held at the line rather than at the pad edge. The depth margin above is unaffected — it is figured from the pad's ${F(LOT.padD)} depth, which already seats the home on the building line. Worth checking the pad geometry for this lot. `:''}
