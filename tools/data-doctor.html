@@ -72,6 +72,7 @@
   <div style="margin-left:auto;display:flex;gap:8px">
     <button id="dlOrient" disabled>Download corrected orientation file</button>
     <button id="dlCsv" disabled>Download the table as CSV</button>
+    <button id="dlGeom" disabled>Download geometry for problem lots</button>
   </div>
 </div>
 
@@ -152,29 +153,55 @@ function chords(pts){
   }
   return out;
 }
-/* ---------- frontage from the engineer's pad ----------
-   The plat polygon cannot always settle the frontage. N-5 (500 Callum Parkway)
-   is a wedge lot on a curve: its recorded 86.7' plat frontage matches no chord
-   of the polygon at all — the nearest is out by 13.4' — because the frontage is
-   measured along an arc. The chord search finds nothing, falls back to the
-   recorded segment, and that segment is the 111.0' east SIDE line, so the lot
-   is drawn lying on its side.
+/* The pad's depth axis and which end of it is the street, or null when the pad
+   cannot say. Shared by padFront (which derives a frontage) and padVerify
+   (which checks one we already have). */
+function padAxis(lot,frontBL,rearBL){
+  const pad=lot.pad;
+  if(!pad||pad.length<4)return null;
+  let best=null;
+  for(let i=0;i<pad.length;i++){
+    const a=pad[i],b=pad[(i+1)%pad.length];
+    const L=Math.hypot(b[0]-a[0],b[1]-a[1]);
+    if(!best||L>best.L)best={L:L,ux:(b[0]-a[0])/L,uy:(b[1]-a[1])/L};
+  }
+  if(!best||best.L<20)return null;
+  const ux=best.ux,uy=best.uy,pr=q=>q[0]*ux+q[1]*uy;
+  const lotP=lot.pts.map(pr),padP=pad.map(pr);
+  const lo=Math.min.apply(null,lotP),hi=Math.max.apply(null,lotP);
+  const gapLo=Math.min.apply(null,padP)-lo,gapHi=hi-Math.max.apply(null,padP);
+  const fits=(g,o)=>Math.abs(g-frontBL)<=4.0&&o>=rearBL-4.0;
+  const loSt=fits(gapLo,gapHi),hiSt=fits(gapHi,gapLo);
+  if(loSt===hiSt)return null;
+  return {ux:ux,uy:uy,pr:pr,lo:lo,hi:hi,street:loSt?lo:hi,alley:loSt?hi:lo,
+          gapLo:gapLo,gapHi:gapHi};
+}
 
-   The engineer's pad settles it. It is a rectangle placed on the lot with its
-   LONG axis running street to alley, so it fixes the depth direction exactly —
-   no chord matching and no guessing which edge is which.
-
-   Which END is the street comes from where the pad sits along that axis: a
-   correctly placed pad is about frontBL off the street and at least rearBL off
-   the alley. That pattern has to hold at one end and NOT the other. If both
-   ends look alike the pad cannot tell us which way round the lot is, and
-   guessing would put the garage on the street — so it declines instead.
-
-   Checked against three lots: N-5 comes out 86.7 x 111.4 against a plat of
-   86.7 x 111.4, K-21 74.1 x 116.0 against 74.0 x 116.0, and L-17 60.9 x 111.9
-   against 60.9 x 111.8 — the last of those closer to the plat than the chord
-   search manages. */
+/* A recorded frontage whose LENGTH matches the plat still gets trusted by the
+   fast path — but on a lot whose two ends are a similar width, the segment on
+   file may be the ALLEY end, not the street. The lot then draws the right shape
+   upside down, with the garage facing the street, which looks plausible and is
+   completely wrong. Where the pad can tell the ends apart, check it. */
+function padVerify(lot,front,frontBL,rearBL){
+  const ax=padAxis(lot,frontBL,rearBL);
+  if(!ax)return null;
+  const fm=[(front[0][0]+front[1][0])/2,(front[0][1]+front[1][1])/2];
+  const f=ax.pr(fm);
+  if(Math.abs(f-ax.street)<=Math.abs(f-ax.alley))return {ok:true};
+  return {ok:false,front:frontAt(lot,ax,ax.street)};
+}
+function frontAt(lot,ax,target){
+  let anchor=lot.pts[0],bd=Infinity;
+  lot.pts.forEach(function(q){const d=Math.abs(ax.pr(q)-target);if(d<bd){bd=d;anchor=q;}});
+  const px=-ax.uy,py=ax.ux;
+  return [[anchor[0]-px*10,anchor[1]-py*10],[anchor[0]+px*10,anchor[1]+py*10]];
+}
 function padFront(lot,frontBL,rearBL){
+  const ax=padAxis(lot,frontBL,rearBL);
+  if(!ax)return null;
+  return {front:frontAt(lot,ax,ax.street),gapLo:ax.gapLo,gapHi:ax.gapHi};
+}
+function padFront_OLD(lot,frontBL,rearBL){
   const pad=lot.pad;
   if(!pad||pad.length<4)return null;
   let best=null;
@@ -206,7 +233,16 @@ function resolveFront(lot,orient,frontBL,rearBL){
   if(lw==null) return {ok:true,front:rec,src:'recorded'};
 
   const tol=Math.max(3.0,lw*0.08);
-  if(Math.abs(recLen-lw)<=tol) return {ok:true,front:rec,src:'recorded'};
+  if(Math.abs(recLen-lw)<=tol){
+    /* Length agrees with the plat — but is it the STREET end? On a lot whose
+       two ends are a similar width the recorded segment may be the alley end,
+       and the sheet would draw the lot upside down with the garage on the
+       street. The pad settles it where it can. */
+    const v=padVerify(lot,rec,frontBL,rearBL);
+    if(v&&!v.ok) return {ok:true,front:v.front,src:'pad-corrected',
+      why:`the frontage recorded for this lot is the right length but sits at the ALLEY end of the lot. The engineer's graded pad places the street at the opposite end, so the lot has been turned round — it was previously drawn with the garage facing the street.`};
+    return {ok:true,front:rec,src:'recorded'};
+  }
 
   /* The recorded segment is not the frontage. Look for a chord that is. */
   const hit=chords(lot.pts).filter(c=>Math.abs(c.len-lw)<=tol);
@@ -287,8 +323,15 @@ async function audit(comm){
     const or=o[key];
     if(!or) return;                       /* no orientation record: not this file's problem */
     const r=resolveFront(lot,or,M.frontBL!=null?M.frontBL:10,rearBL);
+    /* The sheet's resolver reports `src`, not a status word. Translate, so the
+       audit names exactly what the sheet did rather than a parallel vocabulary. */
+    const code = !r.ok ? (r.code||'CANNOT RESOLVE')
+      : r.src==='pad-derived'   ? 'PAD-DERIVED'
+      : r.src==='pad-corrected' ? 'TURNED ROUND'
+      : r.src==='re-derived'    ? 'WRONG SIDE'
+      : r.why                   ? 'TRUNCATED' : 'OK';
     const row={key:key, addr:lot.addr||'', lw:lot.lw, ld:lot.ld,
-               code:(r.ok&&r.src==='pad-derived')?'PAD-DERIVED':r.code, why:r.why||'', recLen:r.recLen, front:r.ok?r.front:null,
+               code:code, why:r.why||'', recLen:r.recLen, front:r.ok?r.front:null,
                changed:!!(r.ok&&r.src==='re-derived'), depth:null, padOff:null};
 
     if(r.ok){
@@ -296,6 +339,12 @@ async function audit(comm){
       const ys=O.pts.map(p=>p[1]);
       const miny=Math.min(...ys), maxy=Math.max(...ys);
       row.depth=maxy-miny;
+      const xs2=O.pts.map(p=>p[0]);
+      row.pageW=Math.max.apply(null,xs2)-Math.min.apply(null,xs2);
+      row.pageD=row.depth;
+      /* A lot drawn wider than deep, on a community of deep narrow lots, is the
+         symptom Brandi reported: the lot lying on its side. Flag it outright. */
+      row.landscape = row.pageW > row.pageD;
       if(lot.ld!=null && Math.abs(row.depth-lot.ld)>Math.max(4.0,lot.ld*0.10)){
         row.code='DEPTH MISMATCH';
         row.why=`with this frontage the lot measures ${row.depth.toFixed(1)}' street to alley, but the plat records ${lot.ld.toFixed(1)}'`;
@@ -316,13 +365,14 @@ async function audit(comm){
   const addressed=m.lots.filter(l=>l.addr).length;
   const flagged=m.lots.filter(l=>l.och===true).length;
 
-  return {comm:comm, meta:M, orient:o, rows:rows, rearBL:rearBL,
+  const lotsByKey={}; m.lots.forEach(l=>{lotsByKey[l.b+'-'+l.l]=l;});
+  return {comm:comm, meta:M, orient:o, rows:rows, rearBL:rearBL, lotsByKey:lotsByKey,
           totalLots:m.lots.length, orientRecords:Object.keys(o).length,
           addressed:addressed, flagged:flagged};
 }
 
 /* ---------- rendering ---------- */
-const SEV={'OK':'ok','TRUNCATED':'warn','PAD-DERIVED':'warn','NO PLAT WIDTH':'warn','WRONG SIDE':'bad',
+const SEV={'OK':'ok','TRUNCATED':'warn','PAD-DERIVED':'warn','TURNED ROUND':'warn','CANNOT RESOLVE':'bad','NO PLAT WIDTH':'warn','WRONG SIDE':'bad',
            'AMBIGUOUS':'bad','NO MATCH':'bad','NO RECORD':'bad','DEPTH MISMATCH':'bad'};
 let FILTER='all';
 
@@ -402,7 +452,7 @@ function render(A){
   </div></section>`;
 
   $('out').innerHTML=h;
-  $('dlOrient').disabled=false; $('dlCsv').disabled=false;
+  $('dlOrient').disabled=false; $('dlCsv').disabled=false; $('dlGeom').disabled=false;
 }
 function setFilter(f){ FILTER=f; render(LAST); }
 
@@ -441,16 +491,37 @@ $('dlOrient').onclick=()=>{
 };
 $('dlCsv').onclick=()=>{
   const q=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"';
-  const head=['lot','address','platW','platD','recordedFrontLen','status','padOverhangFt','note'];
+  const head=['lot','address','platW','platD','drawnW','drawnD','landscape','recordedFrontLen','status','padOverhangFt','note'];
   const body=LAST.rows.map(r=>[r.key,r.addr,r.lw,r.ld,
+    r.pageW!=null?r.pageW.toFixed(1):'',r.pageD!=null?r.pageD.toFixed(1):'',r.landscape?'LANDSCAPE':'',
     r.recLen!=null?r.recLen.toFixed(1):'',r.code,
     r.padOff!=null?r.padOff.toFixed(1):'',r.why].map(q).join(','));
   save(LAST.comm+'-audit.csv',[head.map(q).join(','),...body].join('\n'),'text/csv');
 };
 
+/* The lot file is too large to read whole from outside the browser, so any lot
+   the audit cannot settle is exported here with its raw geometry attached —
+   plat polygon, pad and the recorded frontage. That is everything needed to
+   work out what the right answer is without guessing. */
+$('dlGeom').onclick=()=>{
+  const bad=LAST.rows.filter(r=>SEV[r.code]!=='ok'||r.landscape);
+  const out={community:LAST.comm, generated:new Date().toISOString(),
+    meta:{frontBL:LAST.meta.frontBL,rearBL:LAST.meta.rearBL,
+          sideInterior:LAST.meta.sideInterior,porchEncroach:LAST.meta.porchEncroach},
+    lots:bad.map(r=>{
+      const lot=LAST.lotsByKey[r.key]||{};
+      return {key:r.key, addr:r.addr, status:r.code, why:r.why,
+              landscape:!!r.landscape,
+              drawn:r.pageW!=null?[+r.pageW.toFixed(2),+r.pageD.toFixed(2)]:null,
+              lw:lot.lw, ld:lot.ld, padW:lot.padW, padD:lot.padD,
+              pts:lot.pts, pad:lot.pad, orient:LAST.orient[r.key]};
+    })};
+  save(LAST.comm+'-problem-lots.json', JSON.stringify(out,null,1));
+};
+
 $('run').onclick=async()=>{
   $('out').innerHTML='<section><div class="body note">Reading the data files…</div></section>';
-  $('dlOrient').disabled=true; $('dlCsv').disabled=true;
+  $('dlOrient').disabled=true; $('dlCsv').disabled=true; $('dlGeom').disabled=true;
   try{
     LAST=await audit($('comm').value);
     FILTER='needs attention';
