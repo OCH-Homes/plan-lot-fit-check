@@ -130,7 +130,7 @@
 
 /* Printed in the footer so you can tell at a glance which file is actually
    live on the site. Bump it whenever this file changes. */
-const SHEET_BUILD='2026-10-14c';
+const SHEET_BUILD='2026-10-14d';
 
 const QS=new URLSearchParams(location.search);
 const COMMUNITY=QS.get('c')||'heights-uptown';
@@ -193,7 +193,53 @@ function chords(pts){
   }
   return out;
 }
-function resolveFront(lot,orient){
+/* ---------- frontage from the engineer's pad ----------
+   The plat polygon cannot always settle the frontage. N-5 (500 Callum Parkway)
+   is a wedge lot on a curve: its recorded 86.7' plat frontage matches no chord
+   of the polygon at all — the nearest is out by 13.4' — because the frontage is
+   measured along an arc. The chord search finds nothing, falls back to the
+   recorded segment, and that segment is the 111.0' east SIDE line, so the lot
+   is drawn lying on its side.
+
+   The engineer's pad settles it. It is a rectangle placed on the lot with its
+   LONG axis running street to alley, so it fixes the depth direction exactly —
+   no chord matching and no guessing which edge is which.
+
+   Which END is the street comes from where the pad sits along that axis: a
+   correctly placed pad is about frontBL off the street and at least rearBL off
+   the alley. That pattern has to hold at one end and NOT the other. If both
+   ends look alike the pad cannot tell us which way round the lot is, and
+   guessing would put the garage on the street — so it declines instead.
+
+   Checked against three lots: N-5 comes out 86.7 x 111.4 against a plat of
+   86.7 x 111.4, K-21 74.1 x 116.0 against 74.0 x 116.0, and L-17 60.9 x 111.9
+   against 60.9 x 111.8 — the last of those closer to the plat than the chord
+   search manages. */
+function padFront(lot,frontBL,rearBL){
+  const pad=lot.pad;
+  if(!pad||pad.length<4)return null;
+  let best=null;
+  for(let i=0;i<pad.length;i++){
+    const a=pad[i],b=pad[(i+1)%pad.length];
+    const L=Math.hypot(b[0]-a[0],b[1]-a[1]);
+    if(!best||L>best.L)best={L:L,ux:(b[0]-a[0])/L,uy:(b[1]-a[1])/L};
+  }
+  if(!best||best.L<20)return null;
+  const ux=best.ux,uy=best.uy,pr=q=>q[0]*ux+q[1]*uy;
+  const lotP=lot.pts.map(pr),padP=pad.map(pr);
+  const lo=Math.min.apply(null,lotP),hi=Math.max.apply(null,lotP);
+  const gapLo=Math.min.apply(null,padP)-lo,gapHi=hi-Math.max.apply(null,padP);
+  const fits=(g,o)=>Math.abs(g-frontBL)<=4.0&&o>=rearBL-4.0;
+  const loSt=fits(gapLo,gapHi),hiSt=fits(gapHi,gapLo);
+  if(loSt===hiSt)return null;                 /* cannot tell the ends apart */
+  const target=loSt?lo:hi;
+  let anchor=lot.pts[0],bd=Infinity;
+  lot.pts.forEach(function(q,i){const d=Math.abs(lotP[i]-target);if(d<bd){bd=d;anchor=q;}});
+  const px=-uy,py=ux;
+  return {front:[[anchor[0]-px*10,anchor[1]-py*10],[anchor[0]+px*10,anchor[1]+py*10]],
+          gapLo:gapLo,gapHi:gapHi};
+}
+function resolveFront(lot,orient,frontBL,rearBL){
   const rec=orient.front, lw=lot.lw;
   const recLen=(rec&&rec.length===2)
     ? Math.hypot(rec[1][0]-rec[0][0],rec[1][1]-rec[0][1]) : null;
@@ -215,8 +261,12 @@ function resolveFront(lot,orient){
      unresolved return therefore carries `guess` for the drawing to fall back
      on, while `ok` stays false so the banner fires. */
   const stem=`the frontage recorded for this lot is ${recLen.toFixed(1)}', but the plat frontage is ${lw.toFixed(1)}'`;
-  if(groups.length===0)
+  if(groups.length===0){
+    const pf=padFront(lot,frontBL,rearBL);
+    if(pf) return {ok:true,front:pf.front,src:'pad-derived',
+      why:`${stem}, and no edge of the polygon matches it either — this lot's frontage is measured along a curve. The street-to-alley direction has been taken from the engineer's graded pad instead, which is laid out along it.`};
     return {ok:false,guess:rec,why:`${stem}, and no edge of the lot polygon matches the plat`};
+  }
   if(groups.length===1)
     return {ok:true,front:[groups[0].a,groups[0].b],src:'re-derived',
             why:`${stem}. The frontage has been re-read from the plat polygon.`};
@@ -234,31 +284,31 @@ function resolveFront(lot,orient){
 
      Truncation is the common case, so the recorded segment is trusted for which
      side of the lot faces the street even when its length is wrong. Among the
-     matching chords, take the one sitting on top of it. It has to win clearly —
-     at least twice as close as the next — or we are guessing, and on a lot whose
-     ends genuinely both match the plat (a plain rectangle with a side line
-     recorded) nothing in the plat can settle it and the sheet still refuses. */
-  const rm=[(rec[0][0]+rec[1][0])/2,(rec[0][1]+rec[1][1])/2];
+     matching chords, take the one sitting on top of it. */
+  const rm=mid(rec);
   const near=groups.map(g=>({g:g,d:Math.hypot(g.mx-rm[0],g.my-rm[1])}))
-                   .sort((p,q)=>p.d-q.d);
+                   .sort((a,b)=>a.d-b.d);
 
   /* TRUNCATED: a matching chord sits right on top of the recorded segment, so
      the recorded segment IS part of the frontage and only its length was wrong.
-     Keep it — do NOT swap in the chord. The chord runs corner to corner across
-     the bend, which tilts the whole lot a few degrees on the page and tilts the
-     engineer's pad with it; the straight part gives a square, axis-aligned
-     drawing. At K-21 the recorded 64.0' segment is dead vertical and yields a
-     74.0 x 116.0 page exactly matching the plat, where the 74.7' chord yields a
-     skewed 86.9 x 123.5 bounding box. Same lot, worse picture. */
+     Keep it — the chord runs corner to corner across the bend, which tilts the
+     whole lot and the pad with it; the straight part draws square. */
   if(near[0].d <= 0.35*lw)
     return {ok:true,front:rec,src:'recorded',
-            why:`the frontage recorded for this lot measures ${recLen.toFixed(1)}' against the plat's ${lw.toFixed(1)}' because it is only the straight part of a frontage that bends at a clipped corner. It is on the correct side of the lot, so it has been kept for the drawing.`};
+      why:`the frontage recorded for this lot measures ${recLen.toFixed(1)}' against the plat's ${lw.toFixed(1)}' because it is only the straight part of a frontage that bends at a clipped corner. It is on the correct side of the lot, so it has been kept for the drawing.`};
 
   if(near[0].d*2 < near[1].d){
     const g=near[0].g;
     return {ok:true,front:[g.a,g.b],src:'re-derived',
             why:`${stem}. The frontage has been re-read from the plat polygon.`};
   }
+
+  /* Nothing in the plat separates the candidates. The pad can, where it is
+     clearly laid out street-to-alley. */
+  const pf=padFront(lot,frontBL,rearBL);
+  if(pf) return {ok:true,front:pf.front,src:'pad-derived',
+    why:`${stem}, and several edges match it equally well. The street-to-alley direction has been taken from the engineer's graded pad instead.`};
+
   return {ok:false,guess:rec,why:`${stem}, and ${groups.length} different edges of the lot match it with none clearly matching the recorded frontage, so which one fronts the street cannot be settled from the plat alone`};
 }
 
@@ -438,7 +488,7 @@ function draw(){
   let dm=null, wm=null, traced=false, doorFound=false, fpKey=null, rearClamp=0;
   let frontNote='', drawBlocked=null;
 
-  const FR = or ? resolveFront(LOT,or) : null;
+  const FR = or ? resolveFront(LOT,or,fbl,rear) : null;
   if(FR&&!FR.ok) drawBlocked=FR.why;
   if(FR&&FR.ok&&FR.why) frontNote=FR.why;
 
