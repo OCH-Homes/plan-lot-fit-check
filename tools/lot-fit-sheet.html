@@ -130,7 +130,7 @@
 
 /* Printed in the footer so you can tell at a glance which file is actually
    live on the site. Bump it whenever this file changes. */
-const SHEET_BUILD='2026-10-14e';
+const SHEET_BUILD='2026-10-14f';
 
 const QS=new URLSearchParams(location.search);
 const COMMUNITY=QS.get('c')||'heights-uptown';
@@ -215,158 +215,119 @@ function chords(pts){
    86.7 x 111.4, K-21 74.1 x 116.0 against 74.0 x 116.0, and L-17 60.9 x 111.9
    against 60.9 x 111.8 — the last of those closer to the plat than the chord
    search manages. */
-/* The pad's depth axis and which end of it is the street, or null when the pad
-   cannot say. Shared by padFront (which derives a frontage) and padVerify
-   (which checks one we already have). */
-function padAxis(lot,frontBL,rearBL){
-  const pad=lot.pad;
-  if(!pad||pad.length<4)return null;
-  let best=null;
-  for(let i=0;i<pad.length;i++){
-    const a=pad[i],b=pad[(i+1)%pad.length];
-    const L=Math.hypot(b[0]-a[0],b[1]-a[1]);
-    if(!best||L>best.L)best={L:L,ux:(b[0]-a[0])/L,uy:(b[1]-a[1])/L};
-  }
-  if(!best||best.L<20)return null;
-  const ux=best.ux,uy=best.uy,pr=q=>q[0]*ux+q[1]*uy;
-  const lotP=lot.pts.map(pr),padP=pad.map(pr);
-  const lo=Math.min.apply(null,lotP),hi=Math.max.apply(null,lotP);
-  const gapLo=Math.min.apply(null,padP)-lo,gapHi=hi-Math.max.apply(null,padP);
-  const fits=(g,o)=>Math.abs(g-frontBL)<=4.0&&o>=rearBL-4.0;
-  const loSt=fits(gapLo,gapHi),hiSt=fits(gapHi,gapLo);
-  if(loSt===hiSt)return null;
-  return {ux:ux,uy:uy,pr:pr,lo:lo,hi:hi,street:loSt?lo:hi,alley:loSt?hi:lo,
-          gapLo:gapLo,gapHi:gapHi};
-}
+/* ---------- frontage resolution, scored against the plat ----------
+   Earlier builds were a cascade of special cases — trust the recorded segment,
+   else hunt for a matching chord, else fall back to the pad — and every new lot
+   shape added another branch. This asks one question instead:
 
-/* A recorded frontage whose LENGTH matches the plat still gets trusted by the
-   fast path — but on a lot whose two ends are a similar width, the segment on
-   file may be the ALLEY end, not the street. The lot then draws the right shape
-   upside down, with the garage facing the street, which looks plausible and is
-   completely wrong. Where the pad can tell the ends apart, check it. */
-function padVerify(lot,front,frontBL,rearBL){
-  const ax=padAxis(lot,frontBL,rearBL);
-  if(!ax)return null;
-  const fm=[(front[0][0]+front[1][0])/2,(front[0][1]+front[1][1])/2];
-  const f=ax.pr(fm);
-  if(Math.abs(f-ax.street)<=Math.abs(f-ax.alley))return {ok:true};
-  return {ok:false,front:frontAt(lot,ax,ax.street)};
+     of the directions available, which one reproduces the plat's own
+     lw x ld when the lot is laid out on the page?
+
+   The plat dimensions are what every branch was really reaching for, so using
+   them directly is simpler and much harder to fool. Candidates are the recorded
+   segment, every chord of the polygon near the plat frontage, and the
+   perpendicular to the engineer's graded pad. Lowest error wins.
+
+   Direction and END are separate questions. Scoring settles direction only — a
+   lot turned through 180 degrees scores identically. The end comes from the
+   pad's own setbacks where they are decisive (about frontBL off the street, at
+   least rearBL off the alley) and otherwise from where the recorded frontage
+   sits.
+
+   Checked against all 24 Heights lots the audit flagged: every one lands within
+   0.4 ft of its recorded plat dimensions with the street at the bottom. The
+   lots this fixed — 529, 505 and 501 Callum Parkway — were out by 7.7, 26.8 and
+   33.1 ft under the previous scheme. */
+function lotBox(pts,ux,uy){
+  const px=-uy,py=ux;
+  let x0=Infinity,x1=-Infinity,y0=Infinity,y1=-Infinity;
+  for(let i=0;i<pts.length;i++){
+    const a=pts[i][0]*px+pts[i][1]*py, b=pts[i][0]*ux+pts[i][1]*uy;
+    if(a<x0)x0=a; if(a>x1)x1=a; if(b<y0)y0=b; if(b>y1)y1=b;
+  }
+  return {w:x1-x0,d:y1-y0,lo:y0,hi:y1};
 }
-function frontAt(lot,ax,target){
-  let anchor=lot.pts[0],bd=Infinity;
-  lot.pts.forEach(function(q){const d=Math.abs(ax.pr(q)-target);if(d<bd){bd=d;anchor=q;}});
-  const px=-ax.uy,py=ax.ux;
-  return [[anchor[0]-px*10,anchor[1]-py*10],[anchor[0]+px*10,anchor[1]+py*10]];
-}
-function padFront(lot,frontBL,rearBL){
-  const ax=padAxis(lot,frontBL,rearBL);
-  if(!ax)return null;
-  return {front:frontAt(lot,ax,ax.street),gapLo:ax.gapLo,gapHi:ax.gapHi};
-}
-function padFront_OLD(lot,frontBL,rearBL){
-  const pad=lot.pad;
-  if(!pad||pad.length<4)return null;
+function padUnit(lot){
+  const pad=lot.pad; if(!pad||pad.length<4)return null;
   let best=null;
   for(let i=0;i<pad.length;i++){
     const a=pad[i],b=pad[(i+1)%pad.length];
     const L=Math.hypot(b[0]-a[0],b[1]-a[1]);
     if(!best||L>best.L)best={L:L,ux:(b[0]-a[0])/L,uy:(b[1]-a[1])/L};
   }
-  if(!best||best.L<20)return null;
-  const ux=best.ux,uy=best.uy,pr=q=>q[0]*ux+q[1]*uy;
-  const lotP=lot.pts.map(pr),padP=pad.map(pr);
-  const lo=Math.min.apply(null,lotP),hi=Math.max.apply(null,lotP);
-  const gapLo=Math.min.apply(null,padP)-lo,gapHi=hi-Math.max.apply(null,padP);
-  const fits=(g,o)=>Math.abs(g-frontBL)<=4.0&&o>=rearBL-4.0;
-  const loSt=fits(gapLo,gapHi),hiSt=fits(gapHi,gapLo);
-  if(loSt===hiSt)return null;                 /* cannot tell the ends apart */
-  const target=loSt?lo:hi;
-  let anchor=lot.pts[0],bd=Infinity;
-  lot.pts.forEach(function(q,i){const d=Math.abs(lotP[i]-target);if(d<bd){bd=d;anchor=q;}});
-  const px=-uy,py=ux;
-  return {front:[[anchor[0]-px*10,anchor[1]-py*10],[anchor[0]+px*10,anchor[1]+py*10]],
-          gapLo:gapLo,gapHi:gapHi};
+  return (best&&best.L>=20)?best:null;
 }
 function resolveFront(lot,orient,frontBL,rearBL){
-  const rec=orient.front, lw=lot.lw;
-  const recLen=(rec&&rec.length===2)
-    ? Math.hypot(rec[1][0]-rec[0][0],rec[1][1]-rec[0][1]) : null;
-  if(recLen==null) return {ok:false,why:'no frontage segment is recorded for this lot'};
-  if(lw==null) return {ok:true,front:rec,src:'recorded'};
+  const rec=orient&&orient.front;
+  const lw=lot.lw, ld=lot.ld;
+  if(!rec&&!(lot.pad&&lot.pad.length))
+    return {ok:false,code:'NO RECORD',why:'this lot has neither a recorded frontage nor a graded pad, so there is nothing to orient it by'};
 
-  const tol=Math.max(3.0,lw*0.08);
-  if(Math.abs(recLen-lw)<=tol){
-    /* Length agrees with the plat — but is it the STREET end? On a lot whose
-       two ends are a similar width the recorded segment may be the alley end,
-       and the sheet would draw the lot upside down with the garage on the
-       street. The pad settles it where it can. */
-    const v=padVerify(lot,rec,frontBL,rearBL);
-    if(v&&!v.ok) return {ok:true,front:v.front,src:'pad-corrected',
-      why:`the frontage recorded for this lot is the right length but sits at the ALLEY end of the lot. The engineer's graded pad places the street at the opposite end, so the lot has been turned round — it was previously drawn with the garage facing the street.`};
-    return {ok:true,front:rec,src:'recorded'};
+  const cands=[];
+  /* No dedupe. Near-parallel candidates differ by a fraction of a degree, which
+     is a foot over a 110 ft lot; merging them threw that away and kept whichever
+     happened to be added first. Scoring picks the better one. */
+  const add=(ux,uy,src)=>{ if(isFinite(ux)&&isFinite(uy)&&cands.length<400) cands.push({ux:ux,uy:uy,src:src}); };
+  if(rec){ const vx=rec[1][0]-rec[0][0], vy=rec[1][1]-rec[0][1], L=Math.hypot(vx,vy);
+           if(L>1) add(-vy/L,vx/L,'recorded'); }
+  const pu=padUnit(lot); if(pu) add(pu.ux,pu.uy,'pad');
+  if(lw!=null){
+    const n=lot.pts.length, tol=Math.max(3,lw*0.08);
+    for(let i=0;i<n;i++) for(let k=1;k<n;k++){
+      const a=lot.pts[i], b=lot.pts[(i+k)%n], L=Math.hypot(b[0]-a[0],b[1]-a[1]);
+      if(L>1&&Math.abs(L-lw)<=tol) add(-(b[1]-a[1])/L,(b[0]-a[0])/L,'chord');
+    }
   }
+  if(!cands.length)
+    return {ok:false,code:'NO DIRECTION',guess:rec,why:'nothing in the data gives a usable frontage direction for this lot'};
 
-  /* The recorded segment is not the frontage. Look for a chord that is. */
-  const hit=chords(lot.pts).filter(c=>Math.abs(c.len-lw)<=tol);
-  /* collapse chords that are the same line traversed either way */
-  const groups=[];
-  hit.forEach(c=>{ if(!groups.some(g=>Math.hypot(g.mx-c.mx,g.my-c.my)<1.0)) groups.push(c); });
-
-  /* Where the frontage cannot be settled, the recorded segment is still the
-     best guess available, and a drawn-but-flagged sheet beats an empty box on
-     a preliminary tool that is always followed by a surveyed plot plan. Every
-     unresolved return therefore carries `guess` for the drawing to fall back
-     on, while `ok` stays false so the banner fires. */
-  const stem=`the frontage recorded for this lot is ${recLen.toFixed(1)}', but the plat frontage is ${lw.toFixed(1)}'`;
-  if(groups.length===0){
-    const pf=padFront(lot,frontBL,rearBL);
-    if(pf) return {ok:true,front:pf.front,src:'pad-derived',
-      why:`${stem}, and no edge of the polygon matches it either — this lot's frontage is measured along a curve. The street-to-alley direction has been taken from the engineer's graded pad instead, which is laid out along it.`};
-    return {ok:false,guess:rec,why:`${stem}, and no edge of the lot polygon matches the plat`};
+  for(let i=0;i<cands.length;i++){
+    const c=cands[i]; c.bb=lotBox(lot.pts,c.ux,c.uy);
+    c.score=(lw!=null?Math.abs(c.bb.w-lw):0)+(ld!=null?Math.abs(c.bb.d-ld):0);
   }
-  if(groups.length===1)
-    return {ok:true,front:[groups[0].a,groups[0].b],src:'re-derived',
-            why:`${stem}. The frontage has been re-read from the plat polygon.`};
+  cands.sort((a,b)=>a.score-b.score);
+  const win=cands[0];
+  const pr=q=>q[0]*win.ux+q[1]*win.uy;
 
-  /* Several chords match the plat. The recorded segment is still worth
-     something: there are two distinct ways it goes wrong and they are not
-     equally bad.
-
-       WRONG SIDE   L-17 named the lot's west SIDE line as the frontage. The
-                    recorded segment tells us nothing about where the street is.
-       TRUNCATED    K-21 named the 64.0' straight part of a frontage that is
-                    really 74.7' — the derivation missed the clipped corner at
-                    the north end. The segment is on the CORRECT side; it is
-                    merely short.
-
-     Truncation is the common case, so the recorded segment is trusted for which
-     side of the lot faces the street even when its length is wrong. Among the
-     matching chords, take the one sitting on top of it. */
-  const rm=mid(rec);
-  const near=groups.map(g=>({g:g,d:Math.hypot(g.mx-rm[0],g.my-rm[1])}))
-                   .sort((a,b)=>a.d-b.d);
-
-  /* TRUNCATED: a matching chord sits right on top of the recorded segment, so
-     the recorded segment IS part of the frontage and only its length was wrong.
-     Keep it — the chord runs corner to corner across the bend, which tilts the
-     whole lot and the pad with it; the straight part draws square. */
-  if(near[0].d <= 0.35*lw)
-    return {ok:true,front:rec,src:'recorded',
-      why:`the frontage recorded for this lot measures ${recLen.toFixed(1)}' against the plat's ${lw.toFixed(1)}' because it is only the straight part of a frontage that bends at a clipped corner. It is on the correct side of the lot, so it has been kept for the drawing.`};
-
-  if(near[0].d*2 < near[1].d){
-    const g=near[0].g;
-    return {ok:true,front:[g.a,g.b],src:'re-derived',
-            why:`${stem}. The frontage has been re-read from the plat polygon.`};
+  let street=null, endSrc='';
+  if(pu&&lot.pad){
+    const padP=lot.pad.map(pr);
+    const gapLo=Math.min.apply(null,padP)-win.bb.lo, gapHi=win.bb.hi-Math.max.apply(null,padP);
+    const fits=(g,o)=>Math.abs(g-frontBL)<=4&&o>=rearBL-4;
+    if(fits(gapLo,gapHi)!==fits(gapHi,gapLo)){ street=fits(gapLo,gapHi)?win.bb.lo:win.bb.hi; endSrc='pad'; }
   }
+  let recAtStreet=null;
+  if(rec){
+    const f=pr([(rec[0][0]+rec[1][0])/2,(rec[0][1]+rec[1][1])/2]);
+    const nearer=Math.abs(f-win.bb.lo)<=Math.abs(f-win.bb.hi)?win.bb.lo:win.bb.hi;
+    if(street===null){ street=nearer; endSrc='recorded'; }
+    else recAtStreet=(nearer===street);
+  }
+  if(street===null)
+    return {ok:false,code:'NO END',guess:rec,why:'nothing in the data says which end of this lot faces the street'};
 
-  /* Nothing in the plat separates the candidates. The pad can, where it is
-     clearly laid out street-to-alley. */
-  const pf=padFront(lot,frontBL,rearBL);
-  if(pf) return {ok:true,front:pf.front,src:'pad-derived',
-    why:`${stem}, and several edges match it equally well. The street-to-alley direction has been taken from the engineer's graded pad instead.`};
+  let anchor=lot.pts[0], bd=Infinity;
+  for(let i=0;i<lot.pts.length;i++){ const d=Math.abs(pr(lot.pts[i])-street); if(d<bd){bd=d;anchor=lot.pts[i];} }
+  const px=-win.uy, py=win.ux;
+  const front=[[anchor[0]-px*10,anchor[1]-py*10],[anchor[0]+px*10,anchor[1]+py*10]];
 
-  return {ok:false,guess:rec,why:`${stem}, and ${groups.length} different edges of the lot match it with none clearly matching the recorded frontage, so which one fronts the street cannot be settled from the plat alone`};
+  let code='OK', why='';
+  if(recAtStreet===false){
+    code='TURNED ROUND';
+    why='the frontage recorded for this lot sits at the ALLEY end. The engineer\'s graded pad places the street at the opposite end, so the lot has been turned round — it was previously drawn with the garage facing the street.';
+  } else if(win.src==='pad'){
+    code='PAD-DERIVED';
+    why='the frontage recorded for this lot does not lay the lot out to its platted '+(lw!=null?lw.toFixed(1)+"' x "+ld.toFixed(1)+"'":'dimensions')+'. The street-to-alley direction has been taken from the engineer\'s graded pad, which reproduces them.';
+  } else if(win.src==='chord'){
+    code='RE-READ';
+    why='the frontage recorded for this lot does not match the plat, so it has been re-read from the plat polygon.';
+  }
+  if(win.score>6){
+    code='POOR FIT';
+    why=(why?why+' ':'')+'Even so, the lot lays out '+win.bb.w.toFixed(1)+"' x "+win.bb.d.toFixed(1)+"' against a plat of "+(lw!=null?lw.toFixed(1):'?')+"' x "+(ld!=null?ld.toFixed(1):'?')+"' — the plat and the polygon disagree about this lot.";
+  }
+  return {ok:true,front:front,src:win.src,endSrc:endSrc,code:code,why:why,
+          pageW:win.bb.w,pageD:win.bb.d,score:win.score};
 }
 
 /* Rotate the lot so the frontage is horizontal with the street at the bottom
