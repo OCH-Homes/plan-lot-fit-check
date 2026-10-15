@@ -50,12 +50,12 @@
  "L-2": {
   "front": [
    [
-    1085.6,
-    249.9
+    975.5,
+    284.9
    ],
    [
-    1085.5,
-    294.9
+    975.5,
+    304.9
    ]
   ],
   "rear": [
@@ -69,7 +69,8 @@
    ]
   ],
   "street": "SHELDON MEWS",
-  "frontLen": 45
+  "frontLen": 20,
+  "frontSource": "plat-rederived 2026-10-15 (TURNED ROUND)"
  },
  "L-9": {
   "front": [
@@ -194,12 +195,12 @@
  "L-16": {
   "front": [
    [
-    1373,
-    327.9
+    1317.9,
+    217.49
    ],
    [
-    1321.7,
-    328.4
+    1337.9,
+    217.31
    ]
   ],
   "rear": [
@@ -213,17 +214,18 @@
    ]
   ],
   "street": "BANKS STREET",
-  "frontLen": 51.3
+  "frontLen": 20,
+  "frontSource": "plat-rederived 2026-10-15 (TURNED ROUND)"
  },
  "L-17": {
   "front": [
    [
-    1259.6,
-    318
+    1318.02,
+    215.87
    ],
    [
-    1285,
-    210.8
+    1337.78,
+    218.93
    ]
   ],
   "rear": [
@@ -237,8 +239,9 @@
    ]
   ],
   "street": "BANKS STREET",
-  "frontLen": 110.2,
-  "irregular": true
+  "frontLen": 20,
+  "irregular": true,
+  "frontSource": "plat-rederived 2026-10-15 (PAD-DERIVED)"
  },
  "M-22": {
   "front": [
@@ -267,12 +270,12 @@
  "M-23": {
   "front": [
    [
-    782.5,
+    883.5,
     463.8
    ],
    [
-    873.5,
-    463.8
+    883.5,
+    483.8
    ]
   ],
   "rear": [
@@ -286,18 +289,19 @@
    ]
   ],
   "street": "GARRETT PARKWAY",
-  "frontLen": 91,
-  "irregular": true
+  "frontLen": 20,
+  "irregular": true,
+  "frontSource": "plat-rederived 2026-10-15 (PAD-DERIVED)"
  },
  "N-1": {
   "front": [
    [
-    1085.5,
-    474
+    975.4,
+    528
    ],
    [
-    1085.4,
-    538
+    975.4,
+    548
    ]
   ],
   "rear": [
@@ -311,17 +315,18 @@
    ]
   ],
   "street": "LINCOLN MEWS",
-  "frontLen": 64
+  "frontLen": 20,
+  "frontSource": "plat-rederived 2026-10-15 (TURNED ROUND)"
  },
  "N-2": {
   "front": [
    [
-    1085.4,
-    538
+    975.4,
+    548
    ],
    [
-    1085.4,
-    583
+    975.4,
+    528
    ]
   ],
   "rear": [
@@ -335,17 +340,18 @@
    ]
   ],
   "street": "LINCOLN MEWS",
-  "frontLen": 45
+  "frontLen": 20,
+  "frontSource": "plat-rederived 2026-10-15 (TURNED ROUND)"
  },
  "N-3": {
   "front": [
    [
-    1085.4,
-    583
+    975.4,
+    593
    ],
    [
-    1085.4,
-    628
+    975.4,
+    573
    ]
   ],
   "rear": [
@@ -359,17 +365,18 @@
    ]
   ],
   "street": "LINCOLN MEWS",
-  "frontLen": 45
+  "frontLen": 20,
+  "frontSource": "plat-rederived 2026-10-15 (TURNED ROUND)"
  },
  "N-4": {
   "front": [
    [
-    1085.4,
-    628
+    975.39,
+    638
    ],
    [
-    1085.3,
-    700.5
+    975.41,
+    618
    ]
   ],
   "rear": [
@@ -383,17 +390,18 @@
    ]
   ],
   "street": "LINCOLN MEWS",
-  "frontLen": 72.5
+  "frontLen": 20,
+  "frontSource": "plat-rederived 2026-10-15 (TURNED ROUND)"
  },
  "N-5": {
   "front": [
    [
-    1212.2,
-    624.2
+    1115.45,
+    713.49
    ],
    [
-    1183.3,
-    731.4
+    1134.75,
+    718.71
    ]
   ],
   "rear": [
@@ -407,8 +415,9 @@
    ]
   ],
   "street": "CALLUM PARKWAY",
-  "frontLen": 111,
-  "irregular": true
+  "frontLen": 20,
+  "irregular": true,
+  "frontSource": "plat-rederived 2026-10-15 (TURNED ROUND)"
  },
  "N-6": {
   "front": [
@@ -438,12 +447,12 @@
  "N-7": {
   "front": [
    [
-    1302.2,
-    747.8
+    1291.39,
+    748.82
    ],
    [
-    1281.4,
-    748.3
+    1271.41,
+    747.78
    ]
   ],
   "rear": [
@@ -457,8 +466,9 @@
    ]
   ],
   "street": "CALLUM PARKWAY",
-  "frontLen": 20.8,
-  "irregular": true
+  "frontLen": 20,
+  "irregular": true,
+  "frontSource": "plat-rederived 2026-10-15 (RE-READ)"
  },
  "N-8": {
   "front": [
@@ -679,12 +689,12 @@
  "N-27": {
   "front": [
    [
-    1229.1,
-    610.1
+    1245.04,
+    499.3
    ],
    [
-    1182.6,
-    597.6
+    1264.36,
+    504.5
    ]
   ],
   "rear": [
@@ -698,17 +708,18 @@
    ]
   ],
   "street": "WALKER PARKWAY",
-  "frontLen": 48.2
+  "frontLen": 20,
+  "frontSource": "plat-rederived 2026-10-15 (TURNED ROUND)"
  },
  "N-28": {
   "front": [
    [
-    1211.5,
-    490.4
+    1151.95,
+    474.31
    ],
    [
-    1182.6,
-    597.6
+    1132.65,
+    469.09
    ]
   ],
   "rear": [
@@ -722,8 +733,9 @@
    ]
   ],
   "street": "WALKER PARKWAY",
-  "frontLen": 111,
-  "irregular": true
+  "frontLen": 20,
+  "irregular": true,
+  "frontSource": "plat-rederived 2026-10-15 (PAD-DERIVED)"
  },
  "P-1": {
   "front": [
@@ -776,12 +788,12 @@
  "P-6": {
   "front": [
    [
-    1237.5,
-    795.7
+    1247.5,
+    795.46
    ],
    [
-    1281.6,
-    798.3
+    1227.5,
+    795.94
    ]
   ],
   "rear": [
@@ -795,18 +807,19 @@
    ]
   ],
   "street": "CALLUM PARKWAY",
-  "frontLen": 44.2,
-  "irregular": true
+  "frontLen": 20,
+  "irregular": true,
+  "frontSource": "plat-rederived 2026-10-15 (PAD-DERIVED)"
  },
  "P-7": {
   "front": [
    [
-    1204.4,
-    788.9
+    1202.3,
+    785.37
    ],
    [
-    1237.5,
-    795.7
+    1182.3,
+    785.83
    ]
   ],
   "rear": [
@@ -820,18 +833,19 @@
    ]
   ],
   "street": "CALLUM PARKWAY",
-  "frontLen": 33.8,
-  "irregular": true
+  "frontLen": 20,
+  "irregular": true,
+  "frontSource": "plat-rederived 2026-10-15 (PAD-DERIVED)"
  },
  "P-8": {
   "front": [
    [
-    1126.4,
-    767.8
+    1135,
+    767.16
    ],
    [
-    1192.3,
-    785.6
+    1115,
+    767.64
    ]
   ],
   "rear": [
@@ -845,7 +859,8 @@
    ]
   ],
   "street": "CALLUM PARKWAY",
-  "frontLen": 68.3
+  "frontLen": 20,
+  "frontSource": "plat-rederived 2026-10-15 (PAD-DERIVED)"
  },
  "P-12": {
   "front": [
@@ -898,12 +913,12 @@
  "P-16": {
   "front": [
    [
-    1270.4,
-    938.6
+    1283,
+    1048.37
    ],
    [
-    1320.4,
-    937.5
+    1263,
+    1048.83
    ]
   ],
   "rear": [
@@ -917,17 +932,18 @@
    ]
   ],
   "street": "STARK MEWS",
-  "frontLen": 50
+  "frontLen": 20,
+  "frontSource": "plat-rederived 2026-10-15 (TURNED ROUND)"
  },
  "P-17": {
   "front": [
    [
-    1320.4,
-    937.5
+    1333,
+    1047.16
    ],
    [
-    1370.4,
-    936.3
+    1313,
+    1047.64
    ]
   ],
   "rear": [
@@ -941,17 +957,18 @@
    ]
   ],
   "street": "STARK MEWS",
-  "frontLen": 50
+  "frontLen": 20,
+  "frontSource": "plat-rederived 2026-10-15 (TURNED ROUND)"
  },
  "P-18": {
   "front": [
    [
-    1370.4,
-    936.3
+    1433,
+    1044.86
    ],
    [
-    1420.4,
-    935.1
+    1413,
+    1045.34
    ]
   ],
   "rear": [
@@ -965,7 +982,8 @@
    ]
   ],
   "street": "STARK MEWS",
-  "frontLen": 50
+  "frontLen": 20,
+  "frontSource": "plat-rederived 2026-10-15 (TURNED ROUND)"
  },
  "P-22": {
   "front": [
@@ -994,12 +1012,12 @@
  "P-24": {
   "front": [
    [
-    1568,
-    844
+    1678.54,
+    799
    ],
    [
-    1569.1,
-    826.6
+    1678.06,
+    779
    ]
   ],
   "rear": [
@@ -1013,8 +1031,9 @@
    ]
   ],
   "street": "STARK MEWS",
-  "frontLen": 17.4,
-  "irregular": true
+  "frontLen": 20,
+  "irregular": true,
+  "frontSource": "plat-rederived 2026-10-15 (TURNED ROUND)"
  },
  "S-8": {
   "front": [
@@ -1115,12 +1134,12 @@
  "X-1": {
   "front": [
    [
-    773.6,
-    115.8
+    883.7,
+    53.3
    ],
    [
-    773.7,
-    63.3
+    883.7,
+    73.3
    ]
   ],
   "rear": [
@@ -1134,7 +1153,8 @@
    ]
   ],
   "street": "LOGAN MEWS",
-  "frontLen": 52.5
+  "frontLen": 20,
+  "frontSource": "plat-rederived 2026-10-15 (TURNED ROUND)"
  },
  "Y-2": {
   "front": [
