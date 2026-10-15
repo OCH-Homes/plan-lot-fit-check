@@ -79,6 +79,8 @@ li{margin-bottom:7px}
 a{color:var(--och-green)}
 .note{background:var(--white);border-left:3px solid var(--bone);padding:14px 18px;
       font-size:13.5px;color:var(--slate);margin-top:16px}
+.bstamp{display:block;margin-top:10px;font-family:var(--sans);font-size:10px;
+         letter-spacing:.08em;color:var(--bone);text-transform:none}
 .foot{margin-top:44px;padding-top:18px;border-top:1px solid var(--rule);
       font-family:var(--serif);font-size:11px;letter-spacing:.3em;text-transform:uppercase;
       color:var(--bone);text-align:center}
@@ -94,7 +96,7 @@ a{color:var(--och-green)}
   <div class="sub">Lot planning, driveway grade compliance, plan fit and monotony tracking</div>
 </div>
 
-<h3>For sales</h3>
+<h3>Sales team</h3>
 <a class="card primary" href="tools/lot-finder.html">
   <div><h2>Lot Finder</h2>
   <p>Start here. Pick a community, pick a lot, see which plans fit it &mdash; and print the sheet.
@@ -141,7 +143,7 @@ a{color:var(--och-green)}
 
 <div class="note" id="caveats"></div>
 
-<div class="foot">Living Olivia Clarke Well</div>
+<div class="foot">Living Olivia Clarke Well<span class="bstamp">Build 2026-10-15b</span></div>
 </div>
 <script>
 fetch('data/communities.json',{cache:'no-store'}).then(r=>r.json()).then(reg=>{
