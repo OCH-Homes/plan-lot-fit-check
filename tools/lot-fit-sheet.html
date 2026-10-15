@@ -130,7 +130,7 @@
 
 /* Printed in the footer so you can tell at a glance which file is actually
    live on the site. Bump it whenever this file changes. */
-const SHEET_BUILD='2026-10-14g';
+const SHEET_BUILD='2026-10-15a';
 
 const QS=new URLSearchParams(location.search);
 const COMMUNITY=QS.get('c')||'heights-uptown';
@@ -447,7 +447,7 @@ function setGar(s){GAR=s;
    step; the proper fix is a shared data/plans.json read by both. The check in
    unknownPlans() below at least makes drift visible instead of silent. */
 const PLANNAMES={}, PLANDIMS={};
-[['addison_a','Addison A',34.833,84.5],['addison_b','Addison B',34.833,84.5],['addison_c','Addison C',34.833,84.5],
+[['addison_a','Addison A',34.833,84.5],['addison_b','Addison B',34.833,84.5],['addison_c','Addison C',34.833,81.5],
  ['carmichael_a','Carmichael A',34.833,82.5],['carmichael_b','Carmichael B',34.833,82.5],['carmichael_c','Carmichael C',34.833,82.5],
  ['crowder_a','Crowder A',30,80],['crowder_b','Crowder B',30,80],['crowder_c','Crowder C',30,80],
  ['holland_a','Holland A',34.833,76.5],['holland_b','Holland B',34.833,77.5],['holland_c','Holland C',34.833,76.5],
@@ -515,7 +515,7 @@ function draw(){
 
   let svg='<p style="font-size:11px;color:#555">Lot orientation is not recorded for this lot, so the plan cannot be drawn to scale. The figures below still apply.</p>';
   let dm=null, wm=null, traced=false, doorFound=false, fpKey=null, rearClamp=0;
-  let frontNote='', drawBlocked=null;
+  let frontNote='', drawBlocked=null, fp=null;
 
   const FR = or ? resolveFront(LOT,or,fbl,rear) : null;
   if(FR&&!FR.ok) drawBlocked=FR.why;
@@ -652,7 +652,7 @@ function draw(){
          A, B and C share one floor plan and only the facade changes. Try the
          elevation first, fall back to the family. */
       const fam=(pname.split(' ')[0]||'').toLowerCase();
-      const fp=FOOT[pid]||FOOT[fam];
+      fp=FOOT[pid]||FOOT[fam];
       fpKey = FOOT[pid] ? pid : (FOOT[fam] ? fam : null);
       /* buildable width and depth, best source first */
       /* dm and wm were computed above, from the plat and the pad. Nothing here
@@ -854,6 +854,8 @@ function draw(){
                :`No graded pad was recorded for this lot, so the home is measured against the setback envelope.`}
       ${DRAWN&&traced&&fpKey&&fpKey.indexOf('_')<0?`<b>Outline is the plan's single first-floor plan</b>, shared by elevations A, B and C — on this plan the elevations change the front facade, not the footprint. `:''}
       ${DRAWN&&traced&&fpKey&&fpKey.indexOf('_')>=0?`<b>Outline is elevation ${fpKey.split('_')[1].toUpperCase()}'s own first-floor plan.</b> This plan has a different footprint per elevation. `:''}
+      ${DRAWN&&traced&&fp&&fp.d!=null&&plan&&Math.abs(fp.d-plan.d)>0.5
+        ? `<b>The drawn outline is ${FT(fp.d)} deep where this elevation is ${FT(plan.d)}.</b> The CAD on file belongs to another elevation — they share a living body and differ at the porch, so the shape is right and the overall depth is not. The figures above use this elevation's own depth; the drawing runs ${FT(Math.abs(fp.d-plan.d))} long at the front. ` : ''}
       ${!DRAWN?'' : traced?`<b>The outline comes from the architectural CAD file</b>  — the finish-face area polylines, unioned — so bump-outs and jogs are exact, not traced.`
               :`<b>No traced outline exists for this plan, so the house is drawn as a plain rectangle</b> at its overall width and depth — bump-outs and jogs are not shown.`}
       ${!DRAWN?'' : doorFound?`The overhead door is read from the traced outline at the alley face.`
