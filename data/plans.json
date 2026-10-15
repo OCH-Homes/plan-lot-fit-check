@@ -1,5 +1,5 @@
 {
- "note": "Single source for the plan library. tools/lot-map.html and tools/lot-fit-sheet.html still carry their own copies — migrate them to this file so the three cannot drift. porch is the depth the front porch projects ahead of the living area, per ELEVATION, confirmed against the elevation drawings 13-14 Oct 2026; the community porchEncroach figure is the cap, not the entitlement.",
+ "note": "Single source for the plan library. tools/lot-map.html and tools/lot-fit-sheet.html still carry their own copies \u2014 migrate them to this file so the three cannot drift. porch is the depth the front porch projects ahead of the living area, per ELEVATION, confirmed against the elevation drawings 13-14 Oct 2026; the community porchEncroach figure is the cap, not the entitlement.",
  "generated": "2026-10-14",
  "plans": [
   {
@@ -268,12 +268,13 @@
    "collection": "MR 35' RE",
    "lotProduct": 45,
    "w": 34.833,
-   "d": 84.5,
+   "d": 81.5,
    "garage": "Rear",
    "hand": null,
    "mirror": false,
    "porch": 4,
-   "retired": false
+   "retired": false,
+   "note": "Overall depth 81'-6\" per the elevation C partial plan, not the 84'-6\" carried for elevations A and B. Same living body (77'-6\"); the difference is the porch \u2014 4' on C, 7' on A and B. Confirmed by Brandi 15 Oct 2026."
   },
   {
    "id": "carmichael_a",

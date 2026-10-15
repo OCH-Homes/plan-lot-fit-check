@@ -1,0 +1,133 @@
+{
+ "note": "Which lots already carry a home. Supplied by Brandi 14-15 Oct 2026. 'built' is complete; 'in-process' is under construction or committed. A lot absent from this file is treated as available. An 'override' records a lot the standard fit model would reject but that is settled in the field \u2014 a custom plan, or a home already built and surveyed. The tools show the override instead of arguing with reality. This lives in data/ so it can be edited without touching code.",
+ "source": "Brandi, 14 Oct 2026",
+ "lots": {
+  "S-9": {
+   "addr": "518 Cooper Street",
+   "plan": "Carmichael A",
+   "status": "built"
+  },
+  "P-13": {
+   "addr": "516 Stark Mews",
+   "plan": "Thompson A",
+   "status": "built"
+  },
+  "N-3": {
+   "addr": "705 Lincoln Mews",
+   "plan": "Carmichael B",
+   "status": "built"
+  },
+  "N-6": {
+   "addr": "504 Callum Parkway",
+   "plan": "Addison B",
+   "status": "built"
+  },
+  "N-15": {
+   "addr": "608 Callum Parkway",
+   "plan": "Logan C",
+   "status": "built"
+  },
+  "P-17": {
+   "addr": "532 Stark Mews",
+   "plan": "Parker A",
+   "status": "built"
+  },
+  "U-9": {
+   "addr": "600 Garrett Parkway",
+   "plan": "Addison B",
+   "status": "built"
+  },
+  "P-7": {
+   "addr": "505 Callum Parkway",
+   "plan": "Logan A",
+   "status": "built"
+  },
+  "P-18": {
+   "addr": "536 Stark Mews",
+   "plan": "Carmichael C",
+   "status": "built"
+  },
+  "N-4": {
+   "addr": "701 Lincoln Mews",
+   "plan": "Parker B",
+   "status": "built"
+  },
+  "P-22": {
+   "addr": "552 Stark Mews",
+   "plan": "Thompson B",
+   "status": "built"
+  },
+  "P-24": {
+   "addr": "560 Stark Mews",
+   "plan": "Carmichael A",
+   "status": "built"
+  },
+  "N-7": {
+   "addr": "508 Callum Parkway",
+   "plan": "Carmichael C",
+   "status": "built"
+  },
+  "N-1": {
+   "addr": "713 Lincoln Mews",
+   "plan": "Addison B",
+   "status": "built"
+  },
+  "P-6": {
+   "addr": "509 Callum Parkway",
+   "plan": "Crowder B",
+   "status": "built"
+  },
+  "N-27": {
+   "addr": "509 Walker Parkway",
+   "plan": "Addison C",
+   "status": "built",
+   "override": "Built and surveyed \u2014 Roome Land Surveying 06/26/2026, Job ES763304: 20'-1\" rear, 77'-6\" house, 13'-5\" front on a 111.00' lot. RESOLVED 15 Oct 2026: the plan library carried Addison C at 84'-6\", which is elevation A and B's depth. Elevation C is 81'-6\" with a 4' porch; all three share a 77'-6\" living body, which is exactly what the survey shows. Corrected \u2014 Addison C now reads +2.5' on a standard pad and this lot needs no exception."
+  },
+  "P-2": {
+   "addr": "525 Callum Parkway",
+   "plan": "Crowder A",
+   "status": "built"
+  },
+  "N-13": {
+   "addr": "600 Callum Parkway",
+   "plan": "Parker A",
+   "status": "in-process"
+  },
+  "L-17": {
+   "addr": "517 Banks Street",
+   "plan": "Pearl A",
+   "status": "in-process"
+  },
+  "U-8": {
+   "addr": "604 Garrett Parkway",
+   "plan": "Holland C",
+   "status": "in-process"
+  },
+  "P-1": {
+   "addr": "529 Callum Parkway",
+   "plan": "Knox B",
+   "status": "in-process"
+  },
+  "P-12": {
+   "addr": "512 Stark Mews",
+   "plan": "Carmichael B",
+   "status": "in-process"
+  },
+  "N-28": {
+   "addr": "505 Walker Parkway",
+   "plan": "Addison A",
+   "status": "in-process"
+  },
+  "N-5": {
+   "addr": "500 Callum Parkway",
+   "plan": "Carmichael A",
+   "status": "in-process"
+  },
+  "P-8": {
+   "addr": "501 Callum Parkway",
+   "plan": "Knox B",
+   "status": "in-process",
+   "override": "Custom plan built to this lot specifically. The 35' x 66' pad is 14' shallower than every other lot at The Heights, so no catalogue plan fits it; the standard model is correct to say so and is simply not applicable here. Assigned Knox B for recordkeeping."
+  }
+ }
+}
