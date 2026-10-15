@@ -290,7 +290,13 @@ async function audit(comm){
     const code = r.code || (r.ok?'OK':'CANNOT RESOLVE');
     const row={key:key, addr:lot.addr||'', lw:lot.lw, ld:lot.ld,
                code:code, why:r.why||'', recLen:r.recLen, front:r.ok?r.front:null,
-               changed:!!(r.ok&&r.src==='re-derived'), depth:null, padOff:null};
+               /* A frontage is replaced in the corrected file whenever the resolver
+                  did NOT take the recorded segment at face value. This used to test
+                  r.src==='re-derived' — a value the resolver has never emitted (it
+                  emits 'recorded', 'pad' or 'chord'), so no lot was ever marked
+                  changed and the corrected file came out byte-identical to the live
+                  one. The download was a no-op for as long as it has existed. */
+               changed:!!(r.ok&&REPLACE[code]), depth:null, padOff:null};
 
     if(r.ok){
       const O=orientLot(lot,r.front);
@@ -332,6 +338,12 @@ async function audit(comm){
 /* ---------- rendering ---------- */
 const SEV={'OK':'ok','PAD-DERIVED':'warn','TURNED ROUND':'warn','RE-READ':'warn','POOR FIT':'bad','CANNOT RESOLVE':'bad','NO RECORD':'bad','NO END':'bad','NO DIRECTION':'bad','NO PLAT WIDTH':'warn','WRONG SIDE':'bad',
            'AMBIGUOUS':'bad','NO MATCH':'bad','NO RECORD':'bad','DEPTH MISMATCH':'bad'};
+
+/* Codes where the resolver reached a good answer by some route OTHER than
+   trusting the recorded segment. These are exactly the records the corrected
+   file rewrites. TRUNCATED is deliberately absent: it is on the right edge and
+   is kept as recorded. */
+const REPLACE={'TURNED ROUND':1,'PAD-DERIVED':1,'RE-READ':1,'WRONG SIDE':1};
 let FILTER='all';
 
 function render(A){
