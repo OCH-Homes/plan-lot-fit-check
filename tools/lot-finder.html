@@ -92,7 +92,17 @@
   .err{color:var(--no);background:var(--white);border:1px solid var(--no);padding:18px 20px}
   @media (max-width:640px){
     main{padding:18px} .facts{gap:16px} h1{font-size:23px}
-    th:nth-child(4),td:nth-child(4),th:nth-child(5),td:nth-child(5){display:none}
+    /* The two tables have different shapes, so they need different rules.
+       The old blanket nth-child(4),(5) hid the lot list's pad and slope — which
+       is right — but ALSO hid the plan table's margins AND its Sheet button,
+       which is the only action on the page. On a phone the button simply was
+       not there. Scope by class. */
+    table.lots th:nth-child(4),table.lots td:nth-child(4),
+    table.lots th:nth-child(5),table.lots td:nth-child(5){display:none}
+    table.plist td:nth-child(3),table.plist td:nth-child(4){display:none}
+    table.plist td{padding:11px 12px}
+    table.plist td:first-child{width:99%}
+    .open{padding:9px 13px}
   }
 </style>
 </head>
@@ -176,8 +186,16 @@ function fitOf(lot,plan,meta){
   if(dm<0) short.push(FT(Math.abs(dm))+' short on depth');
   if(wm<0) short.push(FT(Math.abs(wm))+' short on width');
   if(short.length) return {state:'no',dm:dm,wm:wm,why:short.join(' · ')};
-  if(dm<2||wm<0.5)  return {state:'tight',dm:dm,wm:wm,
-    why:'clears by '+FT(Math.min(dm,wm))+' — confirm against the surveyed plot plan'};
+  if(dm<2||wm<0.5){
+    /* Name the dimension. "clears by 0'-1\"" was the smaller of the two
+       margins with nothing saying which, so a Knox with 5'-6" of depth to spare
+       and an inch on width read as though it barely fit at all. */
+    const t=[];
+    if(dm<2)   t.push(FT(dm)+' spare on depth');
+    if(wm<0.5) t.push(FT(wm)+' spare on width');
+    return {state:'tight',dm:dm,wm:wm,
+            why:t.join(' and ')+' — confirm against the surveyed plot plan'};
+  }
   return {state:'yes',dm:dm,wm:wm,why:''};
 }
 function offeredPlans(){
@@ -279,7 +297,7 @@ function screenLots(){
         ><button class="${SHOW==='all'?'on':''}" onclick="setShow('all')">Every OCH lot</button></span>
         <span class="why">${avail.length} available of ${lots.length}</span>
       </div>`
-    +`<table><thead><tr><th>Lot</th><th>Status</th><th>What fits</th><th>Graded pad</th><th>Driveway slope</th></tr></thead>
+    +`<table class="lots"><thead><tr><th>Lot</th><th>Status</th><th>What fits</th><th>Graded pad</th><th>Driveway slope</th></tr></thead>
       <tbody>${rows||'<tr><td colspan="5">No addressed lots in this community.</td></tr>'}</tbody></table>
       <div class="note"><b>${avail.length} of ${lots.length} lots are available.</b>
       The rest already carry a home, built or under construction. These are the lots carrying an OCH address.
@@ -346,12 +364,12 @@ function screenLot(){
         <h3>Fits — ${ok.length}${ok.length&&ok.every(x=>x.f.state==='tight'&&x.f.wm<0.5&&x.f.dm>=2)
           ? ' · all tight on width only' : ''}</h3>
         ${ok.length&&ok.every(x=>x.f.wm!=null&&x.f.wm<0.5) ? `<div class="why" style="margin-bottom:8px">Width is tight on every plan here — a ${FT(ok[0].p.w)} plan on a ${FT(l.padW)} pad leaves about ${FT(ok[0].f.wm)}. That is normal for this product. Depth is where these lots differ.</div>` : ''}
-        ${ok.length?`<table><tbody>${ok.map(x=>row(x,true)).join('')}</tbody></table>`
+        ${ok.length?`<table class="plist"><tbody>${ok.map(x=>row(x,true)).join('')}</tbody></table>`
                    :'<div class="panel">No offered plan fits this lot.</div>'}
         ${no.length?`<h3>Does not fit — ${no.length}</h3>
-          <table><tbody>${no.map(x=>row(x,true)).join('')}</tbody></table>`:''}
+          <table class="plist"><tbody>${no.map(x=>row(x,true)).join('')}</tbody></table>`:''}
         ${na.length?`<h3>Not measured — ${na.length}</h3>
-          <table><tbody>${na.map(x=>row(x,true)).join('')}</tbody></table>`:''}
+          <table class="plist"><tbody>${na.map(x=>row(x,true)).join('')}</tbody></table>`:''}
       </div>
 
       <div class="note">
