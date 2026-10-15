@@ -438,12 +438,13 @@
    "collection": "MR 35' RE",
    "lotProduct": 45,
    "w": 34.833,
-   "d": 83,
+   "d": 83.0,
    "garage": "Rear",
    "hand": null,
    "mirror": false,
-   "porch": 8,
-   "retired": false
+   "porch": 8.0,
+   "retired": false,
+   "note": "Overall 83'-0\" with a 8'-0\" porch, confirmed against the elevation drawings by Brandi 15 Oct 2026. The three Parker elevations do NOT share one overall depth."
   },
   {
    "id": "parker_b",
@@ -451,12 +452,13 @@
    "collection": "MR 35' RE",
    "lotProduct": 45,
    "w": 34.833,
-   "d": 83,
+   "d": 81.083,
    "garage": "Rear",
    "hand": null,
    "mirror": false,
    "porch": 6.5,
-   "retired": false
+   "retired": false,
+   "note": "Overall 81'-1\" with a 6'-6\" porch, confirmed against the elevation drawings by Brandi 15 Oct 2026. The three Parker elevations do NOT share one overall depth."
   },
   {
    "id": "parker_c",
@@ -464,12 +466,13 @@
    "collection": "MR 35' RE",
    "lotProduct": 45,
    "w": 34.833,
-   "d": 83,
+   "d": 81.583,
    "garage": "Rear",
    "hand": null,
    "mirror": false,
-   "porch": 6.25,
-   "retired": false
+   "porch": 7.0,
+   "retired": false,
+   "note": "Overall 81'-7\" with a 7'-0\" porch, confirmed against the elevation drawings by Brandi 15 Oct 2026. The three Parker elevations do NOT share one overall depth."
   },
   {
    "id": "pearl_a",

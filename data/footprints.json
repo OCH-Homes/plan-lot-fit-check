@@ -711,7 +711,7 @@
   "knox_c": 3.0,
   "parker_a": 8.0,
   "parker_b": 6.5,
-  "parker_c": 6.25,
+  "parker_c": 7.0,
   "pearl_a": 0.0
  },
  "porchNote": "Depth the front porch projects ahead of the living area, in feet, per ELEVATION. Only a porch may encroach into the front building line; living space never may. The community porchEncroach figure is the CAP (5' at Celina) \u2014 a deeper porch is still capped, a shallower one gets only what it has. Confirmed by Brandi 13-14 Oct 2026 against the elevations, not inferred from CAD geometry: Knox C and Addison C both differ from what the geometry suggested."
