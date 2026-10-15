@@ -452,7 +452,7 @@ const PLANNAMES={}, PLANDIMS={};
  ['crowder_a','Crowder A',30,80],['crowder_b','Crowder B',30,80],['crowder_c','Crowder C',30,80],
  ['holland_a','Holland A',34.833,76.5],['holland_b','Holland B',34.833,77.5],['holland_c','Holland C',34.833,76.5],
  ['knox_a','Knox A',34.917,74.5],['knox_b','Knox B',34.917,74.5],['knox_c','Knox C',34.917,77.5],
- ['parker_a','Parker A',34.833,83],['parker_b','Parker B',34.833,83],['parker_c','Parker C',34.833,83],
+ ['parker_a','Parker A',34.833,83.0000],['parker_b','Parker B',34.833,81.0833],['parker_c','Parker C',34.833,81.5833],
  ['pearl_a','Pearl A',29.917,79.917]
 ].forEach(([id,n,w,d])=>{PLANNAMES[id]=n;PLANDIMS[id]={w,d};});
 function unknownPlans(){ return offered().filter(id=>!PLANNAMES[id]); }

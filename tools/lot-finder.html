@@ -5,78 +5,103 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Lot Finder — Olivia Clarke Homes</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  :root{ --ink:#14181A; --mid:#5A6166; --light:#8E979C; --line:#DFE3E5; --bg:#F5F6F4;
-         --no:#8C2F23; --tight:#8A6410; --yes:#2B6140; }
+/* ---------------------------------------------------------------------------
+   OCH brand, Jan 2025 guidelines. Matches index.html.
+
+   The brand fonts (MADE Mirage, Cooper Hewitt) are not web fonts; the
+   guidelines name Playfair Display and Calibri as the fallbacks to use when
+   they are unavailable, which a browser is. Subheads follow the spec: all
+   caps, 60pt tracking. Colour roles come from the hierarchy page.
+
+   One deliberate exception: fit verdicts stay on their own semantic colours
+   rather than brand greens. "Does not fit" has to read as a warning at a
+   glance, and a salesperson should never have to tell two greens apart to
+   know whether a home goes on a lot.
+--------------------------------------------------------------------------- */
+  :root{ --dark-green:#223D40; --och-green:#3E645D; --eggshell:#F2EBE5; --white:#FFFFFF;
+         --bone:#C4B6AD; --slate:#51504C; --black:#000000; --rule:#DCD3CB;
+         --serif:'Playfair Display',Georgia,'Times New Roman',serif;
+         --sans:Calibri,'Segoe UI',system-ui,-apple-system,sans-serif;
+         --no:#8C2F23; --tight:#8A6410; --yes:#2B6140;
+         --ink:var(--black); --mid:var(--slate); --light:var(--bone); --line:var(--rule); --bg:var(--eggshell); }
   *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--ink);
-       font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:15px;line-height:1.5}
+  body{margin:0;background:var(--eggshell);color:var(--black);
+       font-family:var(--sans);font-size:16px;line-height:1.6}
 
-  header{background:#fff;border-bottom:1px solid var(--ink);padding:18px 26px}
-  h1{margin:0;font-size:19px;font-weight:600;letter-spacing:-.2px}
-  header .sub{color:var(--mid);font-size:12px;margin-top:3px}
+  header{background:var(--white);border-bottom:1px solid var(--rule);padding:22px 26px}
+  header .mark{font-family:var(--serif);font-size:11px;letter-spacing:.3em;text-transform:uppercase;
+               color:var(--och-green);margin-bottom:6px}
+  h1{font-family:var(--serif);font-weight:400;font-size:28px;margin:0;color:var(--och-green)}
+  header .sub{color:var(--slate);font-size:13.5px;margin-top:4px}
 
-  main{max-width:1180px;margin:0 auto;padding:26px}
-  .crumb{display:flex;align-items:center;gap:10px;margin-bottom:18px;font-size:13px;flex-wrap:wrap}
-  .crumb button{font-family:inherit;font-size:13px;background:none;border:0;color:var(--mid);
+  main{max-width:1180px;margin:0 auto;padding:28px 26px 70px}
+  .crumb{display:flex;align-items:center;gap:10px;margin-bottom:20px;font-size:13.5px;flex-wrap:wrap}
+  .crumb button{font-family:inherit;font-size:13.5px;background:none;border:0;color:var(--och-green);
                 cursor:pointer;padding:4px 0;text-decoration:underline}
-  .crumb span{color:var(--light)}
-  .crumb b{font-weight:600}
+  .crumb span{color:var(--bone)}
+  .crumb b{font-weight:600;color:var(--slate)}
 
-  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:14px}
-  .card{background:#fff;border:1px solid var(--line);padding:18px 20px;cursor:pointer;
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+  .card{background:var(--white);border:1px solid var(--rule);padding:22px 24px;cursor:pointer;
         text-align:left;font-family:inherit;font-size:inherit;color:inherit;width:100%;
-        display:block;transition:border-color .12s}
-  .card:hover{border-color:var(--ink)}
-  .card h2{margin:0 0 4px;font-size:17px;font-weight:600}
-  .card .meta{color:var(--mid);font-size:12.5px}
+        display:block;transition:border-color .15s,transform .15s}
+  .card:hover{border-color:var(--och-green);transform:translateY(-1px)}
+  .card h2{font-family:var(--serif);font-weight:400;margin:0 0 4px;font-size:22px;color:var(--och-green)}
+  .card .meta{color:var(--slate);font-size:13.5px}
 
-  table{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--line)}
-  th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.7px;color:var(--mid);
-     font-weight:600;padding:11px 14px;border-bottom:1px solid var(--ink);white-space:nowrap}
-  td{padding:12px 14px;border-bottom:1px solid var(--line);vertical-align:middle}
+  table{width:100%;border-collapse:collapse;background:var(--white);border:1px solid var(--rule)}
+  th{text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--slate);
+     font-weight:600;padding:13px 15px;border-bottom:1px solid var(--slate);white-space:nowrap}
+  td{padding:13px 15px;border-bottom:1px solid var(--rule);vertical-align:middle}
   tr.row{cursor:pointer}
-  tr.row:hover td{background:#FAFBF9}
-  td.num{text-align:right;white-space:nowrap;color:var(--mid);font-size:13.5px}
-  .addr{font-weight:600}
-  .bl{color:var(--light);font-size:12px}
+  tr.row:hover td{background:#FBF8F5}
+  td.num{text-align:right;white-space:nowrap;color:var(--slate);font-size:13.5px}
+  .addr{font-family:var(--serif);font-size:17px;color:var(--och-green)}
+  .bl{color:var(--bone);font-size:12px}
 
-  .tag{display:inline-block;font-size:11px;letter-spacing:.5px;text-transform:uppercase;
-       font-weight:600;padding:3px 8px;border:1px solid currentColor;white-space:nowrap}
-  .t-yes{color:var(--yes)} .t-tight{color:var(--tight)} .t-no{color:var(--no)} .t-na{color:var(--light)}
+  .tag{display:inline-block;font-size:10px;letter-spacing:.06em;text-transform:uppercase;
+       font-weight:600;padding:4px 9px;border:1px solid currentColor;white-space:nowrap}
+  .t-yes{color:var(--yes)} .t-tight{color:var(--tight)} .t-no{color:var(--no)} .t-na{color:var(--bone)}
 
-  .panel{background:#fff;border:1px solid var(--line);padding:22px 24px;margin-bottom:16px}
-  .panel h2{margin:0;font-size:20px;font-weight:600}
-  .panel .bl{margin-top:2px}
-  .facts{display:flex;gap:26px;flex-wrap:wrap;margin-top:14px;padding-top:14px;
-         border-top:1px solid var(--line);font-size:13.5px}
-  .facts div span{color:var(--mid)}
+  .panel{background:var(--white);border:1px solid var(--rule);padding:26px 28px;margin-bottom:16px}
+  .panel h2{margin:0;font-family:var(--serif);font-weight:400;font-size:30px;color:var(--och-green)}
+  .panel .bl{margin-top:3px}
+  .facts{display:flex;gap:28px;flex-wrap:wrap;margin-top:18px;padding-top:16px;
+         border-top:1px solid var(--rule);font-size:14px}
+  .facts div span{color:var(--slate)}
   .facts div b{font-weight:600}
 
-  .seg{display:inline-flex;border:1px solid var(--light)}
-  .seg button{font-family:inherit;font-size:13px;padding:7px 16px;border:0;background:#fff;
-              color:var(--ink);cursor:pointer}
-  .seg button.on{background:var(--ink);color:#fff}
+  .seg{display:inline-flex;border:1px solid var(--bone)}
+  .seg button{font-family:inherit;font-size:13px;padding:8px 17px;border:0;background:var(--white);
+              color:var(--slate);cursor:pointer}
+  .seg button.on{background:var(--och-green);color:var(--white)}
 
-  .plans h3{font-size:12px;text-transform:uppercase;letter-spacing:.7px;color:var(--mid);
-            font-weight:600;margin:22px 0 8px}
-  .open{font-family:inherit;font-size:13px;padding:7px 14px;border:1px solid var(--ink);
-        background:var(--ink);color:#fff;cursor:pointer;white-space:nowrap}
-  .open.ghost{background:#fff;color:var(--ink)}
-  .why{color:var(--mid);font-size:12.5px}
-  .note{color:var(--mid);font-size:12.5px;margin-top:18px;line-height:1.65}
-  .err{color:var(--no);background:#fff;border:1px solid var(--no);padding:16px 18px}
+  .plans h3{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--slate);
+            font-weight:600;margin:26px 0 9px}
+  .open{font-family:inherit;font-size:12.5px;letter-spacing:.04em;text-transform:uppercase;
+        padding:8px 15px;border:1px solid var(--och-green);
+        background:var(--och-green);color:var(--white);cursor:pointer;white-space:nowrap}
+  .open.ghost{background:var(--white);color:var(--och-green)}
+  .why{color:var(--slate);font-size:13px}
+  .note{color:var(--slate);font-size:13px;margin-top:20px;line-height:1.7;
+        background:var(--white);border-left:3px solid var(--bone);padding:14px 18px}
+  .err{color:var(--no);background:var(--white);border:1px solid var(--no);padding:18px 20px}
   @media (max-width:640px){
-    main{padding:16px} .facts{gap:16px}
-    th:nth-child(3),td:nth-child(3),th:nth-child(4),td:nth-child(4){display:none}
+    main{padding:18px} .facts{gap:16px} h1{font-size:23px}
+    th:nth-child(4),td:nth-child(4),th:nth-child(5),td:nth-child(5){display:none}
   }
 </style>
 </head>
 <body>
 
 <header>
+  <div class="mark">Olivia Clarke Homes</div>
   <h1>Lot Finder</h1>
-  <div class="sub">Pick a community, pick a lot, see what fits — and print the sheet.</div>
+  <div class="sub">Pick a community, pick a lot, see what fits &mdash; and print the sheet.</div>
 </header>
 
 <main id="app"></main>
@@ -125,7 +150,7 @@ const FT=v=>{ if(v==null)return '—';
   const f=Math.floor(v), i=Math.round((v-f)*12);
   return i===0?f+"'":(i===12?(f+1)+"'":f+"'-"+i+'"'); };
 
-let COMM=null, MAP=null, PLANS=null, LOT=null, GAR='L';
+let COMM=null, MAP=null, PLANS=null, LOT=null, GAR='L', STATUS={}, SHOW='available';
 
 /* ---------- fit, identical in spirit to the sheet ---------- */
 function porchCredit(plan,meta){
@@ -182,11 +207,14 @@ async function pickCommunity(id){
   COMM=id;
   $('app').innerHTML='<div class="panel">Loading…</div>';
   try{
-    const [m,p]=await Promise.all([
+    const [m,p,st]=await Promise.all([
       fetch('../data/'+id+'.json').then(r=>{if(!r.ok)throw new Error(id+'.json — '+r.status);return r.json();}),
-      fetch('../data/plans.json').then(r=>{if(!r.ok)throw new Error('plans.json — '+r.status);return r.json();})
+      fetch('../data/plans.json').then(r=>{if(!r.ok)throw new Error('plans.json — '+r.status);return r.json();}),
+      /* Which lots already carry a home. Optional — a community with no status
+         file simply shows every lot as available rather than failing. */
+      fetch('../data/'+id+'-status.json').then(r=>r.ok?r.json():null).catch(()=>null)
     ]);
-    MAP=m; MAP.meta=MAP.meta||{}; PLANS=p.plans||[];
+    MAP=m; MAP.meta=MAP.meta||{}; PLANS=p.plans||[]; STATUS=(st&&st.lots)||{};
     const sp=STANDARDS_PATCH[id]||{};
     Object.keys(sp).forEach(k=>{MAP.meta[k]=sp[k];});
     screenLots();
@@ -207,8 +235,13 @@ function screenLots(){
   const maxg=meta.maxGrade!=null?meta.maxGrade:10;
   const ceil=meta.maxGradeApproval!=null?meta.maxGradeApproval:maxg;
 
+  const stOf=l=>STATUS[l.b+'-'+l.l]||null;
+  const avail=lots.filter(l=>!stOf(l));
+  const shown=(SHOW==='available')?avail:lots;
+
   let rows='';
-  lots.forEach(l=>{
+  shown.forEach(l=>{
+    const st=stOf(l);
     LOT=l; const offers=offeredPlans(); LOT=null;
     let yes=0,tight=0,n=0;
     offers.forEach(p=>{const f=fitOf(l,p,meta);
@@ -228,8 +261,12 @@ function screenLots(){
       : l.sl21<=maxg ? l.sl21.toFixed(1)+'%'
       : l.sl21<=ceil ? '<span class="t-tight">'+l.sl21.toFixed(1)+'% needs City approval</span>'
       : '<span class="t-no">'+l.sl21.toFixed(1)+'% over the limit</span>';
+    const stTag = !st ? '<span class="tag t-yes">available</span>'
+      : st.status==='built' ? '<span class="tag t-na">built · '+esc(st.plan)+'</span>'
+      : '<span class="tag t-tight">in process · '+esc(st.plan)+'</span>';
     rows+=`<tr class="row" onclick="pickLot(${l.i})">
       <td><div class="addr">${esc(l.addr)}</div><div class="bl">Block ${esc(l.b)} · Lot ${esc(l.l)}</div></td>
+      <td>${stTag}</td>
       <td>${tag}</td>
       <td class="num">${l.padW!=null?FT(l.padW)+' × '+FT(l.padD):'no pad'}</td>
       <td class="num">${sl}</td></tr>`;
@@ -237,9 +274,15 @@ function screenLots(){
 
   $('app').innerHTML=
     crumbs([{t:'Communities',go:'screenCommunities()'},{t:cm.name}])
-    +`<table><thead><tr><th>Lot</th><th>What fits</th><th>Graded pad</th><th>Driveway slope</th></tr></thead>
-      <tbody>${rows||'<tr><td colspan="4">No addressed lots in this community.</td></tr>'}</tbody></table>
-      <div class="note"><b>${lots.length} lots shown.</b> These are the lots carrying an OCH address.
+    +`<div style="margin-bottom:14px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <span class="seg"><button class="${SHOW==='available'?'on':''}" onclick="setShow('available')">Available only</button
+        ><button class="${SHOW==='all'?'on':''}" onclick="setShow('all')">Every OCH lot</button></span>
+        <span class="why">${avail.length} available of ${lots.length}</span>
+      </div>`
+    +`<table><thead><tr><th>Lot</th><th>Status</th><th>What fits</th><th>Graded pad</th><th>Driveway slope</th></tr></thead>
+      <tbody>${rows||'<tr><td colspan="5">No addressed lots in this community.</td></tr>'}</tbody></table>
+      <div class="note"><b>${avail.length} of ${lots.length} lots are available.</b>
+      The rest already carry a home, built or under construction. These are the lots carrying an OCH address.
       There is no explicit ownership flag in the data yet, so treat this as the lots OCH expects to build,
       not a confirmed list. Lots where nothing fits are listed too, and marked — so a question about a
       specific lot has an answer here.</div>`;
@@ -249,6 +292,7 @@ function pickLot(i){
   if(LOT) screenLot();
 }
 function setGar(g){ GAR=g; screenLot(); }
+function setShow(v){ SHOW=v; screenLots(); }
 function sheetHref(plan){
   return 'lot-fit-sheet.html?c='+encodeURIComponent(COMM)
     +'&lot='+encodeURIComponent(LOT.b+'-'+LOT.l)
@@ -284,6 +328,10 @@ function screenLot(){
     +`<div class="panel">
         <h2>${esc(l.addr||('Block '+l.b+' · Lot '+l.l))}</h2>
         <div class="bl">Block ${esc(l.b)} · Lot ${esc(l.l)}${l.note?' · '+esc(l.note):''}</div>
+        ${STATUS[l.b+'-'+l.l]?`<div style="margin-top:10px"><span class="tag ${STATUS[l.b+'-'+l.l].status==='built'?'t-na':'t-tight'}">${
+          STATUS[l.b+'-'+l.l].status==='built'?'Built':'In process'} — ${esc(STATUS[l.b+'-'+l.l].plan)}</span>
+          <span class="why"> Not available. The plans below are what would fit it.</span>
+          ${STATUS[l.b+'-'+l.l].override?`<div class="why" style="margin-top:8px;max-width:760px"><b>Settled in the field.</b> ${esc(STATUS[l.b+'-'+l.l].override)}</div>`:''}</div>`:''}
         <div class="facts">
           <div><span>Lot </span><b>${l.lw!=null?FT(l.lw)+' × '+FT(l.ld):'—'}</b></div>
           <div><span>Graded pad </span><b>${l.padW!=null?FT(l.padW)+' × '+FT(l.padD):'not graded'}</b></div>
