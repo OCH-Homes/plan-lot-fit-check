@@ -37,6 +37,7 @@
                color:var(--och-green);margin-bottom:6px}
   h1{font-family:var(--serif);font-weight:400;font-size:28px;margin:0;color:var(--och-green)}
   header .sub{color:var(--slate);font-size:13.5px;margin-top:4px}
+  .bstamp{color:var(--bone);font-size:11px;letter-spacing:.06em;margin-left:10px;white-space:nowrap}
 
   main{max-width:1180px;margin:0 auto;padding:28px 26px 70px}
   .crumb{display:flex;align-items:center;gap:10px;margin-bottom:20px;font-size:13.5px;flex-wrap:wrap}
@@ -111,7 +112,7 @@
 <header>
   <div class="mark">Olivia Clarke Homes</div>
   <h1>Lot Finder</h1>
-  <div class="sub">Pick a community, pick a lot, see what fits &mdash; and print the sheet.</div>
+  <div class="sub">Pick a community, pick a lot, see what fits &mdash; and print the sheet.<span id="build" class="bstamp"></span></div>
 </header>
 
 <main id="app"></main>
@@ -139,6 +140,10 @@
    elevation, capped at the community allowance. If they ever disagree, the
    sheet is authoritative — it is the thing that gets printed.
    ===================================================================== */
+
+/* Printed in the header so you can tell at a glance which file is live.
+   Bump it whenever this file changes. */
+const FINDER_BUILD='2026-10-15b';
 
 const COMMUNITIES=[
   {id:'heights-uptown', name:'The Heights at Uptown', where:'Celina'},
@@ -382,6 +387,7 @@ function screenLot(){
       </div>`;
 }
 
+document.getElementById('build').textContent='BUILD '+FINDER_BUILD;
 screenCommunities();
 </script>
 </body>
