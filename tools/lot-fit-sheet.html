@@ -169,7 +169,7 @@
 
 /* Printed in the footer so you can tell at a glance which file is actually
    live on the site. Bump it whenever this file changes. */
-const SHEET_BUILD='2026-10-25j';
+const SHEET_BUILD='2026-10-25k';
 /* Per-lot driveway grade, keyed block-lot. Empty where not measured. */
 let GRADE={};
 
@@ -872,7 +872,13 @@ function draw(){
      the rise in FEET — so it is no longer printed where a grade record exists.
      A sheet must never show two different slopes for the same driveway. */
   const Ghdr = (GRADE && GRADE[LOT.b+'-'+LOT.l]) || null;
-  const slopeVal = Ghdr ? Ghdr.slopePct : null;
+  /* Everything on this page reports the home WHERE IT IS SITTING. Move the
+     slider and the drive lengthens, the slope falls and the garage drop needed
+     falls with it — headline, banner and figures together. A page that kept
+     showing the rear-line numbers while the drawing showed the home somewhere
+     else was contradicting itself. */
+  const hShift = Math.max(0, Math.min(MAXSHIFT, SHIFT));
+  const slopeVal = Ghdr ? (Ghdr.rise/(Ghdr.run+hShift)*100) : null;
   const slopeTxt = slopeVal==null ? 'not measured'
     : slopeVal<=maxg ? slopeVal.toFixed(1)+'%'
     : slopeVal<=ceil ? slopeVal.toFixed(1)+'% — over '+maxg+'%, needs City approval'
@@ -914,7 +920,14 @@ function draw(){
       const G = GRADE && GRADE[LOT.b+'-'+LOT.l];
       if(!G) return '';
       const maxg = M.maxGrade!=null?M.maxGrade:10, ceil = M.maxGradeApproval!=null?M.maxGradeApproval:12;
-      const over = G.slopePct>ceil, warn = G.slopePct>maxg;
+      const shift = Math.max(0, Math.min(MAXSHIFT, SHIFT));
+      const sRun  = G.run + shift;
+      const sSlope= sRun>0 ? G.rise/sRun*100 : G.slopePct;
+      const over = sSlope>ceil, warn = sSlope>maxg;
+      /* Garage drop is recomputed against the CURRENT run, not the rear-line
+         run. Moving the home forward is itself a remedy: it buys slope, so it
+         reduces the drop still needed. */
+      const dropIn = lim => Math.max(0,(G.rise - lim*sRun)*12).toFixed(1);
       /* Grade belongs to the lot, not the plan. Every plan on this lot sees the
          same driveway, because the pad, the alley and the run are all fixed by
          the grading plan. The garage step-down is the only lever. */
@@ -926,28 +939,26 @@ function draw(){
          foot for foot — a gentler drive. How far it can go is the depth margin.
          Slope is therefore a property of the lot AND the plan, not the lot
          alone. */
-      const shift = Math.max(0, Math.min(MAXSHIFT, SHIFT));
-      const sRun  = G.run + shift;
-      const sSlope= sRun>0 ? G.rise/sRun*100 : G.slopePct;
-      const sBand = sSlope>ceil ? 'needs a dropped garage' : (sSlope>maxg ? 'approvable' : 'clean');
       return `<div class="grade${over?' grade-no':(warn?' grade-warn':'')}">
-        <div class="gtitle">DRIVEWAY ${G.slopePct.toFixed(1)}%${over?' — DROPPED GARAGE REQUIRED AS SITED':(warn?' — NEEDS CITY APPROVAL AS SITED':'')}</div>
+        <div class="gtitle">DRIVEWAY ${sSlope.toFixed(1)}%${over?' — DROPPED GARAGE REQUIRED':(warn?' — NEEDS CITY APPROVAL':'')}${shift>0.1?' &middot; HOME '+F(shift)+' FORWARD':''}</div>
         <div class="gbody">
           Pad ${G.padFP.toFixed(2)} &middot; apron ${G.apron.toFixed(2)} &middot; alley ${G.alleyAtDrive.toFixed(2)}
-          at the drive &middot; ${G.run.toFixed(1)}' run from the rear of the graded pad to the alley
+          at the drive &middot; <b>${sRun.toFixed(1)}'</b> run from the rear of the house to the alley
           &middot; fall ${G.rise.toFixed(2)}'.
-          ${over ? `About <b>${G.dropTo12in}"</b> of extra garage drop brings this under ${ceil}%, <b>${G.dropTo10in}"</b> under ${maxg}%.`
-                 : (warn ? `Within the ${ceil}% the City will approve; ${G.dropTo10in}" of extra drop would bring it under ${maxg}%.`
+          ${over ? `About <b>${dropIn(ceil/100)}"</b> of extra garage drop brings this under ${ceil}%, <b>${dropIn(maxg/100)}"</b> under ${maxg}%.`
+                 : (warn ? `Within the ${ceil}% the City will approve; ${dropIn(maxg/100)}" of extra drop would bring it under ${maxg}%.`
                          : `No dropped garage needed.`)}
           Assumes the standard 0.84' step-down from top of slab to apron.
-          ${shift>0.1 ? `<br><b>Sited forward ${F(shift)}</b> of the ${F(MAXSHIFT)} this plan allows:
-            the drive runs ${sRun.toFixed(1)}' and reads <b>${sSlope.toFixed(1)}%</b> &mdash; ${sBand}.
-            That depth comes out of the back yard. The rear rule here is a drive of 3' or of 20' and
-            over, so a longer drive stays compliant. Siting is settled on the surveyed plot plan.`
-          : (MAXSHIFT>0.1 && G.slopePct>maxg
-             ? `<br>This plan has <b>${F(MAXSHIFT)}</b> of depth to spare. Sliding it forward would
-                lengthen the drive to ${(G.run+MAXSHIFT).toFixed(1)}' and bring the slope to
-                <b>${(G.rise/(G.run+MAXSHIFT)*100).toFixed(1)}%</b>. Use the slider above.` : '')}
+          ${shift>0.1
+            ? `<br><b>Home sited ${F(shift)} forward</b> of the rear of the pad, of the ${F(MAXSHIFT)}
+               this plan allows. On the rear building line it reads ${G.slopePct.toFixed(1)}% and needs
+               ${G.dropTo12in}" of drop. That depth comes out of the back yard. The rear rule here is a
+               drive of 3' or of 20' and over, so a longer drive stays compliant.`
+            : (MAXSHIFT>0.1
+               ? `<br>This plan has <b>${F(MAXSHIFT)}</b> of depth to spare. Sliding it fully forward
+                  lengthens the drive to ${(G.run+MAXSHIFT).toFixed(1)}', brings the slope to
+                  <b>${(G.rise/(G.run+MAXSHIFT)*100).toFixed(1)}%</b> and the drop needed to
+                  <b>${Math.max(0,(G.rise-(ceil/100)*(G.run+MAXSHIFT))*12).toFixed(1)}"</b>.` : '')}
         </div></div>`;
     })()}
 
