@@ -126,10 +126,10 @@
   <div><label>Garage side (facing the house)</label>
     <div class="seg"><button id="gL" class="on" onclick="setGar('L')">Left</button><button id="gR" onclick="setGar('R')">Right</button></div>
   </div>
+  </div>
   <div id="shiftWrap"><label>Move home forward <span id="shiftLbl">0'-0"</span></label>
     <input id="shiftSl" type="range" min="0" max="0" step="0.5" value="0"
            oninput="setShift(this.value)" style="width:150px;vertical-align:middle">
-  </div>
   </div>
   <div style="margin-left:auto;display:flex;gap:8px">
     <button onclick="history.length>1?history.back():location.href='lot-map.html?c='+COMMUNITY">&larr; back to map</button>
@@ -169,7 +169,7 @@
 
 /* Printed in the footer so you can tell at a glance which file is actually
    live on the site. Bump it whenever this file changes. */
-const SHEET_BUILD='2026-10-25i';
+const SHEET_BUILD='2026-10-25j';
 /* Per-lot driveway grade, keyed block-lot. Empty where not measured. */
 let GRADE={};
 
