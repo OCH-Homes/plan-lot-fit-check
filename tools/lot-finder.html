@@ -143,7 +143,7 @@
 
 /* Printed in the header so you can tell at a glance which file is live.
    Bump it whenever this file changes. */
-const FINDER_BUILD='2026-10-15b';
+const FINDER_BUILD='2026-10-25c';
 
 const COMMUNITIES=[
   {id:'heights-uptown', name:'The Heights at Uptown', where:'Celina'},
@@ -166,6 +166,28 @@ const FT=v=>{ if(v==null)return '—';
   return i===0?f+"'":(i===12?(f+1)+"'":f+"'-"+i+'"'); };
 
 let COMM=null, MAP=null, PLANS=null, LOT=null, GAR='L', STATUS={}, SHOW='available';
+/* Per-lot driveway grade, built from the engineer's grading plan and the
+   surveyed alley elevations. See heights-uptown-grade.json. Absent for a
+   community that has not been measured — the page then says so rather than
+   showing a number it does not have. */
+let GRADE={};
+
+/* Driveway grade for a lot, or null where it has not been measured.
+   slopePct is the as-designed slope with the standard 0.84' garage step-down;
+   dropTo12in / dropTo10in say how many further inches of drop would bring it
+   under the approval ceiling and under the City's preferred maximum. */
+function gradeOf(l){ return (GRADE && GRADE[l.b+'-'+l.l]) || null; }
+
+/* The home need not sit on the rear building line. This community's rule is a
+   driveway of 3' or of 20' and over, and OCH builds to the 20'. Any depth a
+   plan does not use can go to the driveway instead of the back yard: the pad is
+   flat, so the apron and the alley do not move and the run grows foot for foot.
+   Slope is therefore a property of the lot AND the plan. */
+function slopeWith(G,dm){
+  if(!G) return null;
+  const run=G.run+Math.max(0,dm||0);
+  return run>0 ? G.rise/run*100 : G.slopePct;
+}
 
 /* ---------- fit, identical in spirit to the sheet ---------- */
 function porchCredit(plan,meta){
@@ -230,14 +252,15 @@ async function pickCommunity(id){
   COMM=id;
   $('app').innerHTML='<div class="panel">Loading…</div>';
   try{
-    const [m,p,st]=await Promise.all([
+    const [m,p,st,gr]=await Promise.all([
       fetch('../data/'+id+'.json').then(r=>{if(!r.ok)throw new Error(id+'.json — '+r.status);return r.json();}),
       fetch('../data/plans.json').then(r=>{if(!r.ok)throw new Error('plans.json — '+r.status);return r.json();}),
       /* Which lots already carry a home. Optional — a community with no status
          file simply shows every lot as available rather than failing. */
-      fetch('../data/'+id+'-status.json').then(r=>r.ok?r.json():null).catch(()=>null)
+      fetch('../data/'+id+'-status.json').then(r=>r.ok?r.json():null).catch(()=>null),
+      fetch('../data/'+id+'-grade.json').then(r=>r.ok?r.json():null).catch(()=>null)
     ]);
-    MAP=m; MAP.meta=MAP.meta||{}; PLANS=p.plans||[]; STATUS=(st&&st.lots)||{};
+    MAP=m; MAP.meta=MAP.meta||{}; PLANS=p.plans||[]; STATUS=(st&&st.lots)||{}; GRADE=gr||{};
     const sp=STANDARDS_PATCH[id]||{};
     Object.keys(sp).forEach(k=>{MAP.meta[k]=sp[k];});
     screenLots();
@@ -280,10 +303,11 @@ function screenLots(){
       : fits===0 ? '<span class="tag t-no">nothing fits</span>'
       : '<span class="tag t-yes">'+fits+' of '+n+' fit</span>'
         +(miss?' <span class="tag t-no">'+miss+' do not</span>':'');
-    const sl = l.sl21==null?'<span class="t-na">—</span>'
-      : l.sl21<=maxg ? l.sl21.toFixed(1)+'%'
-      : l.sl21<=ceil ? '<span class="t-tight">'+l.sl21.toFixed(1)+'% needs City approval</span>'
-      : '<span class="t-no">'+l.sl21.toFixed(1)+'% over the limit</span>';
+    const g = gradeOf(l);
+    const sl = !g ? '<span class="t-na">—</span>'
+      : g.slopePct<=maxg ? g.slopePct.toFixed(1)+'%'
+      : g.slopePct<=ceil ? '<span class="t-tight">'+g.slopePct.toFixed(1)+'% needs City approval</span>'
+      : '<span class="t-no">'+g.slopePct.toFixed(1)+'% · drop '+g.dropTo12in+'"</span>';
     const stTag = !st ? '<span class="tag t-yes">available</span>'
       : st.status==='built' ? '<span class="tag t-na">built · '+esc(st.plan)+'</span>'
       : '<span class="tag t-tight">in process · '+esc(st.plan)+'</span>';
@@ -337,14 +361,49 @@ function screenLot(){
       <td><span class="tag t-${x.f.state==='yes'?'yes':x.f.state==='tight'?'tight':x.f.state==='no'?'no':'na'}">${
         x.f.state==='yes'?'fits':x.f.state==='tight'?'fits — tight':x.f.state==='no'?'does not fit':'not measured'}</span></td>
       <td class="why">${esc(showWhy?x.f.why:'')}</td>
-      <td class="num">${x.f.dm!=null?(x.f.dm>=0?'+':'')+FT(Math.abs(x.f.dm)).replace("'","'")+' deep · '+(x.f.wm>=0?'+':'')+FT(Math.abs(x.f.wm))+' wide':''}</td>
+      <td class="num">${x.f.dm!=null?(x.f.dm>=0?'+':'')+FT(Math.abs(x.f.dm)).replace("'","'")+' deep · '+(x.f.wm>=0?'+':'')+FT(Math.abs(x.f.wm))+' wide':''}${
+        (function(){ const g=gradeOf(LOT), v=slopeWith(g,x.f.dm);
+          return v==null?'':'<br><span class="why">drive '+v.toFixed(1)+'%</span>'; })()}</td>
       <td><button class="open${x.f.state==='no'?' ghost':''}" onclick="location.href='${sheetHref(x.p)}'">Sheet</button></td>
     </tr>`;
 
-  const slopeLine = l.sl21==null ? 'not recorded'
-    : l.sl21<=maxg ? l.sl21.toFixed(1)+'%'
-    : l.sl21<=ceil ? l.sl21.toFixed(1)+'% — over the '+maxg+'% design max, needs City approval'
-    : l.sl21.toFixed(1)+'% — over the '+ceil+'% approval ceiling';
+  /* Grade is a property of the lot, not of the plan: the pad, the alley and the
+     driveway run are fixed by the grading plan, so every plan on this lot sees
+     the same slope. The garage step-down is the lever, not the house. */
+  const G = gradeOf(l);
+  const slopeLine = !G ? 'not measured for this community'
+    : G.slopePct<=maxg ? G.slopePct.toFixed(1)+'% — within the City\'s preferred '+maxg+'%'
+    : G.slopePct<=ceil ? G.slopePct.toFixed(1)+'% — over '+maxg+'%, approvable to '+ceil+'%'
+    : G.slopePct.toFixed(1)+'% — over the '+ceil+'% ceiling, needs a dropped garage';
+  const gradeBlock = !G ? '' : `
+    <div class="why" style="margin-top:12px;max-width:760px">
+      <b>Driveway.</b> Pad at ${G.padFP.toFixed(2)}, garage apron at ${G.apron.toFixed(2)},
+      alley at ${G.alleyAtDrive.toFixed(2)} where the drive meets it, over a ${FT(G.run)} run
+      from the rear building line to the alley &mdash; a fall of ${G.rise.toFixed(2)}'.
+      ${G.slopePct>ceil
+        ? `<b>This lot needs a dropped garage.</b> About <b>${G.dropTo12in}"</b> of extra drop brings it
+           under ${ceil}%; <b>${G.dropTo10in}"</b> brings it under ${maxg}%. Over ${ceil}% the City
+           approves case by case, so confirm before committing.`
+        : (G.slopePct>maxg
+          ? `Above the City's preferred ${maxg}% but within the ${ceil}% they will approve.
+             ${G.dropTo10in}" of extra garage drop would bring it under ${maxg}%.`
+          : `No dropped garage needed.`)}
+      Figures assume the standard ${(0.84).toFixed(2)}' step-down from top of slab to apron,
+      with the home on the ${MAP.meta.rearBL!=null?MAP.meta.rearBL:20}' rear building line.
+      ${(function(){
+        const cands=ok.map(x=>({n:x.p.name||x.p.id, s:slopeWith(G,x.f.dm), sh:Math.max(0,x.f.dm||0)}))
+                      .filter(c=>c.s!=null&&c.sh>0.1).sort((a,b)=>a.s-b.s);
+        if(!cands.length) return '';
+        const best=cands[0];
+        const band=v=>v<=maxg?'clean':(v<=ceil?'approvable':'still needs a dropped garage');
+        return `<br><b>Sited forward.</b> A plan that does not use the full pad depth can give the
+          spare depth to the driveway rather than the back yard, which makes the drive longer and the
+          slope gentler. The shallowest plan that fits here, <b>${esc(best.n)}</b>, has
+          ${FT(best.sh)} to spare and would read <b>${best.s.toFixed(1)}%</b> &mdash; ${band(best.s)}.
+          Longer drives stay compliant: the rule here is 3' or 20' and over. Siting is settled on
+          the surveyed plot plan.`;
+      })()}
+    </div>`;
 
   $('app').innerHTML=
     crumbs([{t:'Communities',go:'screenCommunities()'},{t:cm.name,go:'screenLots()'},{t:l.addr||(l.b+'-'+l.l)}])
@@ -363,6 +422,7 @@ function screenLot(){
             <span class="seg"><button class="${GAR==='L'?'on':''}" onclick="setGar('L')">Left</button
             ><button class="${GAR==='R'?'on':''}" onclick="setGar('R')">Right</button></span></div>
         </div>
+        ${gradeBlock}
       </div>
 
       <div class="plans">

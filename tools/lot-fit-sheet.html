@@ -66,7 +66,12 @@
   .result .verdict{font-size:15px;font-weight:600;letter-spacing:.6px;white-space:nowrap}
   .result .margins{font-size:11px;color:var(--mid);text-align:right}
 
-  .notes{margin-top:6px;padding-top:5px;border-top:1px solid var(--faint);
+  .grade{border:1px solid #000;padding:6px 9px;margin:6px 0 0}
+.grade-warn{border-width:2px}
+.grade-no{border-width:2px;background:#f2f2f2}
+.gtitle{font-weight:700;font-size:10px;letter-spacing:.06em}
+.gbody{font-size:9px;line-height:1.45;margin-top:3px}
+.notes{margin-top:6px;padding-top:5px;border-top:1px solid var(--faint);
          font-size:8.6px;color:var(--mid);line-height:1.48}
   .notes b{color:var(--ink);font-weight:500}
   .foot{margin-top:6px;display:flex;justify-content:space-between;
@@ -130,7 +135,9 @@
 
 /* Printed in the footer so you can tell at a glance which file is actually
    live on the site. Bump it whenever this file changes. */
-const SHEET_BUILD='2026-10-15a';
+const SHEET_BUILD='2026-10-25c';
+/* Per-lot driveway grade, keyed block-lot. Empty where not measured. */
+let GRADE={};
 
 const QS=new URLSearchParams(location.search);
 const COMMUNITY=QS.get('c')||'heights-uptown';
@@ -379,12 +386,15 @@ function garageOpening(fp){
 
 /* ---------- boot ---------- */
 async function boot(){
-  const [m,o,f]=await Promise.all([
+  const [m,o,f,g]=await Promise.all([
     fetch('../data/'+COMMUNITY+'.json').then(r=>r.json()),
     fetch('../data/'+COMMUNITY+'-orient.json').then(r=>r.json()).catch(()=>null),
-    fetch('../data/footprints.json').then(r=>r.json()).catch(()=>null)
+    fetch('../data/footprints.json').then(r=>r.json()).catch(()=>null),
+    /* Per-lot driveway grade from the engineer's grading plan. Optional: a
+       community without this file simply prints no grade block. */
+    fetch('../data/'+COMMUNITY+'-grade.json').then(r=>r.ok?r.json():null).catch(()=>null)
   ]);
-  MAP=m; ORIENT=o||{}; FOOT=(f&&f.plans)||{}; PORCH=(f&&f.porchByPlan)||{};
+  MAP=m; ORIENT=o||{}; FOOT=(f&&f.plans)||{}; PORCH=(f&&f.porchByPlan)||{}; GRADE=g||{};
   MAP.meta=MAP.meta||{};
   const sp=STANDARDS_PATCH[COMMUNITY]||{};
   Object.keys(sp).forEach(k=>{MAP.meta[k]=sp[k];});
@@ -834,6 +844,44 @@ function draw(){
         Width margin ${wm==null?'—':(wm>=0?'+':'')+wm.toFixed(1)+"'"}${detail?'<br>'+esc(detail):''}
       </div>
     </div>
+
+    ${(function(){
+      const G = GRADE && GRADE[LOT.b+'-'+LOT.l];
+      if(!G) return '';
+      const maxg = M.maxGrade!=null?M.maxGrade:10, ceil = M.maxGradeApproval!=null?M.maxGradeApproval:12;
+      const over = G.slopePct>ceil, warn = G.slopePct>maxg;
+      /* Grade belongs to the lot, not the plan. Every plan on this lot sees the
+         same driveway, because the pad, the alley and the run are all fixed by
+         the grading plan. The garage step-down is the only lever. */
+      /* The home does not have to sit on the rear building line. This community
+         allows a driveway of 3' or of 20' and over; OCH builds to the 20' rule,
+         and anything forward of it only makes the drive longer, so it stays
+         compliant. The pad is flat at one elevation, so sliding the home
+         forward leaves the apron and the alley untouched and lengthens the run
+         foot for foot — a gentler drive. How far it can go is the depth margin.
+         Slope is therefore a property of the lot AND the plan, not the lot
+         alone. */
+      const shift = (plan && LOT.padD!=null) ? Math.max(0, LOT.padD-(plan.d-credit)) : 0;
+      const sRun  = G.run + shift;
+      const sSlope= sRun>0 ? G.rise/sRun*100 : G.slopePct;
+      const sBand = sSlope>ceil ? 'needs a dropped garage' : (sSlope>maxg ? 'approvable' : 'clean');
+      return `<div class="grade${over?' grade-no':(warn?' grade-warn':'')}">
+        <div class="gtitle">DRIVEWAY ${G.slopePct.toFixed(1)}%${over?' — DROPPED GARAGE REQUIRED AS SITED':(warn?' — NEEDS CITY APPROVAL AS SITED':'')}</div>
+        <div class="gbody">
+          Pad ${G.padFP.toFixed(2)} &middot; apron ${G.apron.toFixed(2)} &middot; alley ${G.alleyAtDrive.toFixed(2)}
+          at the drive &middot; ${G.run.toFixed(1)}' run from the ${rear}' building line to the alley
+          &middot; fall ${G.rise.toFixed(2)}'.
+          ${over ? `About <b>${G.dropTo12in}"</b> of extra garage drop brings this under ${ceil}%, <b>${G.dropTo10in}"</b> under ${maxg}%.`
+                 : (warn ? `Within the ${ceil}% the City will approve; ${G.dropTo10in}" of extra drop would bring it under ${maxg}%.`
+                         : `No dropped garage needed.`)}
+          Assumes the standard 0.84' step-down from top of slab to apron.
+          ${shift>0.1 ? `<br><b>Sited forward:</b> this plan has ${shift.toFixed(1)}' of depth to spare, which can go
+            to the driveway instead of the back yard. At ${sRun.toFixed(1)}' the drive reads
+            <b>${sSlope.toFixed(1)}%</b> &mdash; ${sBand}. The rear setback rule here is a drive of
+            3' or of 20' and over, so a longer drive stays compliant. Siting is settled on the
+            surveyed plot plan.` : ''}
+        </div></div>`;
+    })()}
 
     <div class="notes">
       ${DRAWN?`<b>Lot line and setbacks</b> are to scale from the recorded plat and the City-approved
