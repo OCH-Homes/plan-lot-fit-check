@@ -135,7 +135,7 @@
 
 /* Printed in the footer so you can tell at a glance which file is actually
    live on the site. Bump it whenever this file changes. */
-const SHEET_BUILD='2026-10-25c';
+const SHEET_BUILD='2026-10-25e';
 /* Per-lot driveway grade, keyed block-lot. Empty where not measured. */
 let GRADE={};
 
@@ -809,10 +809,18 @@ function draw(){
       +'This does not affect whether it fits: the figures below come from the pad and plan dimensions. '
       +esc(geomDoubt)+'.', true);
 
-  const slopeTxt = LOT.sl21==null ? 'not recorded'
-    : LOT.sl21<=maxg ? LOT.sl21.toFixed(1)+'%'
-    : LOT.sl21<=ceil ? LOT.sl21.toFixed(1)+'% — over '+maxg+'%, needs City approval'
-    : LOT.sl21.toFixed(1)+'% — over the '+ceil+'% approval ceiling';
+  /* ONE source for the slope on this page. The grade file is built from the
+     engineer's grading plan and the surveyed alley elevations and is the figure
+     the block lower down explains. The older LOT.sl21 field disagreed with it
+     badly — 3.5 against a verified 13.8 at 708 Garrett, where 3.5 happens to be
+     the rise in FEET — so it is no longer printed where a grade record exists.
+     A sheet must never show two different slopes for the same driveway. */
+  const Ghdr = (GRADE && GRADE[LOT.b+'-'+LOT.l]) || null;
+  const slopeVal = Ghdr ? Ghdr.slopePct : null;
+  const slopeTxt = slopeVal==null ? 'not measured'
+    : slopeVal<=maxg ? slopeVal.toFixed(1)+'%'
+    : slopeVal<=ceil ? slopeVal.toFixed(1)+'% — over '+maxg+'%, needs City approval'
+    : slopeVal.toFixed(1)+'% — over the '+ceil+'% ceiling, dropped garage';
 
   const unk=unknownPlans();
 
@@ -875,7 +883,7 @@ function draw(){
                  : (warn ? `Within the ${ceil}% the City will approve; ${G.dropTo10in}" of extra drop would bring it under ${maxg}%.`
                          : `No dropped garage needed.`)}
           Assumes the standard 0.84' step-down from top of slab to apron.
-          ${shift>0.1 ? `<br><b>Sited forward:</b> this plan has ${shift.toFixed(1)}' of depth to spare, which can go
+          ${(shift>0.1 && G.slopePct>maxg) ? `<br><b>Sited forward:</b> this plan has ${shift.toFixed(1)}' of depth to spare, which can go
             to the driveway instead of the back yard. At ${sRun.toFixed(1)}' the drive reads
             <b>${sSlope.toFixed(1)}%</b> &mdash; ${sBand}. The rear setback rule here is a drive of
             3' or of 20' and over, so a longer drive stays compliant. Siting is settled on the

@@ -143,7 +143,7 @@
 
 /* Printed in the header so you can tell at a glance which file is live.
    Bump it whenever this file changes. */
-const FINDER_BUILD='2026-10-25c';
+const FINDER_BUILD='2026-10-25d';
 
 const COMMUNITIES=[
   {id:'heights-uptown', name:'The Heights at Uptown', where:'Celina'},
@@ -391,6 +391,7 @@ function screenLot(){
       Figures assume the standard ${(0.84).toFixed(2)}' step-down from top of slab to apron,
       with the home on the ${MAP.meta.rearBL!=null?MAP.meta.rearBL:20}' rear building line.
       ${(function(){
+        if(G.slopePct<=maxg) return '';     /* already clean — a remedy is noise */
         const cands=ok.map(x=>({n:x.p.name||x.p.id, s:slopeWith(G,x.f.dm), sh:Math.max(0,x.f.dm||0)}))
                       .filter(c=>c.s!=null&&c.sh>0.1).sort((a,b)=>a.s-b.s);
         if(!cands.length) return '';
