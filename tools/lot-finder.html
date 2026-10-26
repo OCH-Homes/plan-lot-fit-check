@@ -80,6 +80,9 @@
   .seg button{font-family:inherit;font-size:13px;padding:8px 17px;border:0;background:var(--white);
               color:var(--slate);cursor:pointer}
   .seg button.on{background:var(--och-green);color:var(--white)}
+  /* A side the lot is locked out of: still visible, plainly not the choice. */
+  .seg button.ghost{color:var(--bone);cursor:not-allowed}
+  .seg button.ghost.on{background:var(--no);color:var(--white);cursor:default}
 
   .plans h3{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--slate);
             font-weight:600;margin:26px 0 9px}
@@ -143,12 +146,16 @@
 
 /* Printed in the header so you can tell at a glance which file is live.
    Bump it whenever this file changes. */
-const FINDER_BUILD='2026-10-25d';
+const FINDER_BUILD='2026-10-25g';
 
+/* `verified` means the community's lot geometry, graded pads and driveway
+   grades have been checked against the engineer's sealed drawings. Only The
+   Heights has had that work. The others are listed but cannot be opened: a
+   page that looks authoritative on unverified data is worse than no page. */
 const COMMUNITIES=[
-  {id:'heights-uptown', name:'The Heights at Uptown', where:'Celina'},
-  {id:'grandoaks-1a',   name:'Grand Oaks at Green Meadows — Phase 1A', where:'Celina ETJ'},
-  {id:'grandoaks-1b',   name:'Grand Oaks at Green Meadows — Phase 1B', where:'Celina ETJ'}
+  {id:'heights-uptown', name:'The Heights at Uptown', where:'Celina', verified:true},
+  {id:'grandoaks-1a',   name:'Grand Oaks at Green Meadows — Phase 1A', where:'Celina ETJ', verified:false},
+  {id:'grandoaks-1b',   name:'Grand Oaks at Green Meadows — Phase 1B', where:'Celina ETJ', verified:false}
 ];
 
 /* Community standards confirmed 9/28/26 and not yet in the data files.
@@ -171,6 +178,17 @@ let COMM=null, MAP=null, PLANS=null, LOT=null, GAR='L', STATUS={}, SHOW='availab
    community that has not been measured — the page then says so rather than
    showing a number it does not have. */
 let GRADE={};
+/* Garage swing lock, keyed block-lot. 'L' / 'R' lock the garage to that side;
+   'E' is an explicit "either" from the same instruction and locks nothing; a
+   lot absent from the file carries no instruction at all. Source and convention
+   live in data/<community>-swing.json. GAROVR is a deliberate, per-lot override
+   — it resets every time a different lot is opened. */
+let SWING={}, SWINGMETA={}, GAROVR=false;
+
+/* The raw instruction for a lot: 'L', 'R', 'E', or null. */
+function swingOf(l){ return (l&&SWING&&SWING[l.b+'-'+l.l])||null; }
+/* The side this lot is locked to, or null where the choice is free. */
+function lockOf(l){ const s=swingOf(l); return (s==='L'||s==='R')?s:null; }
 
 /* Driveway grade for a lot, or null where it has not been measured.
    slopePct is the as-designed slope with the standard 0.84' garage step-down;
@@ -244,23 +262,38 @@ function ochLots(){
 
 /* ---------- screens ---------- */
 function screenCommunities(){
-  $('app').innerHTML='<div class="grid">'+COMMUNITIES.map(c=>
-    `<button class="card" onclick="pickCommunity('${c.id}')">
-       <h2>${esc(c.name)}</h2><div class="meta">${esc(c.where)}</div></button>`).join('')+'</div>';
+  $('app').innerHTML='<div class="grid">'+COMMUNITIES.map(c=> c.verified
+    ? `<button class="card" onclick="pickCommunity('${c.id}')">
+         <h2>${esc(c.name)}</h2><div class="meta">${esc(c.where)}</div></button>`
+    : `<div class="card" style="opacity:.6;cursor:not-allowed">
+         <h2>${esc(c.name)}</h2><div class="meta">${esc(c.where)}</div>
+         <div class="why" style="margin-top:8px">Not yet available. The lot and grade data for this
+         community has not been checked against the engineer's drawings.</div></div>`).join('')+'</div>';
 }
 async function pickCommunity(id){
+  const cm0=COMMUNITIES.find(c=>c.id===id);
+  if(cm0&&!cm0.verified){
+    $('app').innerHTML='<div class="err"><b>'+esc(cm0.name)+' is not yet available.</b><br>'+
+      'Its lot and grade data has not been checked against the engineer\'s drawings, so the fit and '+
+      'driveway figures would not be reliable.</div>';
+    return;
+  }
   COMM=id;
   $('app').innerHTML='<div class="panel">Loading…</div>';
   try{
-    const [m,p,st,gr]=await Promise.all([
+    const [m,p,st,gr,sw]=await Promise.all([
       fetch('../data/'+id+'.json').then(r=>{if(!r.ok)throw new Error(id+'.json — '+r.status);return r.json();}),
       fetch('../data/plans.json').then(r=>{if(!r.ok)throw new Error('plans.json — '+r.status);return r.json();}),
       /* Which lots already carry a home. Optional — a community with no status
          file simply shows every lot as available rather than failing. */
       fetch('../data/'+id+'-status.json').then(r=>r.ok?r.json():null).catch(()=>null),
-      fetch('../data/'+id+'-grade.json').then(r=>r.ok?r.json():null).catch(()=>null)
+      fetch('../data/'+id+'-grade.json').then(r=>r.ok?r.json():null).catch(()=>null),
+      /* Garage swing lock. Optional — a community without the file simply has
+         no locks, exactly as before. */
+      fetch('../data/'+id+'-swing.json').then(r=>r.ok?r.json():null).catch(()=>null)
     ]);
     MAP=m; MAP.meta=MAP.meta||{}; PLANS=p.plans||[]; STATUS=(st&&st.lots)||{}; GRADE=gr||{};
+    SWING=(sw&&sw.locks)||{}; SWINGMETA=(sw&&sw.meta)||{};
     const sp=STANDARDS_PATCH[id]||{};
     Object.keys(sp).forEach(k=>{MAP.meta[k]=sp[k];});
     screenLots();
@@ -312,7 +345,8 @@ function screenLots(){
       : st.status==='built' ? '<span class="tag t-na">built · '+esc(st.plan)+'</span>'
       : '<span class="tag t-tight">in process · '+esc(st.plan)+'</span>';
     rows+=`<tr class="row" onclick="pickLot(${l.i})">
-      <td><div class="addr">${esc(l.addr)}</div><div class="bl">Block ${esc(l.b)} · Lot ${esc(l.l)}</div></td>
+      <td><div class="addr">${esc(l.addr)}</div><div class="bl">Block ${esc(l.b)} · Lot ${esc(l.l)}${
+        (function(){ const lk=lockOf(l); return lk?' · <b>garage '+(lk==='L'?'left':'right')+'</b>':''; })()}</div></td>
       <td>${stTag}</td>
       <td>${tag}</td>
       <td class="num">${l.padW!=null?FT(l.padW)+' × '+FT(l.padD):'no pad'}</td>
@@ -336,14 +370,27 @@ function screenLots(){
 }
 function pickLot(i){
   LOT=MAP.lots.filter(l=>l.i===i)[0];
+  /* A locked lot opens on its locked side, whatever was selected last. The
+     override never carries from one lot to the next. */
+  GAROVR=false;
+  const lk=lockOf(LOT); if(lk) GAR=lk;
   if(LOT) screenLot();
 }
-function setGar(g){ GAR=g; screenLot(); }
+/* ovr is passed only by the "use the other side anyway" control, so a lock can
+   be set aside on purpose but never by a stray click. */
+function setGar(g,ovr){
+  const lk=lockOf(LOT);
+  if(lk&&g!==lk&&!ovr) return;
+  if(lk&&g===lk) GAROVR=false;
+  if(ovr) GAROVR=true;
+  GAR=g; screenLot();
+}
+function restoreLock(){ const lk=lockOf(LOT); if(lk){GAR=lk;} GAROVR=false; screenLot(); }
 function setShow(v){ SHOW=v; screenLots(); }
 function sheetHref(plan){
   return 'lot-fit-sheet.html?c='+encodeURIComponent(COMM)
     +'&lot='+encodeURIComponent(LOT.b+'-'+LOT.l)
-    +'&gar='+GAR+(plan?'&plan='+encodeURIComponent(plan.id):'');
+    +'&gar='+GAR+(GAROVR?'&ovr=1':'')+(plan?'&plan='+encodeURIComponent(plan.id):'');
 }
 function screenLot(){
   const l=LOT, meta=MAP.meta;
@@ -379,7 +426,7 @@ function screenLot(){
     <div class="why" style="margin-top:12px;max-width:760px">
       <b>Driveway.</b> Pad at ${G.padFP.toFixed(2)}, garage apron at ${G.apron.toFixed(2)},
       alley at ${G.alleyAtDrive.toFixed(2)} where the drive meets it, over a ${FT(G.run)} run
-      from the rear building line to the alley &mdash; a fall of ${G.rise.toFixed(2)}'.
+      from the rear of the graded pad to the alley &mdash; a fall of ${G.rise.toFixed(2)}'.
       ${G.slopePct>ceil
         ? `<b>This lot needs a dropped garage.</b> About <b>${G.dropTo12in}"</b> of extra drop brings it
            under ${ceil}%; <b>${G.dropTo10in}"</b> brings it under ${maxg}%. Over ${ceil}% the City
@@ -389,7 +436,7 @@ function screenLot(){
              ${G.dropTo10in}" of extra garage drop would bring it under ${maxg}%.`
           : `No dropped garage needed.`)}
       Figures assume the standard ${(0.84).toFixed(2)}' step-down from top of slab to apron,
-      with the home on the ${MAP.meta.rearBL!=null?MAP.meta.rearBL:20}' rear building line.
+      with the home at the rear edge of the graded pad.
       ${(function(){
         if(G.slopePct<=maxg) return '';     /* already clean — a remedy is noise */
         const cands=ok.map(x=>({n:x.p.name||x.p.id, s:slopeWith(G,x.f.dm), sh:Math.max(0,x.f.dm||0)}))
@@ -420,9 +467,28 @@ function screenLot(){
           <div><span>Graded pad </span><b>${l.padW!=null?FT(l.padW)+' × '+FT(l.padD):'not graded'}</b></div>
           <div><span>Driveway slope </span><b>${esc(slopeLine)}</b></div>
           <div><span>Garage side </span>
-            <span class="seg"><button class="${GAR==='L'?'on':''}" onclick="setGar('L')">Left</button
-            ><button class="${GAR==='R'?'on':''}" onclick="setGar('R')">Right</button></span></div>
+            ${(function(){
+              const lk=lockOf(l), raw=swingOf(l);
+              const btn=(s,t)=>`<button class="${GAR===s?'on':''}${lk&&s!==lk?' ghost':''}"${
+                lk&&s!==lk?' title="Locked to '+(lk==='L'?'left':'right')+' for this lot"':''
+              } onclick="setGar('${s}')">${t}</button>`;
+              let h=`<span class="seg">${btn('L','Left')}${btn('R','Right')}</span>`;
+              if(lk&&!GAROVR) h+=` <span class="tag t-tight" title="${esc(SWINGMETA.source||'OCH garage swing list')}">locked ${lk==='L'?'left':'right'}</span>`
+                +` <button class="open ghost" style="margin-left:6px" onclick="setGar('${lk==='L'?'R':'L'}',true)">use the other side anyway</button>`;
+              if(lk&&GAROVR) h+=` <span class="tag t-no">override — this lot is locked ${lk==='L'?'left':'right'}</span>`
+                +` <button class="open" style="margin-left:6px" onclick="restoreLock()">restore the lock</button>`;
+              if(raw==='E') h+=` <span class="tag t-yes" title="${esc(SWINGMETA.source||'OCH garage swing list')}">either side, by instruction</span>`;
+              return h;
+            })()}</div>
         </div>
+        ${(function(){
+          const lk=lockOf(l); if(!lk) return '';
+          return `<div class="note" style="margin-top:10px"><b>Garage swing is locked on this lot.</b>
+            The garage must be on the <b>${lk==='L'?'left':'right'}</b>, read standing at the street looking at the house.
+            ${esc(SWINGMETA.source||'OCH garage swing list')}.
+            ${GAROVR?'<b>You are currently viewing the other side.</b> The fit sheet will print a notice saying so.':
+              'Every plan below is screened on that side, and the sheet opens set to it.'}</div>`;
+        })()}
         ${gradeBlock}
       </div>
 

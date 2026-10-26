@@ -161,7 +161,7 @@ let PAD_DEPTH=80.0, BASE_RUN=21.0, MAXG=10.0, SLAB=0.83, STD_STEP=0.58;
    it is a lot that needs a City sign-off, which is a commercial decision rather
    than a dead lot. Stays null where a community records no approval allowance,
    in which case maxGrade is a hard ceiling exactly as before. */
-const MAP_BUILD='2026-10-25a';   /* printed in the header, like the other pages */
+const MAP_BUILD='2026-10-25b';   /* printed in the header, like the other pages */
 let MAXG_APPROVE=null;
 /* Verified per-lot driveway grade, built from the engineer's grading plan and
    the surveyed alley elevations (see <community>-grade.json). It REPLACES the
@@ -406,10 +406,36 @@ let sel=null,colorMode=0,showNums=true,showPads=true,q='';
 /* Garage hand for the printable fit sheet. Remembered per person, not per lot —
    it is a drawing choice, not lot data, so it never touches the database. */
 let GARHAND=localStorage.getItem('ochGarHand')||'L';
-function setGarHand(s){GARHAND=s;try{localStorage.setItem('ochGarHand',s);}catch(e){} safeSide();}
+/* Garage swing lock, keyed block-lot, from data/<community>-swing.json.
+   'L'/'R' lock the lot to that side; 'E' is an explicit "either" from the same
+   instruction and locks nothing; a lot absent from the file carries no
+   instruction. This IS lot data, unlike GARHAND above — it comes from OCH, not
+   from the person looking at the screen, so it overrides the remembered choice
+   and is never written back to localStorage or to the database. */
+let SWING={}, SWINGMETA={}, GAROVR={};
+function swingOf(l){ return (l&&SWING&&SWING[l.b+'-'+l.l])||null; }
+function lockOf(l){ const s=swingOf(l); return (s==='L'||s==='R')?s:null; }
+function lockByKey(k){ const s=SWING[k]; return (s==='L'||s==='R')?s:null; }
+/* The side to draw for a lot: the lock, unless this lot has been deliberately
+   overridden in this session; otherwise the remembered free choice. */
+function handFor(l){
+  const lk=lockOf(l);
+  if(lk && !GAROVR[l.b+'-'+l.l]) return lk;
+  if(lk) return lk==='L'?'R':'L';
+  return GARHAND;
+}
+function setGarHand(s,key){
+  const lk=key?lockByKey(key):null;
+  /* On a locked lot the buttons do not change the remembered free choice at
+     all — they only raise or clear the override for that one lot. */
+  if(lk){ GAROVR[key] = (s!==lk); safeSide(); return; }
+  GARHAND=s;try{localStorage.setItem('ochGarHand',s);}catch(e){} safeSide();
+}
 function sheetHref(l){
+  const hand=handFor(l);
   let u='lot-fit-sheet.html?c='+encodeURIComponent(COMMUNITY)
-       +'&lot='+encodeURIComponent(l.b+'-'+l.l)+'&gar='+GARHAND;
+       +'&lot='+encodeURIComponent(l.b+'-'+l.l)+'&gar='+hand;
+  if(lockOf(l)&&hand!==lockOf(l)) u+='&ovr=1';
   if(A[l.i])u+='&plan='+encodeURIComponent(A[l.i]);
   return u;
 }
@@ -1087,14 +1113,26 @@ function renderSide(hits){
   if(l.addr){
     /* The printable sheet draws the traced outline on this lot's graded pad.
        Garage hand is picked here so the sheet opens already set. */
-    const seg=(s,t)=>`<button onclick="setGarHand('${s}')" style="font-family:'IBM Plex Mono';font-size:11.5px;`
-      +`padding:4px 10px;border:0;cursor:pointer;background:${GARHAND===s?'var(--structural)':'#fff'};`
-      +`color:${GARHAND===s?'#fff':'var(--ink)'}">${t}</button>`;
+    const lk=lockOf(l), raw=swingOf(l), hand=handFor(l), ovr=!!(lk&&hand!==lk);
+    const LKEY=l.b+'-'+l.l;
+    const seg=(s,t)=>`<button onclick="setGarHand('${s}','${LKEY}')" title="${
+      lk&&s!==lk?'This lot is locked '+(lk==='L'?'left':'right')+' — selecting this side is an override':''}" `
+      +`style="font-family:'IBM Plex Mono';font-size:11.5px;`
+      +`padding:4px 10px;border:0;cursor:pointer;background:${hand===s?(ovr?'var(--fail)':'var(--structural)'):'#fff'};`
+      +`color:${hand===s?'#fff':(lk&&s!==lk?'#9a9a9a':'var(--ink)')}">${t}</button>`;
     h+=`<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px">
         <span class="muted" title="Which side the garage is on, standing at the street looking at the house">Garage side</span>
         <span style="display:flex;border:1px solid var(--line);border-radius:4px;overflow:hidden">${seg('L','Left')}${seg('R','Right')}</span>
+        ${lk?`<span class="muted" style="font-size:11px">${ovr?'OVERRIDE':'LOCKED '+(lk==='L'?'LEFT':'RIGHT')}</span>`:''}
         <a href="${sheetHref(l)}" target="_blank" class="btn" style="text-decoration:none;margin-left:auto">fit sheet &rarr;</a>
       </div>`;
+    if(lk) h+=`<div class="remedy"${ovr?' style="border-left-color:var(--fail)"':''}>
+        <b>Garage swing is locked on this lot.</b> The garage must be on the
+        <b>${lk==='L'?'left':'right'}</b>, read standing at the street looking at the house.
+        ${String(SWINGMETA.source||'OCH garage swing list').replace(/&/g,'&amp;').replace(/</g,'&lt;')}.
+        ${ovr?'<br><b>You have overridden it.</b> The fit sheet will print a notice saying so.':''}</div>`;
+    else if(raw==='E') h+=`<div class="muted" style="font-size:11px;margin-bottom:8px">
+        Either side is allowed on this lot, stated explicitly on the OCH swing list.</div>`;
   }
   h+=`<select id="assign" onchange="assignPlan(${l.i},this.value)" style="width:100%;padding:7px;font-family:'IBM Plex Mono';font-size:12px;border:1px solid var(--line);border-radius:4px">
       <option value="">— no plan assigned —</option>`;
@@ -1485,6 +1523,10 @@ async function boot(){
     /* Optional: a community with no grade file simply falls back to sl21. */
     GRADE=await fetch('../data/'+COMMUNITY+'-grade.json',{cache:'no-store'})
             .then(x=>x.ok?x.json():null).catch(()=>null) || {};
+    /* Optional: a community with no swing file simply has no locks. */
+    const sw=await fetch('../data/'+COMMUNITY+'-swing.json',{cache:'no-store'})
+            .then(x=>x.ok?x.json():null).catch(()=>null);
+    SWING=(sw&&sw.locks)||{}; SWINGMETA=(sw&&sw.meta)||{};
   }catch(e){
     document.getElementById('commName').textContent='Lot data not found';
     document.getElementById('commSub').textContent=e.message;

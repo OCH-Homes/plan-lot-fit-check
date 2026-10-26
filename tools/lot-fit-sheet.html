@@ -42,6 +42,10 @@
   .seg{display:flex;border:1px solid var(--light)}
   .seg button{border:0;background:#fff}
   .seg button.on{background:var(--och-green);color:#fff;border-color:var(--och-green)}
+  /* A side chosen against this lot's lock reads red, not green. */
+  .seg button.on.ovr{background:#A6392E;border-color:#A6392E}
+  .lockOn{color:var(--och-green)} .lockEither{color:var(--mid)} .lockOvr{color:#A6392E}
+  .mini{font-size:10px;padding:1px 6px;text-transform:uppercase;letter-spacing:.06em}
 
   /* ---- the sheet ---- */
   /* Fixed letter page. The drawing is the only elastic block: it takes whatever
@@ -123,9 +127,13 @@
   <div><label>Lot</label><select id="lotSel"></select></div>
   <div><label>Plan</label><select id="planSel"></select></div>
   <div><label>Elevation</label><select id="elevSel"></select></div>
-  <div><label>Garage side (facing the house)</label>
-    <div class="seg"><button id="gL" class="on" onclick="setGar('L')">Left</button><button id="gR" onclick="setGar('R')">Right</button></div>
   </div>
+  <!-- Garage side sits OUTSIDE #pickers on purpose. #pickers is hidden when the
+       lot and plan arrive in the URL, i.e. every time this sheet is opened from
+       the map or the finder — and on a locked lot that is exactly when the lock
+       badge and the override control need to be visible. -->
+  <div id="garWrap"><label>Garage side (facing the house) <span id="garLock"></span></label>
+    <div class="seg"><button id="gL" class="on" onclick="setGar('L')">Left</button><button id="gR" onclick="setGar('R')">Right</button></div>
   </div>
   <div id="shiftWrap"><label>Move home forward <span id="shiftLbl">0'-0"</span></label>
     <input id="shiftSl" type="range" min="0" max="0" step="0.5" value="0"
@@ -169,7 +177,7 @@
 
 /* Printed in the footer so you can tell at a glance which file is actually
    live on the site. Bump it whenever this file changes. */
-const SHEET_BUILD='2026-10-25k';
+const SHEET_BUILD='2026-10-25m';
 /* Per-lot driveway grade, keyed block-lot. Empty where not measured. */
 let GRADE={};
 
@@ -179,6 +187,22 @@ const COMMUNITY=QS.get('c')||'heights-uptown';
    The pickers are a fallback for opening the sheet on its own. */
 const WANT_LOT=QS.get('lot'), WANT_PLAN=QS.get('plan');
 let MAP=null, ORIENT=null, FOOT=null, PORCH=null, LOT=null, GAR=(QS.get('gar')==='R')?'R':'L';
+/* Garage swing lock, keyed block-lot, from data/<community>-swing.json.
+   'L'/'R' lock the lot to that side; 'E' is an explicit "either" from the same
+   OCH instruction and locks nothing; a lot absent from the file carries no
+   instruction. The lock is lot data and beats the ?gar= the map or the finder
+   sent, unless ?ovr=1 says the override was deliberate — in which case the
+   sheet PRINTS a notice, so an override cannot leave the building unnoticed. */
+let SWING={}, SWINGMETA={}, GAROVR=(QS.get('ovr')==='1');
+function swingOf(l){ return (l&&SWING&&SWING[l.b+'-'+l.l])||null; }
+function lockOf(l){ const s=swingOf(l); return (s==='L'||s==='R')?s:null; }
+/* Settle GAR against this lot's lock. Called on load and on every lot change. */
+function applyLock(){
+  const lk=lockOf(LOT);
+  if(!lk){ GAROVR=false; return; }
+  if(!GAROVR) GAR=lk;
+  else if(GAR===lk) GAROVR=false;
+}
 /* How far forward of the graded pad's rear edge the home is sited, in feet.
    The pad is flat at one elevation, so moving the home forward leaves the
    garage apron and the alley untouched and lengthens the driveway foot for
@@ -429,15 +453,19 @@ function garageOpening(fp){
 
 /* ---------- boot ---------- */
 async function boot(){
-  const [m,o,f,g]=await Promise.all([
+  const [m,o,f,g,sw]=await Promise.all([
     fetch('../data/'+COMMUNITY+'.json').then(r=>r.json()),
     fetch('../data/'+COMMUNITY+'-orient.json').then(r=>r.json()).catch(()=>null),
     fetch('../data/footprints.json').then(r=>r.json()).catch(()=>null),
     /* Per-lot driveway grade from the engineer's grading plan. Optional: a
        community without this file simply prints no grade block. */
-    fetch('../data/'+COMMUNITY+'-grade.json').then(r=>r.ok?r.json():null).catch(()=>null)
+    fetch('../data/'+COMMUNITY+'-grade.json').then(r=>r.ok?r.json():null).catch(()=>null),
+    /* Garage swing lock. Optional: a community without this file has no locks
+       and the garage side stays a free choice, exactly as before. */
+    fetch('../data/'+COMMUNITY+'-swing.json').then(r=>r.ok?r.json():null).catch(()=>null)
   ]);
   MAP=m; ORIENT=o||{}; FOOT=(f&&f.plans)||{}; PORCH=(f&&f.porchByPlan)||{}; GRADE=g||{};
+  SWING=(sw&&sw.locks)||{}; SWINGMETA=(sw&&sw.meta)||{};
   MAP.meta=MAP.meta||{};
   const sp=STANDARDS_PATCH[COMMUNITY]||{};
   Object.keys(sp).forEach(k=>{MAP.meta[k]=sp[k];});
@@ -447,7 +475,9 @@ async function boot(){
   const ls=document.getElementById('lotSel');
   lots.forEach(l=>{const op=document.createElement('option');
     op.value=l.b+'-'+l.l; op.textContent=l.addr+'  ·  '+l.b+'-'+l.l; ls.appendChild(op);});
-  ls.onchange=()=>{LOT=lots.find(x=>x.b+'-'+x.l===ls.value); SHIFT=0; fillPlans(); draw();};
+  ls.onchange=()=>{LOT=lots.find(x=>x.b+'-'+x.l===ls.value); SHIFT=0;
+    /* An override never carries from one lot to the next. */
+    GAROVR=false; applyLock(); syncGarButtons(); fillPlans(); draw();};
   LOT=(WANT_LOT&&lots.find(x=>x.b+'-'+x.l===WANT_LOT))||lots[0];
   if(!LOT){document.getElementById('sheet').innerHTML=
     '<p>No addressed lots in this community, so there is nothing to draw.</p>';return;}
@@ -458,8 +488,8 @@ async function boot(){
     fillElevs();
     document.getElementById('elevSel').value=WANT_PLAN;
   }
-  if(GAR==='R'){document.getElementById('gL').classList.remove('on');
-                document.getElementById('gR').classList.add('on');}
+  applyLock();
+  syncGarButtons();
   if(WANT_LOT&&WANT_PLAN) document.getElementById('pickers').style.display='none';
   draw();
 }
@@ -491,9 +521,31 @@ function fillElevs(){
     return `<option value="${id}" ${id===keep?'selected':''}>${e}</option>`;}).join('');
   es.onchange=()=>{SHIFT=0; draw();};
 }
-function setGar(s){GAR=s;
-  document.getElementById('gL').classList.toggle('on',s==='L');
-  document.getElementById('gR').classList.toggle('on',s==='R'); draw();}
+/* On a locked lot, choosing the other side is possible but deliberate: it
+   raises the override, which the drawn sheet then prints. Choosing the locked
+   side back clears it. On an unlocked lot this behaves exactly as before. */
+function setGar(s){
+  const lk=lockOf(LOT);
+  if(lk) GAROVR=(s!==lk);
+  GAR=s; syncGarButtons(); draw();
+}
+function restoreLock(){ const lk=lockOf(LOT); if(lk){GAR=lk; GAROVR=false;} syncGarButtons(); draw(); }
+function syncGarButtons(){
+  const lk=lockOf(LOT), raw=swingOf(LOT);
+  const gl=document.getElementById('gL'), gr=document.getElementById('gR'),
+        tag=document.getElementById('garLock');
+  if(!gl||!gr) return;
+  gl.classList.toggle('on',GAR==='L');
+  gr.classList.toggle('on',GAR==='R');
+  gl.classList.toggle('ovr',!!(lk&&GAROVR&&GAR==='L'));
+  gr.classList.toggle('ovr',!!(lk&&GAROVR&&GAR==='R'));
+  if(!tag) return;
+  if(lk&&!GAROVR) tag.innerHTML='<b class="lockOn">locked '+(lk==='L'?'left':'right')+'</b>';
+  else if(lk&&GAROVR) tag.innerHTML='<b class="lockOvr">override &mdash; locked '+(lk==='L'?'left':'right')
+      +'</b> <button class="mini" onclick="restoreLock()">restore</button>';
+  else if(raw==='E') tag.innerHTML='<b class="lockEither">either side</b>';
+  else tag.innerHTML='';
+}
 
 /* ---------- plan dimensions ----------
    SECOND COPY of the plan library — lot-map.html holds the other. Keep them in
@@ -865,6 +917,27 @@ function draw(){
       +'This does not affect whether it fits: the figures below come from the pad and plan dimensions. '
       +esc(geomDoubt)+'.', true);
 
+  /* Garage swing. A locked lot is an OCH streetscape instruction, not a
+     geometry fact, so it is stated on the printed sheet rather than left in the
+     screen controls — and an override is stated in the strongest form the sheet
+     has, naming both the locked side and the side actually drawn. A sheet that
+     left the building without that line is the failure this guards against. */
+  const lkS=lockOf(LOT), rawS=swingOf(LOT);
+  if(lkS&&GAR!==lkS)
+    banner+=bnr('GARAGE DRAWN ON THE '+(GAR==='L'?'LEFT':'RIGHT')+' — THIS LOT IS LOCKED '+(lkS==='L'?'LEFT':'RIGHT'),
+      'The garage swing on this lot is locked to the '+(lkS==='L'?'left':'right')
+      +' by OCH. This sheet has been drawn the other way on purpose. '
+      +'Do not act on it without confirming the swing. '
+      +esc(SWINGMETA.source||'OCH garage swing list')+'.');
+  else if(lkS)
+    banner+=bnr('GARAGE LOCKED '+(lkS==='L'?'LEFT':'RIGHT'),
+      'The garage swing on this lot is set by OCH and is not a choice. Read standing at the street looking at the house. '
+      +esc(SWINGMETA.source||'OCH garage swing list')+'.', true);
+  else if(rawS==='E')
+    banner+=bnr('GARAGE SWING — EITHER SIDE',
+      'Either side is allowed on this lot, stated on the OCH garage swing list. '
+      +'The side drawn here is a choice, not an instruction.', true);
+
   /* ONE source for the slope on this page. The grade file is built from the
      engineer's grading plan and the surveyed alley elevations and is the figure
      the block lower down explains. The older LOT.sl21 field disagreed with it
@@ -899,7 +972,8 @@ function draw(){
 
     <div class="specs">
       <div><span>PLAN </span><b>${esc(pname)}</b></div>
-      <div><span>GARAGE </span><b>${GAR==='L'?'LEFT':'RIGHT'}</b><span> side, facing the house from the street</span></div>
+      <div><span>GARAGE </span><b>${GAR==='L'?'LEFT':'RIGHT'}</b><span> side, facing the house from the street${
+        lkS?(GAR===lkS?' · locked by OCH':' · OVERRIDE, locked '+(lkS==='L'?'left':'right')):''}</span></div>
       <div><span>HOUSE </span><b>${plan?FT(plan.w)+' × '+FT(plan.d):'—'}</b></div>
       <div><span>LOT </span><b>${F(LOT.lw)} × ${F(LOT.ld)}</b></div>
       <div><span>PAD </span><b>${LOT.padW!=null?FT(LOT.padW)+' × '+FT(LOT.padD):'not graded'}</b></div>
