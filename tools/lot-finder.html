@@ -146,7 +146,7 @@
 
 /* Printed in the header so you can tell at a glance which file is live.
    Bump it whenever this file changes. */
-const FINDER_BUILD='2026-10-25g';
+const FINDER_BUILD='2026-10-26a';
 
 /* `verified` means the community's lot geometry, graded pads and driveway
    grades have been checked against the engineer's sealed drawings. Only The
@@ -282,15 +282,20 @@ async function pickCommunity(id){
   $('app').innerHTML='<div class="panel">Loading…</div>';
   try{
     const [m,p,st,gr,sw]=await Promise.all([
-      fetch('../data/'+id+'.json').then(r=>{if(!r.ok)throw new Error(id+'.json — '+r.status);return r.json();}),
-      fetch('../data/plans.json').then(r=>{if(!r.ok)throw new Error('plans.json — '+r.status);return r.json();}),
+      /* cache:'no-store' on EVERY data fetch, matching lot-map.html. Without it
+         the browser serves a stale copy of a data file after it has been
+         replaced on the site, and a hard refresh does not always reach it —
+         the page then renders old data from a correct file, which is the worst
+         possible failure: it looks live and is not. Cost is one small refetch. */
+      fetch('../data/'+id+'.json',{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error(id+'.json — '+r.status);return r.json();}),
+      fetch('../data/plans.json',{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error('plans.json — '+r.status);return r.json();}),
       /* Which lots already carry a home. Optional — a community with no status
          file simply shows every lot as available rather than failing. */
-      fetch('../data/'+id+'-status.json').then(r=>r.ok?r.json():null).catch(()=>null),
-      fetch('../data/'+id+'-grade.json').then(r=>r.ok?r.json():null).catch(()=>null),
+      fetch('../data/'+id+'-status.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).catch(()=>null),
+      fetch('../data/'+id+'-grade.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).catch(()=>null),
       /* Garage swing lock. Optional — a community without the file simply has
          no locks, exactly as before. */
-      fetch('../data/'+id+'-swing.json').then(r=>r.ok?r.json():null).catch(()=>null)
+      fetch('../data/'+id+'-swing.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).catch(()=>null)
     ]);
     MAP=m; MAP.meta=MAP.meta||{}; PLANS=p.plans||[]; STATUS=(st&&st.lots)||{}; GRADE=gr||{};
     SWING=(sw&&sw.locks)||{}; SWINGMETA=(sw&&sw.meta)||{};

@@ -177,7 +177,7 @@
 
 /* Printed in the footer so you can tell at a glance which file is actually
    live on the site. Bump it whenever this file changes. */
-const SHEET_BUILD='2026-10-25m';
+const SHEET_BUILD='2026-10-26a';
 /* Per-lot driveway grade, keyed block-lot. Empty where not measured. */
 let GRADE={};
 
@@ -454,15 +454,20 @@ function garageOpening(fp){
 /* ---------- boot ---------- */
 async function boot(){
   const [m,o,f,g,sw]=await Promise.all([
-    fetch('../data/'+COMMUNITY+'.json').then(r=>r.json()),
-    fetch('../data/'+COMMUNITY+'-orient.json').then(r=>r.json()).catch(()=>null),
-    fetch('../data/footprints.json').then(r=>r.json()).catch(()=>null),
+    /* cache:'no-store' on EVERY data fetch, matching lot-map.html. Without it
+       the browser serves a stale copy of a data file after it has been replaced
+       on the site, and a hard refresh does not always reach it — the sheet then
+       PRINTS old data from a correct file, which is the worst possible failure:
+       it looks live and is not. Cost is one small refetch. */
+    fetch('../data/'+COMMUNITY+'.json',{cache:'no-store'}).then(r=>r.json()),
+    fetch('../data/'+COMMUNITY+'-orient.json',{cache:'no-store'}).then(r=>r.json()).catch(()=>null),
+    fetch('../data/footprints.json',{cache:'no-store'}).then(r=>r.json()).catch(()=>null),
     /* Per-lot driveway grade from the engineer's grading plan. Optional: a
        community without this file simply prints no grade block. */
-    fetch('../data/'+COMMUNITY+'-grade.json').then(r=>r.ok?r.json():null).catch(()=>null),
+    fetch('../data/'+COMMUNITY+'-grade.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).catch(()=>null),
     /* Garage swing lock. Optional: a community without this file has no locks
        and the garage side stays a free choice, exactly as before. */
-    fetch('../data/'+COMMUNITY+'-swing.json').then(r=>r.ok?r.json():null).catch(()=>null)
+    fetch('../data/'+COMMUNITY+'-swing.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).catch(()=>null)
   ]);
   MAP=m; ORIENT=o||{}; FOOT=(f&&f.plans)||{}; PORCH=(f&&f.porchByPlan)||{}; GRADE=g||{};
   SWING=(sw&&sw.locks)||{}; SWINGMETA=(sw&&sw.meta)||{};
