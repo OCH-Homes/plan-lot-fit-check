@@ -161,7 +161,17 @@ let PAD_DEPTH=80.0, BASE_RUN=21.0, MAXG=10.0, SLAB=0.83, STD_STEP=0.58;
    it is a lot that needs a City sign-off, which is a commercial decision rather
    than a dead lot. Stays null where a community records no approval allowance,
    in which case maxGrade is a hard ceiling exactly as before. */
+const MAP_BUILD='2026-10-25a';   /* printed in the header, like the other pages */
 let MAXG_APPROVE=null;
+/* Verified per-lot driveway grade, built from the engineer's grading plan and
+   the surveyed alley elevations (see <community>-grade.json). It REPLACES the
+   older per-lot sl21 field, which disagreed badly with the drawings — 3.5
+   against a verified 13.8 at 708 Garrett — and had this map colouring lots
+   green that need a dropped garage. sl21 is used only where no grade record
+   exists, so a community that has not been measured still shows something. */
+let GRADE={};
+const slOf=l=>{ const g=GRADE[l.b+'-'+l.l]; return g?g.slopePct:(l.sl21!=null?l.sl21:null); };
+const gradeRec=l=>GRADE[l.b+'-'+l.l]||null;
 let RECORD=false, OCH_LOTS=0;
 /* Community entry type. Front-entry communities carry a garage apron elevation
    (ap) on their lots; rear-alley communities do not. Held as two independent
@@ -193,7 +203,7 @@ function applyMeta(m){ if(!m)return;
   document.title=(m.shortName||'Lot Map')+' — Lot Fit Check';
   const t=document.getElementById('commName'); if(t)t.textContent=m.name||COMMUNITY;
   const s=document.getElementById('commSub');
-  if(s)s.textContent='Lot map, driveway grade check & plan fit · '+(m.residentialLots||'')+' residential lots'+(m.city?' · '+m.city:'');
+  if(s)s.textContent='Lot map, driveway grade check & plan fit · '+(m.residentialLots||'')+' residential lots'+(m.city?' · '+m.city:'')+' · BUILD '+MAP_BUILD;
   const r=document.getElementById('tagRun'); if(r)r.textContent='Run '+BASE_RUN+' ft';
   const g=document.getElementById('tagGrade');
   if(g)g.textContent='Max grade '+MAXG+'%'+(MAXG_APPROVE!=null?' · '+MAXG_APPROVE+'% w/ approval':'');
@@ -678,7 +688,7 @@ function statusOf(l){
       if(!v.ok)return 'fail';
       if(v.warn.length)return 'warn';
     }
-    const gv=gradeVerdict(l.sl21);
+    const gv=gradeVerdict(slOf(l));
     if(gv==='fail')return 'fail';
     if(gv==='warn')return 'warn';       /* over design max but within approval */
     return 'pass';
@@ -727,7 +737,7 @@ function colorOf(l){
     const PC={marshall_c:'#4E79A7',marshall_b:'#76B7B2',ellis_d:'#F28E2B',ellis_b:'#EDC948',dakota_a:'#9C755F'};
     return PC[l.plan]||'#8A959C';
   }
-  if(mode==='slope'){const s=l.sl21;
+  if(mode==='slope'){const s=slOf(l);
     if(s==null)return NODATA;
     if(s<=MAXG*0.8)return '#2F7D5A';          /* comfortably under the design max */
     if(s<=MAXG)return '#7FA86B';              /* at the design max */
@@ -967,7 +977,7 @@ function renderSide(hits){
       <thead><tr><th>Lot</th><th>Product</th><th>Slope</th><th>${REAR?'Pad depth':'Shift'}</th></tr></thead><tbody>`;
     hits.slice(0,60).forEach(l=>{h+=`<tr style="cursor:pointer" onclick="select(${l.i})">
       <td><b>${l.b}-${l.l}</b></td><td>${l.prod?l.prod+"'":'—'}</td>
-      <td style="color:${l.sl21==null?'var(--slate)':(l.sl21<=MAXG?'var(--pass)':'var(--fail)')}">${fmt(l.sl21,1,'%')}</td>
+      <td style="color:${slOf(l)==null?'var(--slate)':(slOf(l)<=MAXG?'var(--pass)':'var(--fail)')}">${fmt(slOf(l),1,'%')}</td>
       <td>${REAR?fmt(l.padD,0,"'"):(typeof l.shift==='number'&&l.shift>0?l.shift.toFixed(1)+"'":'—')}</td></tr>`});
     h+='</tbody></table><p class="muted" style="margin-top:8px">Click a row to open it.</p>';
     el.innerHTML=h; return;
@@ -1010,7 +1020,7 @@ function renderSide(hits){
   if(!l.prod)h+=`<div class="remedy" style="border-left-color:var(--warn)"><b>Lot product not set.</b><br>Measured ${l.lw?l.lw.toFixed(0)+' ft':'?'} wide — set the lot product in the workbook. Every plan is listed below until it is.</div>`;
   /* Slope may be unknown: many Heights lots have no rear grade in the
      construction set, so there is no estimate. Show "—", never a fake number. */
-  const slopeVal = e ? e.slope : (l.sl21!=null ? l.sl21 : null);
+  const slopeVal = e ? e.slope : slOf(l);
   h+=`<div class="card2" style="margin-top:12px"><div style="display:flex;justify-content:space-between;align-items:flex-end">
       <div><div class="muted" style="font-size:11px;text-transform:uppercase;letter-spacing:.5px">Driveway slope @ ${e?e.run.toFixed(1):BASE_RUN} ft</div>
       <div class="big" style="color:${slopeVal==null?'var(--slate)':'var(--'+gradeVerdict(slopeVal)+')'}">${slopeVal==null?'—':slopeVal.toFixed(1)+'%'}</div>
@@ -1059,12 +1069,12 @@ function renderSide(hits){
         h+=`<div class="remedy" style="border-left-color:var(--warn)"><b>Engineered wall required.</b><br>
           Exposed height ${exp.toFixed(1)} ft exceeds 4 ft (Celina §9.05). Build around the existing wall.</div>`;
     }
-    if(l.sl21!=null&&gradeVerdict(l.sl21)==='warn')
-      h+=`<div class="remedy" style="border-left-color:var(--warn)"><b>Estimated driveway slope ${l.sl21.toFixed(1)}% — needs City approval.</b><br>
+    if(slOf(l)!=null&&gradeVerdict(slOf(l))==='warn')
+      h+=`<div class="remedy" style="border-left-color:var(--warn)"><b>Driveway slope ${slOf(l).toFixed(1)}%${gradeRec(l)?'':' (estimated)'} — needs City approval.</b><br>
         Over the ${MAXG}% design maximum but within the ${gradeCeiling()}% the City will consider. This lot is sellable with a variance, not lost.<br>
         <span class="muted">Estimate only — (pad − rear grade) ÷ ${BASE_RUN} ft apron. Verify against the alley profile before applying.</span></div>`;
-    else if(l.sl21!=null&&gradeVerdict(l.sl21)==='fail')
-      h+=`<div class="remedy" style="border-left-color:var(--fail)"><b>Estimated driveway slope ${l.sl21.toFixed(1)}% exceeds ${gradeCeiling()}%.</b><br>
+    else if(slOf(l)!=null&&gradeVerdict(slOf(l))==='fail')
+      h+=`<div class="remedy" style="border-left-color:var(--fail)"><b>Driveway slope ${slOf(l).toFixed(1)}%${gradeRec(l)?'':' (estimated)'} exceeds ${gradeCeiling()}%.</b><br>
         Beyond what the City will approve${MAXG_APPROVE!=null?' even with a variance':''}. Regrading or a different pad is needed.<br>
         <span class="muted">Estimate only — (pad − rear grade) ÷ ${BASE_RUN} ft apron. Verify against the alley profile before relying on it.</span></div>`;
   }
@@ -1304,8 +1314,8 @@ function overview(){
     /* Rear-alley communities have no shift/remedy figures at all. Report what
        actually exists here: envelope fit, estimated slope and monotony. */
     const noFit=O.filter(l=>livePlans(l).filter(p=>p.d!=null).every(p=>{const d=depthFit(l,p);return d&&d.margin<0;}));
-    const needApproval=O.filter(l=>gradeVerdict(l.sl21)==='warn');
-    const tooSteep=O.filter(l=>gradeVerdict(l.sl21)==='fail');
+    const needApproval=O.filter(l=>gradeVerdict(slOf(l))==='warn');
+    const tooSteep=O.filter(l=>gradeVerdict(slOf(l))==='fail');
     h+=`<div class="statbar">
       <div><div class="n">${n}</div><div class="t">lots in program</div></div>
       <div><div class="n" style="color:${noFit.length?'var(--fail)':'var(--pass)'}">${noFit.length}</div><div class="t">no plan fits</div></div>
@@ -1314,14 +1324,14 @@ function overview(){
     h+=`<p class="muted">Click any lot for its pad, elevations and plan fit. Fit is measured against the engineer's pad where one was extracted, and against the plat lot depth otherwise.</p>`;
     if(noFit.length)h+=`<div class="remedy" style="border-left-color:var(--fail)"><b>${noFit.length} lot${noFit.length>1?'s take':' takes'} no offered plan on depth.</b><br>
       <span style="font-family:'IBM Plex Mono',monospace;font-size:11.5px">${noFit.map(l=>`<a href="#" onclick="select(${l.i});return false">${l.b}-${l.l}</a>`).join(' · ')}</span></div>`;
-    const slopeList=arr=>arr.map(l=>`<a href="#" onclick="select(${l.i});return false">${l.b}-${l.l}</a> ${l.sl21.toFixed(0)}%`).join(' · ');
+    const slopeList=arr=>arr.map(l=>`<a href="#" onclick="select(${l.i});return false">${l.b}-${l.l}</a> ${slOf(l).toFixed(0)}%`).join(' · ');
     if(needApproval.length)h+=`<div class="remedy" style="border-left-color:var(--warn)"><b>${needApproval.length} lot${needApproval.length>1?'s':''} between ${MAXG}% and ${gradeCeiling()}% — City approval route.</b><br>
       <span style="font-family:'IBM Plex Mono',monospace;font-size:11.5px">${slopeList(needApproval)}</span><br>
       <span class="muted">Sellable with a variance. Estimate only — (pad − rear grade) ÷ ${BASE_RUN} ft.</span></div>`;
     if(tooSteep.length)h+=`<div class="remedy" style="border-left-color:var(--fail)"><b>${tooSteep.length} lot${tooSteep.length>1?'s':''} estimate over ${gradeCeiling()}%.</b><br>
       <span style="font-family:'IBM Plex Mono',monospace;font-size:11.5px">${slopeList(tooSteep)}</span><br>
       <span class="muted">Beyond the approval ceiling. Verify against the alley profile before writing these off.</span></div>`;
-    const noGrade=O.filter(l=>l.sl21==null).length;
+    const noGrade=O.filter(l=>slOf(l)==null).length;
     if(noGrade)h+=`<p class="muted">${noGrade} of ${n} lots have no rear grade recorded, so no slope estimate exists for them. That is missing data, not a failure — they draw grey.</p>`;
   }
   if(FRONT){
@@ -1472,6 +1482,9 @@ async function boot(){
     const r=await fetch('../data/'+COMMUNITY+'.json',{cache:'no-store'});
     if(!r.ok)throw new Error('data file not found ('+r.status+')');
     MAP=await r.json();
+    /* Optional: a community with no grade file simply falls back to sl21. */
+    GRADE=await fetch('../data/'+COMMUNITY+'-grade.json',{cache:'no-store'})
+            .then(x=>x.ok?x.json():null).catch(()=>null) || {};
   }catch(e){
     document.getElementById('commName').textContent='Lot data not found';
     document.getElementById('commSub').textContent=e.message;
