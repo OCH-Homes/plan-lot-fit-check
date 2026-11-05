@@ -489,55 +489,59 @@
   },
   {
    "id": "thompson_a",
-   "name": "Thompson A (retired)",
+   "name": "Thompson A",
    "collection": "MR 35' RE",
    "lotProduct": 45,
-   "w": null,
-   "d": null,
+   "w": 34.0,
+   "d": 79.0,
    "garage": "Rear",
    "hand": null,
    "mirror": false,
-   "porch": null,
-   "retired": true
+   "porch": 0.0,
+   "retired": false,
+   "note": "Measured from CAD 5 Nov 2026. Porch encroachment not yet supplied \u2014 0 is a placeholder."
   },
   {
    "id": "thompson_b",
-   "name": "Thompson B (retired)",
+   "name": "Thompson B",
    "collection": "MR 35' RE",
    "lotProduct": 45,
-   "w": null,
-   "d": null,
+   "w": 34.0,
+   "d": 79.0,
    "garage": "Rear",
    "hand": null,
    "mirror": false,
-   "porch": null,
-   "retired": true
+   "porch": 0.0,
+   "retired": false,
+   "note": "Measured from CAD 5 Nov 2026. Porch encroachment not yet supplied \u2014 0 is a placeholder."
   },
   {
    "id": "logan_a",
-   "name": "Logan A (retired)",
+   "name": "Logan A",
    "collection": "MR 35' RE",
    "lotProduct": 45,
-   "w": null,
-   "d": null,
+   "w": 34.0,
+   "d": 78.0,
    "garage": "Rear",
    "hand": null,
    "mirror": false,
-   "porch": null,
-   "retired": true
+   "porch": 3.5,
+   "retired": false,
+   "note": "Measured from CAD 5 Nov 2026. Not officially retired yet \u2014 Brandi to confirm."
   },
   {
    "id": "logan_c",
-   "name": "Logan C (retired)",
+   "name": "Logan C",
    "collection": "MR 35' RE",
    "lotProduct": 45,
-   "w": null,
-   "d": null,
+   "w": 34.0,
+   "d": 76.5,
    "garage": "Rear",
    "hand": null,
    "mirror": false,
-   "porch": null,
-   "retired": true
+   "porch": 0.0,
+   "retired": false,
+   "note": "Measured from CAD 5 Nov 2026. Not officially retired yet \u2014 Brandi to confirm."
   },
   {
    "id": "ellis_a",
@@ -759,6 +763,34 @@
    "mirror": false,
    "porch": null,
    "retired": true
+  },
+  {
+   "id": "logan_b",
+   "name": "Logan B",
+   "collection": "MR 35' RE",
+   "lotProduct": 45,
+   "garage": "Rear",
+   "hand": null,
+   "mirror": false,
+   "w": 34.0,
+   "d": 74.5,
+   "porch": 0.0,
+   "retired": false,
+   "note": "Measured from CAD 5 Nov 2026. Not officially retired yet \u2014 Brandi to confirm."
+  },
+  {
+   "id": "thompson_c",
+   "name": "Thompson C",
+   "collection": "MR 35' RE",
+   "lotProduct": 45,
+   "garage": "Rear",
+   "hand": null,
+   "mirror": false,
+   "w": 34.0,
+   "d": 73.0,
+   "porch": 0.0,
+   "retired": false,
+   "note": "Measured from CAD 5 Nov 2026. Porch encroachment not yet supplied \u2014 0 is a placeholder."
   }
  ]
 }

@@ -689,6 +689,292 @@
    "source": "CAD: Parker E35A 2025-11-19.dwg",
    "note": "From Parker E35A 2025-11-19.dwg, layer A-Area-Masonry, finish-face area polylines unioned. This plan has ONE first-floor plan shared by elevations A, B and C \u2014 the elevations are front-facade variants, confirmed by the sheet labels (one FIRST FLOOR PLAN, three FRONT ELEV). Garage end at y=0.",
    "garageCentre": 24.96
+  },
+  "logan_a": {
+   "w": 34.0,
+   "d": 78.0,
+   "areaSf": 2451.7,
+   "pts": [
+    [
+     0.0,
+     78.0
+    ],
+    [
+     0.0,
+     11.167
+    ],
+    [
+     14.333,
+     11.167
+    ],
+    [
+     14.333,
+     0.0
+    ],
+    [
+     34.0,
+     0.0
+    ],
+    [
+     34.0,
+     74.5
+    ],
+    [
+     22.5,
+     74.5
+    ],
+    [
+     22.5,
+     78.0
+    ]
+   ],
+   "source": "CAD: Logan B35A 2024-12-19.dwg, layer A-Area-Frame, closed area polylines unioned. AutoCAD 2018 format \u2014 see claude/plan-dwg-2018-format-method.md.",
+   "note": "Three elevations share one body of 34.0 x 74.5 ft. A adds a 3.5 ft front projection (78.0 overall), C adds 2.0 ft (76.5). Depths confirmed by Brandi 5 Nov 2026: A 78'-0\", B 74'-6\", C 76'-6\". The 3.5 ft projection on A is exactly the 3'-6\" she states as encroachable, and B and C encroach nothing. Garage end at y=0."
+  },
+  "logan_b": {
+   "w": 34.0,
+   "d": 74.5,
+   "areaSf": 2372.9,
+   "pts": [
+    [
+     34.0,
+     0.0
+    ],
+    [
+     14.333,
+     0.0
+    ],
+    [
+     14.333,
+     11.167
+    ],
+    [
+     0.0,
+     11.167
+    ],
+    [
+     0.0,
+     74.5
+    ],
+    [
+     22.5,
+     74.5
+    ],
+    [
+     34.0,
+     74.5
+    ]
+   ],
+   "source": "CAD: Logan B35A 2024-12-19.dwg, layer A-Area-Frame, closed area polylines unioned. AutoCAD 2018 format \u2014 see claude/plan-dwg-2018-format-method.md.",
+   "note": "Three elevations share one body of 34.0 x 74.5 ft. A adds a 3.5 ft front projection (78.0 overall), C adds 2.0 ft (76.5). Depths confirmed by Brandi 5 Nov 2026: A 78'-0\", B 74'-6\", C 76'-6\". The 3.5 ft projection on A is exactly the 3'-6\" she states as encroachable, and B and C encroach nothing. Garage end at y=0."
+  },
+  "logan_c": {
+   "w": 34.0,
+   "d": 76.5,
+   "areaSf": 2417.9,
+   "pts": [
+    [
+     22.5,
+     74.5
+    ],
+    [
+     34.0,
+     74.5
+    ],
+    [
+     34.0,
+     0.0
+    ],
+    [
+     14.333,
+     0.0
+    ],
+    [
+     14.333,
+     11.167
+    ],
+    [
+     0.0,
+     11.167
+    ],
+    [
+     0.0,
+     76.5
+    ],
+    [
+     22.5,
+     76.5
+    ]
+   ],
+   "source": "CAD: Logan B35A 2024-12-19.dwg, layer A-Area-Frame, closed area polylines unioned. AutoCAD 2018 format \u2014 see claude/plan-dwg-2018-format-method.md.",
+   "note": "Three elevations share one body of 34.0 x 74.5 ft. A adds a 3.5 ft front projection (78.0 overall), C adds 2.0 ft (76.5). Depths confirmed by Brandi 5 Nov 2026: A 78'-0\", B 74'-6\", C 76'-6\". The 3.5 ft projection on A is exactly the 3'-6\" she states as encroachable, and B and C encroach nothing. Garage end at y=0."
+  },
+  "thompson_a": {
+   "w": 34.0,
+   "d": 79.0,
+   "areaSf": 2325.1,
+   "pts": [
+    [
+     22.5,
+     78.167
+    ],
+    [
+     22.5,
+     79.0
+    ],
+    [
+     13.0,
+     79.0
+    ],
+    [
+     13.0,
+     71.0
+    ],
+    [
+     0.0,
+     71.0
+    ],
+    [
+     0.0,
+     17.667
+    ],
+    [
+     14.0,
+     17.667
+    ],
+    [
+     14.0,
+     0.0
+    ],
+    [
+     34.0,
+     0.0
+    ],
+    [
+     34.0,
+     70.0
+    ],
+    [
+     21.667,
+     70.0
+    ],
+    [
+     34.0,
+     70.0
+    ],
+    [
+     34.0,
+     78.167
+    ]
+   ],
+   "source": "CAD: Thompson D35A 2024-07-29.dwg, layer A-Area-Frame, closed area polylines unioned. AutoCAD 2018 format.",
+   "note": "A and B share one 34.0 x 79.0 ft footprint and differ only at the front facade; C is 73.0 ft. Depths confirmed by Brandi 5 Nov 2026: A 79', B 79', C 73'. Garage end at y=0. PORCH ENCROACHMENT NOT YET SUPPLIED \u2014 set to 0 as the conservative placeholder, which charges each elevation its full depth. Replace when OCH gives the figure."
+  },
+  "thompson_b": {
+   "w": 34.0,
+   "d": 79.0,
+   "areaSf": 2325.1,
+   "pts": [
+    [
+     22.5,
+     78.167
+    ],
+    [
+     22.5,
+     79.0
+    ],
+    [
+     13.0,
+     79.0
+    ],
+    [
+     13.0,
+     71.0
+    ],
+    [
+     0.0,
+     71.0
+    ],
+    [
+     0.0,
+     17.667
+    ],
+    [
+     14.0,
+     17.667
+    ],
+    [
+     14.0,
+     0.0
+    ],
+    [
+     34.0,
+     0.0
+    ],
+    [
+     34.0,
+     70.0
+    ],
+    [
+     21.667,
+     70.0
+    ],
+    [
+     34.0,
+     70.0
+    ],
+    [
+     34.0,
+     78.167
+    ]
+   ],
+   "source": "CAD: Thompson D35A 2024-07-29.dwg, layer A-Area-Frame, closed area polylines unioned. AutoCAD 2018 format.",
+   "note": "A and B share one 34.0 x 79.0 ft footprint and differ only at the front facade; C is 73.0 ft. Depths confirmed by Brandi 5 Nov 2026: A 79', B 79', C 73'. Garage end at y=0. PORCH ENCROACHMENT NOT YET SUPPLIED \u2014 set to 0 as the conservative placeholder, which charges each elevation its full depth. Replace when OCH gives the figure."
+  },
+  "thompson_c": {
+   "w": 34.0,
+   "d": 73.0,
+   "areaSf": 2208.7,
+   "pts": [
+    [
+     34.0,
+     0.0
+    ],
+    [
+     14.0,
+     0.0
+    ],
+    [
+     14.0,
+     17.667
+    ],
+    [
+     0.0,
+     17.667
+    ],
+    [
+     0.0,
+     71.0
+    ],
+    [
+     13.0,
+     71.0
+    ],
+    [
+     13.0,
+     73.0
+    ],
+    [
+     34.0,
+     73.0
+    ],
+    [
+     34.0,
+     70.0
+    ]
+   ],
+   "source": "CAD: Thompson D35A 2024-07-29.dwg, layer A-Area-Frame, closed area polylines unioned. AutoCAD 2018 format.",
+   "note": "A and B share one 34.0 x 79.0 ft footprint and differ only at the front facade; C is 73.0 ft. Depths confirmed by Brandi 5 Nov 2026: A 79', B 79', C 73'. Garage end at y=0. PORCH ENCROACHMENT NOT YET SUPPLIED \u2014 set to 0 as the conservative placeholder, which charges each elevation its full depth. Replace when OCH gives the figure."
   }
  },
  "validation": "Every footprint matches the plan library's width and depth and the sheet's stated slab area to within a square foot. Unlike the 9/22 raster traces there is no wall-line undercount, so areaSf equals slabSf rather than running 49-59 sf under it.",
@@ -712,7 +998,13 @@
   "parker_a": 8.0,
   "parker_b": 6.5,
   "parker_c": 7.0,
-  "pearl_a": 0.0
+  "pearl_a": 0.0,
+  "logan_a": 3.5,
+  "logan_b": 0.0,
+  "logan_c": 0.0,
+  "thompson_a": 0.0,
+  "thompson_b": 0.0,
+  "thompson_c": 0.0
  },
  "porchNote": "Depth the front porch projects ahead of the living area, in feet, per ELEVATION. Only a porch may encroach into the front building line; living space never may. The community porchEncroach figure is the CAP (5' at Celina) \u2014 a deeper porch is still capped, a shallower one gets only what it has. Confirmed by Brandi 13-14 Oct 2026 against the elevations, not inferred from CAD geometry: Knox C and Addison C both differ from what the geometry suggested."
 }
