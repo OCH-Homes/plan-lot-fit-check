@@ -180,7 +180,7 @@
 
 /* Printed in the footer so you can tell at a glance which file is actually
    live on the site. Bump it whenever this file changes. */
-const SHEET_BUILD='2026-11-05b';
+const SHEET_BUILD='2026-11-05d';
 /* Per-lot driveway grade, keyed block-lot. Empty where not measured. */
 let GRADE={};
 
@@ -590,7 +590,13 @@ const PLANNAMES={}, PLANDIMS={};
  ['holland_a','Holland A',34.833,76.5],['holland_b','Holland B',34.833,77.5],['holland_c','Holland C',34.833,76.5],
  ['knox_a','Knox A',34.917,74.5],['knox_b','Knox B',34.917,74.5],['knox_c','Knox C',34.917,77.5],
  ['parker_a','Parker A',34.833,83.0000],['parker_b','Parker B',34.833,81.0833],['parker_c','Parker C',34.833,81.5833],
- ['pearl_a','Pearl A',29.917,79.917]
+ ['pearl_a','Pearl A',29.917,79.917],
+ /* Logan measured from CAD 5 Nov 2026. One 34 x 74.5 body; A adds a 3.5 ft front
+    projection, C adds 2.0. Depths confirmed by Brandi. */
+ ['logan_a','Logan A',34,78],['logan_b','Logan B',34,74.5],['logan_c','Logan C',34,76.5],
+ /* Thompson measured from CAD 5 Nov 2026. A and B share one 34 x 79 footprint;
+    C is 73. Porch encroachment not yet supplied — 0 placeholder in footprints.json. */
+ ['thompson_a','Thompson A',34,79],['thompson_b','Thompson B',34,79],['thompson_c','Thompson C',34,73]
 ].forEach(([id,n,w,d])=>{PLANNAMES[id]=n;PLANDIMS[id]={w,d};});
 function unknownPlans(){ return offered().filter(id=>!PLANNAMES[id]); }
 

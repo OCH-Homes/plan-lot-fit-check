@@ -161,7 +161,7 @@ let PAD_DEPTH=80.0, BASE_RUN=21.0, MAXG=10.0, SLAB=0.83, STD_STEP=0.58;
    it is a lot that needs a City sign-off, which is a commercial decision rather
    than a dead lot. Stays null where a community records no approval allowance,
    in which case maxGrade is a hard ceiling exactly as before. */
-const MAP_BUILD='2026-10-25b';   /* printed in the header, like the other pages */
+const MAP_BUILD='2026-11-05b';   /* printed in the header, like the other pages */
 let MAXG_APPROVE=null;
 /* Verified per-lot driveway grade, built from the engineer's grading plan and
    the surveyed alley elevations (see <community>-grade.json). It REPLACES the
@@ -257,6 +257,14 @@ PLANS.push(
  {id:'parker_b',n:'Parker B',coll:"MR 35' RE",lot:45,w:34.833,d:81.0833,porch:6.5,gar:'Rear'},
  {id:'parker_c',n:'Parker C',coll:"MR 35' RE",lot:45,w:34.833,d:81.5833,porch:7,gar:'Rear'},
  {id:'pearl_a',n:'Pearl A',coll:"MR 30' RE",lot:45,w:29.917,d:79.917,porch:0,gar:'Rear'},
+ /* Logan measured from CAD 5 Nov 2026 — see claude/plan-dwg-2018-format-method.md */
+ {id:'logan_a',n:'Logan A',coll:"MR 35' RE",lot:45,w:34,d:78.0,porch:3.5,gar:'Rear'},
+ {id:'logan_b',n:'Logan B',coll:"MR 35' RE",lot:45,w:34,d:74.5,porch:0,gar:'Rear'},
+ {id:'logan_c',n:'Logan C',coll:"MR 35' RE",lot:45,w:34,d:76.5,porch:0,gar:'Rear'},
+ /* Thompson measured from CAD 5 Nov 2026; porch encroachment is a 0 placeholder */
+ {id:'thompson_a',n:'Thompson A',coll:"MR 35' RE",lot:45,w:34,d:79.0,porch:0,gar:'Rear'},
+ {id:'thompson_b',n:'Thompson B',coll:"MR 35' RE",lot:45,w:34,d:79.0,porch:0,gar:'Rear'},
+ {id:'thompson_c',n:'Thompson C',coll:"MR 35' RE",lot:45,w:34,d:73.0,porch:0,gar:'Rear'},
  {id:'thompson_a',n:'Thompson A (retired)',coll:"MR 35' RE",lot:45,w:null,d:null,gar:'Rear'},
  {id:'thompson_b',n:'Thompson B (retired)',coll:"MR 35' RE",lot:45,w:null,d:null,gar:'Rear'},
  {id:'logan_a',n:'Logan A (retired)',coll:"MR 35' RE",lot:45,w:null,d:null,gar:'Rear'},
