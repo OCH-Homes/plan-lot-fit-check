@@ -1,0 +1,53 @@
+{
+ "meta": {
+  "source": "Derived from the recorded plat geometry 2026-11-05: a side yard that does not abut another platted lot is a street side.",
+  "rule": "interior side yard 5 ft, corner (street) side yard 15 ft, front 10 ft, rear 20 ft.",
+  "validation": "Checked against three surveyed Roome plot plans \u2014 501 Callum (P-8), 500 Callum (N-5) and 560 Stark Mews (P-24). The side the survey marks 15 ft B.L. matches on all three.",
+  "frame": "left and right are read standing at the street looking at the lot, the same convention the fit sheet draws in.",
+  "caveat": "Front and rear assignment still comes from the frontage resolver and is known to be wrong on some of these lots \u2014 it labels a street rear edge ALLEY. That is a separate open defect and is not corrected by this file."
+ },
+ "corners": {
+  "K-21": [
+   "right"
+  ],
+  "L-12": [
+   "right"
+  ],
+  "M-23": [
+   "right"
+  ],
+  "N-1": [
+   "left"
+  ],
+  "N-28": [
+   "right"
+  ],
+  "N-4": [
+   "right"
+  ],
+  "N-5": [
+   "left"
+  ],
+  "P-1": [
+   "left"
+  ],
+  "P-24": [
+   "right"
+  ],
+  "P-6": [
+   "left"
+  ],
+  "P-8": [
+   "right"
+  ],
+  "U-9": [
+   "left"
+  ],
+  "X-1": [
+   "left"
+  ],
+  "Y-2": [
+   "right"
+  ]
+ }
+}
