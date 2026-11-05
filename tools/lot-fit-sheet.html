@@ -180,7 +180,7 @@
 
 /* Printed in the footer so you can tell at a glance which file is actually
    live on the site. Bump it whenever this file changes. */
-const SHEET_BUILD='2026-11-05a';
+const SHEET_BUILD='2026-11-05b';
 /* Per-lot driveway grade, keyed block-lot. Empty where not measured. */
 let GRADE={};
 
@@ -203,6 +203,10 @@ let SWING={}, SWINGMETA={}, GAROVR=(QS.get('ovr')==='1');
    grade. Drawn at the engineer's own positions rather than tidied onto a grid,
    because the team reads these against the grading plan side by side. */
 let SPOTS={}, SPOTMETA={}, SHOWSPOTS=true;
+/* Corner lots: which side yard abuts a street and therefore takes the 15 ft
+   corner setback instead of the 5 ft interior one. Derived from the plat and
+   checked against three surveyed plot plans. See data/<community>-corners.json. */
+let CORNERS={}, CORNERMETA={};
 function setSpots(on){
   SHOWSPOTS=!!on;
   const a=document.getElementById('spOn'), b=document.getElementById('spOff');
@@ -468,7 +472,7 @@ function garageOpening(fp){
 
 /* ---------- boot ---------- */
 async function boot(){
-  const [m,o,f,g,sw,spJ]=await Promise.all([
+  const [m,o,f,g,sw,spJ,cn]=await Promise.all([
     /* cache:'no-store' on EVERY data fetch, matching lot-map.html. Without it
        the browser serves a stale copy of a data file after it has been replaced
        on the site, and a hard refresh does not always reach it — the sheet then
@@ -485,11 +489,15 @@ async function boot(){
     fetch('../data/'+COMMUNITY+'-swing.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).catch(()=>null),
     /* Engineer's finished-grade elevation labels, positioned as drawn on the
        grading plan. Optional: a community without this file simply draws none. */
-    fetch('../data/'+COMMUNITY+'-spots.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).catch(()=>null)
+    fetch('../data/'+COMMUNITY+'-spots.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).catch(()=>null),
+    /* Corner-lot side yards. Optional: without it every side yard is interior,
+       which is how this page behaved before 2026-11-05. */
+    fetch('../data/'+COMMUNITY+'-corners.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).catch(()=>null)
   ]);
   MAP=m; ORIENT=o||{}; FOOT=(f&&f.plans)||{}; PORCH=(f&&f.porchByPlan)||{}; GRADE=g||{};
   SWING=(sw&&sw.locks)||{}; SWINGMETA=(sw&&sw.meta)||{};
   SPOTS=(spJ&&spJ.lots)||{}; SPOTMETA=(spJ&&spJ.meta)||{};
+  CORNERS=(cn&&cn.corners)||{}; CORNERMETA=(cn&&cn.meta)||{};
   MAP.meta=MAP.meta||{};
   const sp=STANDARDS_PATCH[COMMUNITY]||{};
   Object.keys(sp).forEach(k=>{MAP.meta[k]=sp[k];});
@@ -638,6 +646,10 @@ function draw(){
   const M=MAP.meta;
   const fbl=M.frontBL!=null?M.frontBL:10, rear=M.rearBL!=null?M.rearBL:20,
         sideI=M.sideInterior!=null?M.sideInterior:5,
+        /* 15 ft where a side yard faces a street. Present in the data since the
+           beginning and, until 2026-11-05, read by nothing. */
+        sideC=M.sideCorner!=null?M.sideCorner:sideI,
+        REAR_IS_ALLEY=(M.rearEntry!==false),
         porch=M.porchEncroach!=null?M.porchEncroach:5;
   const maxg=M.maxGrade!=null?M.maxGrade:10;
   const ceil=M.maxGradeApproval!=null?M.maxGradeApproval:maxg;
@@ -760,19 +772,84 @@ function draw(){
     /* --- lot boundary: the heaviest line on the sheet --- */
     s+=`<polygon points="${poly}" fill="none" stroke="#000" stroke-width="1.7" stroke-linejoin="round"/>`;
 
-    /* --- setback lines, dashed and labelled in place --- */
+    /* --- setback lines: they FOLLOW the boundary ---
+       A building line is an offset of the frontage it is measured from, so on a
+       curved lot line it is curved. Drawing four straight lines across the
+       bounding box was wrong on every lot with an arc. The boundary is split
+       into runs at corners (a bearing change over 25 degrees); a tessellated arc
+       stays one run, so it offsets as one smooth curve. Each run is drawn as its
+       own dashed line, which is how the surveyed plot plans show them — not as
+       one closed envelope. */
     const sbl=(x1,y1,x2,y2)=>`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#777" stroke-width=".8" stroke-dasharray="7,4"/>`;
-    s+=sbl(X(minx),Y(frontY-fbl),X(maxx),Y(frontY-fbl));
-    s+=sbl(X(minx),Y(rearY+rear),X(maxx),Y(rearY+rear));
-    s+=sbl(X(minx+sideI),Y(rearY),X(minx+sideI),Y(frontY));
-    s+=sbl(X(maxx-sideI),Y(rearY),X(maxx-sideI),Y(frontY));
-    s+=note(X(minx)+7,Y(frontY-fbl)-4,fbl+"' B.L.",'start');
-    s+=note(X(minx)+7,Y(rearY+rear)+10,rear+"' B.L. TO ALLEY",'start');
-    s+=note(X(minx+sideI)+3,Y(rearY)+S(lotD/2),'',"start");
-    s+=`<g transform="translate(${X(minx+sideI)-4},${Y(rearY+lotD*0.32)}) rotate(-90)">`
-      +`<text x="0" y="0" text-anchor="middle" font-family="Calibri, Segoe UI, system-ui, sans-serif" font-size="8.2" fill="#555">${sideI}' B.L.</text></g>`;
-    s+=`<g transform="translate(${X(maxx-sideI)+9},${Y(rearY+lotD*0.32)}) rotate(-90)">`
-      +`<text x="0" y="0" text-anchor="middle" font-family="Calibri, Segoe UI, system-ui, sans-serif" font-size="8.2" fill="#555">${sideI}' B.L.</text></g>`;
+    const CORN=(CORNERS[LOT.b+'-'+LOT.l]||[]);
+    (function(){
+      const Q=O.pts, n=Q.length;
+      if(n<3) return;
+      /* outward normal per segment, in this rotated frame (street at max y) */
+      let area=0;
+      for(let i=0;i<n;i++){const a=Q[i],b=Q[(i+1)%n];area+=a[0]*b[1]-b[0]*a[1];}
+      const ccw=area>0;
+      const nrm=[],brg=[];
+      for(let i=0;i<n;i++){
+        const a=Q[i],b=Q[(i+1)%n];const dx=b[0]-a[0],dy=b[1]-a[1],l=Math.hypot(dx,dy);
+        if(l<1e-9){nrm.push(null);brg.push(null);continue;}
+        nrm.push(ccw?[dy/l,-dx/l]:[-dy/l,dx/l]);
+        brg.push(Math.atan2(dy,dx)*180/Math.PI);
+      }
+      /* Classify EVERY segment by its own outward normal, then group runs of
+         segments that share a class. A smooth curve running from the alley
+         round to the street changes class partway, and the building line has to
+         change with it — grouping by bearing breaks alone missed that and left
+         the rear setback undrawn. Singleton runs are merged away so a normal
+         wobbling across the 45 degree boundary does not shatter the line. */
+      const cls=[];
+      for(let i=0;i<n;i++){
+        if(!nrm[i]){cls.push(null);continue;}
+        const nx=nrm[i][0], ny=nrm[i][1];
+        cls.push(ny>0&&Math.abs(ny)>=Math.abs(nx)?'front'
+                :ny<0&&Math.abs(ny)>=Math.abs(nx)?'rear'
+                :nx>0?'right':'left');
+      }
+      for(let pass=0;pass<3;pass++)
+        for(let i=0;i<n;i++){
+          if(!cls[i]) continue;
+          const a=cls[(i-1+n)%n], b=cls[(i+1)%n];
+          if(a&&b&&a===b&&cls[i]!==a) cls[i]=a;
+        }
+      let st0=0;
+      for(let i=0;i<n;i++) if(cls[i]&&cls[(i-1+n)%n]!==cls[i]){st0=i;break;}
+      const groups=[]; let cur=null;
+      for(let c=0;c<n;c++){
+        const i=(st0+c)%n;
+        if(!cls[i]) continue;
+        if(!cur||cur.kind!==cls[i]){ cur={kind:cls[i],idx:[]}; groups.push(cur); }
+        cur.idx.push(i);
+      }
+      for(const g of groups){
+        const segs=g.idx.filter(j=>nrm[j]);
+        if(!segs.length) continue;
+        let len=0; segs.forEach(j=>{const a=Q[j],b=Q[(j+1)%n];len+=Math.hypot(b[0]-a[0],b[1]-a[1]);});
+        if(len<4) continue;                       /* too short to carry a line */
+        const kind=g.kind;
+        const d = kind==='front'?fbl
+                : kind==='rear' ?rear
+                : (CORN.indexOf(kind)>=0?sideC:sideI);
+        const pts=[];
+        segs.forEach((j,qi)=>{
+          const a=Q[j], b=Q[(j+1)%n], nv=nrm[j];
+          pts.push([a[0]-nv[0]*d, a[1]-nv[1]*d]);
+          if(qi===segs.length-1) pts.push([b[0]-nv[0]*d, b[1]-nv[1]*d]);
+        });
+        if(pts.length<2) continue;
+        s+=`<polyline points="${pts.map(q=>X(q[0]).toFixed(1)+','+Y(q[1]).toFixed(1)).join(' ')}"`
+          +` fill="none" stroke="#777" stroke-width=".8" stroke-dasharray="7,4"/>`;
+        const mp=pts[Math.floor(pts.length/2)];
+        const lbl=d+"' B.L."+(kind==='rear'?(REAR_IS_ALLEY?' TO ALLEY':' TO REAR'):'')
+                 +((kind==='left'||kind==='right')&&CORN.indexOf(kind)>=0?' (CORNER)':'');
+        s+=note(X(mp[0])+(kind==='left'?6:kind==='right'?-6:0), Y(mp[1])+(kind==='front'?-4:11),
+                lbl, kind==='right'?'end':'start');
+      }
+    })();
 
     /* --- engineer's pad, where the grading drawing gave one --- */
     let padPts=null,padL=null,padR=null,padT=null,padB=null;
