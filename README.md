@@ -1,4 +1,4 @@
-# pl-lot-fit-check
+# plan-lot-fit-check
 
 Browser tools for lot planning at Olivia Clarke Homes. No install, no server.
 
