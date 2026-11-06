@@ -180,7 +180,7 @@
 
 /* Printed in the footer so you can tell at a glance which file is actually
    live on the site. Bump it whenever this file changes. */
-const SHEET_BUILD='2026-11-05d';
+const SHEET_BUILD='2026-11-05f';
 /* Per-lot driveway grade, keyed block-lot. Empty where not measured. */
 let GRADE={};
 
@@ -792,14 +792,25 @@ function draw(){
       const Q=O.pts, n=Q.length;
       if(n<3) return;
       /* outward normal per segment, in this rotated frame (street at max y) */
-      let area=0;
-      for(let i=0;i<n;i++){const a=Q[i],b=Q[(i+1)%n];area+=a[0]*b[1]-b[0]*a[1];}
-      const ccw=area>0;
+      /* Which way is INWARD is decided per segment by testing, not once per lot
+         from the polygon winding. The winding test was wrong on several lots —
+         it pushed some building lines outside the boundary and left the runs
+         not meeting, which is what made the lines look broken. Stepping off the
+         segment midpoint and asking "is this inside the lot" cannot be fooled by
+         winding, mirrored axes or a stray vertex order. */
+      const inPoly=(x,y)=>{ let c=false;
+        for(let i=0,j=n-1;i<n;j=i++){
+          const xi=Q[i][0],yi=Q[i][1],xj=Q[j][0],yj=Q[j][1];
+          if(((yi>y)!==(yj>y)) && (x < (xj-xi)*(y-yi)/((yj-yi)||1e-12)+xi)) c=!c;
+        } return c; };
       const nrm=[],brg=[];
       for(let i=0;i<n;i++){
         const a=Q[i],b=Q[(i+1)%n];const dx=b[0]-a[0],dy=b[1]-a[1],l=Math.hypot(dx,dy);
         if(l<1e-9){nrm.push(null);brg.push(null);continue;}
-        nrm.push(ccw?[dy/l,-dx/l]:[-dy/l,dx/l]);
+        let ox=dy/l, oy=-dx/l;                    /* candidate outward normal */
+        const mx=(a[0]+b[0])/2, my=(a[1]+b[1])/2;
+        if(inPoly(mx+ox*0.4,my+oy*0.4)){ ox=-ox; oy=-oy; }   /* it pointed inward */
+        nrm.push([ox,oy]);
         brg.push(Math.atan2(dy,dx)*180/Math.PI);
       }
       /* Classify EVERY segment by its own outward normal, then group runs of
@@ -831,29 +842,51 @@ function draw(){
         if(!cur||cur.kind!==cls[i]){ cur={kind:cls[i],idx:[]}; groups.push(cur); }
         cur.idx.push(i);
       }
+      /* Build every run's offset line first, then TRIM each pair of neighbours to
+         where they cross. Drawing each run's raw offset left every line running
+         past its corner instead of meeting the next one — which is what made
+         them look broken. A surveyor's building lines close at the corners. */
+      const runs=[];
       for(const g of groups){
         const segs=g.idx.filter(j=>nrm[j]);
         if(!segs.length) continue;
-        let len=0; segs.forEach(j=>{const a=Q[j],b=Q[(j+1)%n];len+=Math.hypot(b[0]-a[0],b[1]-a[1]);});
-        if(len<4) continue;                       /* too short to carry a line */
+        let len=0; segs.forEach(j=>{const u=Q[j],v=Q[(j+1)%n];len+=Math.hypot(v[0]-u[0],v[1]-u[1]);});
+        if(len<4) continue;
         const kind=g.kind;
-        const d = kind==='front'?fbl
-                : kind==='rear' ?rear
+        const d = kind==='front'?fbl : kind==='rear'?rear
                 : (CORN.indexOf(kind)>=0?sideC:sideI);
         const pts=[];
         segs.forEach((j,qi)=>{
-          const a=Q[j], b=Q[(j+1)%n], nv=nrm[j];
-          pts.push([a[0]-nv[0]*d, a[1]-nv[1]*d]);
-          if(qi===segs.length-1) pts.push([b[0]-nv[0]*d, b[1]-nv[1]*d]);
+          const u=Q[j], v=Q[(j+1)%n], nv=nrm[j];
+          pts.push([u[0]-nv[0]*d, u[1]-nv[1]*d]);
+          if(qi===segs.length-1) pts.push([v[0]-nv[0]*d, v[1]-nv[1]*d]);
         });
-        if(pts.length<2) continue;
-        s+=`<polyline points="${pts.map(q=>X(q[0]).toFixed(1)+','+Y(q[1]).toFixed(1)).join(' ')}"`
+        if(pts.length>=2) runs.push({kind,d,pts});
+      }
+      const cross=(p1,p2,p3,p4)=>{
+        const rx=p2[0]-p1[0], ry=p2[1]-p1[1], sx=p4[0]-p3[0], sy=p4[1]-p3[1];
+        const den=rx*sy-ry*sx;
+        if(Math.abs(den)<1e-9) return null;
+        const t=((p3[0]-p1[0])*sy-(p3[1]-p1[1])*sx)/den;
+        if(t<-6||t>7) return null;              /* refuse a silly extension */
+        return [p1[0]+rx*t, p1[1]+ry*t];
+      };
+      for(let i=0;i<runs.length;i++){
+        const A=runs[i], B=runs[(i+1)%runs.length];
+        if(A===B) continue;
+        const a1=A.pts[A.pts.length-2], a2=A.pts[A.pts.length-1];
+        const b1=B.pts[0], b2=B.pts[1];
+        const x=cross(a1,a2,b1,b2);
+        if(x && inPoly(x[0],x[1])){ A.pts[A.pts.length-1]=x; B.pts[0]=x.slice(); }
+      }
+      for(const r of runs){
+        s+=`<polyline points="${r.pts.map(q=>X(q[0]).toFixed(1)+','+Y(q[1]).toFixed(1)).join(' ')}"`
           +` fill="none" stroke="#777" stroke-width=".8" stroke-dasharray="7,4"/>`;
-        const mp=pts[Math.floor(pts.length/2)];
-        const lbl=d+"' B.L."+(kind==='rear'?(REAR_IS_ALLEY?' TO ALLEY':' TO REAR'):'')
-                 +((kind==='left'||kind==='right')&&CORN.indexOf(kind)>=0?' (CORNER)':'');
-        s+=note(X(mp[0])+(kind==='left'?6:kind==='right'?-6:0), Y(mp[1])+(kind==='front'?-4:11),
-                lbl, kind==='right'?'end':'start');
+        const mp=r.pts[Math.floor(r.pts.length/2)];
+        const lbl=r.d+"' B.L."+(r.kind==='rear'?(REAR_IS_ALLEY?' TO ALLEY':' TO REAR'):'')
+                 +((r.kind==='left'||r.kind==='right')&&CORN.indexOf(r.kind)>=0?' (CORNER)':'');
+        s+=note(X(mp[0])+(r.kind==='left'?6:r.kind==='right'?-6:0),
+                Y(mp[1])+(r.kind==='front'?-4:11), lbl, r.kind==='right'?'end':'start');
       }
     })();
 
