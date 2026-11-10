@@ -146,7 +146,7 @@
 
 /* Printed in the header so you can tell at a glance which file is live.
    Bump it whenever this file changes. */
-const FINDER_BUILD='2026-11-09f';
+const FINDER_BUILD='2026-11-09g';
 
 /* `verified` means the community's lot geometry, graded pads and driveway
    grades have been checked against the engineer's sealed drawings. Only The
@@ -166,9 +166,9 @@ const COMMUNITIES=[
      data file is therefore a product slice across phases, and every lot record
      carries its own `phase` so it can still be traced back to the right plat
      and grading drawing. */
-  {id:'sherley-50', name:"Sherley Farms — 50' lots", where:'Anna · front entry', verified:false,
+  {id:'sherley-50', name:"Sherley Farms — 50' lots", where:'Anna · front entry', verified:false, testing:true,
    why:"Lot geometry, pads, addresses and setbacks are built and checked — data/sherley-50.json, all 167 lots now carry a front building line. Closed for one remaining reason: front-entry driveway geometry is not built yet, the same gap that keeps Grand Oaks 1B closed."},
-  {id:'sherley-45r', name:"Sherley Farms — 45' lots", where:'Anna · rear entry', verified:false,
+  {id:'sherley-45r', name:"Sherley Farms — 45' lots", where:'Anna · rear entry', verified:false, testing:true,
    why:"Lot geometry, pads, addresses and setbacks are built and checked against the sealed plats and the Spiars Pad Fit Exhibit — data/sherley-45r.json, 37 lots — and the rear-entry model already works. Held closed pending OCH sign-off and measured alley elevations; without those the driveway grade is unknown rather than wrong."}
 ];
 
@@ -187,6 +187,16 @@ const FT=v=>{ if(v==null)return '—';
   return i===0?f+"'":(i===12?(f+1)+"'":f+"'-"+i+'"'); };
 
 let COMM=null, MAP=null, PLANS=null, LOT=null, GAR='L', STATUS={}, SHOW='available';
+/* True while an unverified community is open under the testing flag. Every
+   screen inside one prints a banner, so nobody can mistake it for checked data
+   or hand a screenshot of it to a buyer. */
+let TESTING=false;
+function testBanner(){ return TESTING
+  ? '<div style="background:#fff4d6;border:1px solid #b8860b;color:#6b5200;padding:10px 12px;'+
+    'border-radius:6px;margin:0 0 14px;font-size:13px;line-height:1.45">'+
+    '<b>Testing only.</b> This community’s lot and grade data has not been checked against the '+
+    'engineer’s drawings. Figures here are not reliable and must not go to a buyer or into a contract.</div>'
+  : ''; }
 /* Per-lot driveway grade, built from the engineer's grading plan and the
    surveyed alley elevations. See heights-uptown-grade.json. Absent for a
    community that has not been measured — the page then says so rather than
@@ -286,6 +296,14 @@ function screenCommunities(){
   $('app').innerHTML='<div class="grid">'+COMMUNITIES.map(c=> c.verified
     ? `<button class="card" onclick="pickCommunity('${c.id}')">
          <h2>${esc(c.name)}</h2><div class="meta">${esc(c.where)}</div></button>`
+    /* `testing` opens a community that is NOT verified, so the person doing the
+       checking can actually open it. It is not a quiet version of `verified`:
+       the card says so and every screen inside carries a banner. */
+    : c.testing
+    ? `<button class="card" style="border-color:#b8860b" onclick="pickCommunity('${c.id}')">
+         <h2>${esc(c.name)}</h2><div class="meta">${esc(c.where)}</div>
+         <div class="why" style="margin-top:8px;color:#8a6d00"><b>Testing only — not checked.</b>
+           ${esc(c.why||'')}</div></button>`
     : `<div class="card" style="opacity:.6;cursor:not-allowed">
          <h2>${esc(c.name)}</h2><div class="meta">${esc(c.where)}</div>
          <div class="why" style="margin-top:8px">Not yet available. ${esc(c.why||
@@ -293,7 +311,8 @@ function screenCommunities(){
 }
 async function pickCommunity(id){
   const cm0=COMMUNITIES.find(c=>c.id===id);
-  if(cm0&&!cm0.verified){
+  TESTING=!!(cm0&&!cm0.verified&&cm0.testing);
+  if(cm0&&!cm0.verified&&!cm0.testing){
     $('app').innerHTML='<div class="err"><b>'+esc(cm0.name)+' is not yet available.</b><br>'+
       esc(cm0.why||'Its lot and grade data has not been checked against the engineer\'s drawings, so the '+
       'fit and driveway figures would not be reliable.')+'</div>';
@@ -380,7 +399,7 @@ function screenLots(){
   });
 
   $('app').innerHTML=
-    crumbs([{t:'Communities',go:'screenCommunities()'},{t:cm.name}])
+    crumbs([{t:'Communities',go:'screenCommunities()'},{t:cm.name}])+testBanner()
     +`<div style="margin-bottom:14px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
         <span class="seg"><button class="${SHOW==='available'?'on':''}" onclick="setShow('available')">Available only</button
         ><button class="${SHOW==='all'?'on':''}" onclick="setShow('all')">Every OCH lot</button></span>
@@ -480,7 +499,7 @@ function screenLot(){
     </div>`;
 
   $('app').innerHTML=
-    crumbs([{t:'Communities',go:'screenCommunities()'},{t:cm.name,go:'screenLots()'},{t:l.addr||(l.b+'-'+l.l)}])
+    crumbs([{t:'Communities',go:'screenCommunities()'},{t:cm.name,go:'screenLots()'},{t:l.addr||(l.b+'-'+l.l)}])+testBanner()
     +`<div class="panel">
         <h2>${esc(l.addr||('Block '+l.b+' · Lot '+l.l))}</h2>
         <div class="bl">Block ${esc(l.b)} · Lot ${esc(l.l)}${l.note?' · '+esc(l.note):''}</div>

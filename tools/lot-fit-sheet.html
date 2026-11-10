@@ -180,7 +180,7 @@
 
 /* Printed in the footer so you can tell at a glance which file is actually
    live on the site. Bump it whenever this file changes. */
-const SHEET_BUILD='2026-11-09d';
+const SHEET_BUILD='2026-11-09e';
 /* Per-lot driveway grade, keyed block-lot. Empty where not measured. */
 let GRADE={};
 
@@ -472,7 +472,7 @@ function garageOpening(fp){
 
 /* ---------- boot ---------- */
 async function boot(){
-  const [m,o,f,g,sw,spJ,cn]=await Promise.all([
+  const [m,o,f,g,sw,spJ,cn,pj]=await Promise.all([
     /* cache:'no-store' on EVERY data fetch, matching lot-map.html. Without it
        the browser serves a stale copy of a data file after it has been replaced
        on the site, and a hard refresh does not always reach it — the sheet then
@@ -492,8 +492,17 @@ async function boot(){
     fetch('../data/'+COMMUNITY+'-spots.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).catch(()=>null),
     /* Corner-lot side yards. Optional: without it every side yard is interior,
        which is how this page behaved before 2026-11-05. */
-    fetch('../data/'+COMMUNITY+'-corners.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).catch(()=>null)
+    fetch('../data/'+COMMUNITY+'-corners.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).catch(()=>null),
+    /* The shared plan library. The table further down is a seed so this page
+       still works if the file is missing; anything plans.json carries wins, so
+       a plan added there shows up here without editing this file. */
+    fetch('../data/plans.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).catch(()=>null)
   ]);
+  if(pj&&Array.isArray(pj.plans)) pj.plans.forEach(x=>{
+    if(!x||!x.id||!x.name) return;
+    PLANNAMES[x.id]=x.name;
+    if(x.w!=null&&x.d!=null) PLANDIMS[x.id]={w:x.w,d:x.d};
+  });
   MAP=m; ORIENT=o||{}; FOOT=(f&&f.plans)||{}; PORCH=(f&&f.porchByPlan)||{}; GRADE=g||{};
   SWING=(sw&&sw.locks)||{}; SWINGMETA=(sw&&sw.meta)||{};
   SPOTS=(spJ&&spJ.lots)||{}; SPOTMETA=(spJ&&spJ.meta)||{};
@@ -1036,7 +1045,9 @@ function draw(){
     s+=dimV(Y(rearY),Y(frontY),X(maxx)+52,FT(lotD),X(maxx));
 
     /* --- edge labels --- */
-    s+=note(W/2,Y(rearY)-24,'ALLEY');
+    /* Front-entry communities have a rear property line, not an alley. Labelling
+       it ALLEY on a Sherley 50 ft lot was simply wrong. */
+    s+=note(W/2,Y(rearY)-24,REAR_IS_ALLEY?'ALLEY':'REAR PROPERTY LINE');
     s+=note(W/2,Y(frontY)+46,(LOT.street||'STREET').toUpperCase());
 
     /* --- north arrow, only where the source frame states its orientation --- */
