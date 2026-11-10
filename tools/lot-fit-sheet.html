@@ -138,7 +138,7 @@
   <div id="garWrap"><label>Garage side (facing the house) <span id="garLock"></span></label>
     <div class="seg"><button id="gL" class="on" onclick="setGar('L')">Left</button><button id="gR" onclick="setGar('R')">Right</button></div>
   </div>
-  <div id="shiftWrap"><label>Move home forward <span id="shiftLbl">0'-0"</span></label>
+  <div id="shiftWrap"><label><span id="shiftLabel">Move home forward</span> <span id="shiftLbl">0'-0"</span></label>
     <input id="shiftSl" type="range" min="0" max="0" step="0.5" value="0"
            oninput="setShift(this.value)" style="width:150px;vertical-align:middle">
   </div>
@@ -180,7 +180,7 @@
 
 /* Printed in the footer so you can tell at a glance which file is actually
    live on the site. Bump it whenever this file changes. */
-const SHEET_BUILD='2026-11-09e';
+const SHEET_BUILD='2026-11-10c';
 /* Per-lot driveway grade, keyed block-lot. Empty where not measured. */
 let GRADE={};
 
@@ -379,18 +379,35 @@ function resolveFront(lot,orient,frontBL,rearBL){
     c.score=(lw!=null?Math.abs(c.bb.w-lw):0)+(ld!=null?Math.abs(c.bb.d-ld):0);
   }
   cands.sort((a,b)=>a.score-b.score);
-  const win=cands[0];
+  /* Where the community says its recorded frontage is authoritative, use it and
+     do not let the bounding-box contest overrule it. At Sherley the front line
+     of every lot was read off the plat's own right-of-way geometry, so it is a
+     better answer than any direction inferred from how squarely the lot boxes
+     up — and on a wedge lot, where the box never matches the plat dimensions,
+     the contest could pick a chord and turn the house round. */
+  let win=cands[0];
+  const AUTH=!!(MAP&&MAP.meta&&MAP.meta.orientAuthoritative);
+  if(AUTH&&rec){
+    const r=cands.find(c=>c.src==='recorded');
+    if(r) win=r;
+  }
   const pr=q=>q[0]*win.ux+q[1]*win.uy;
 
   let street=null, endSrc='';
-  if(pu&&lot.pad){
+  /* Same rule for WHICH END is the street: the recorded front line decides. */
+  if(AUTH&&rec){
+    const f0=pr([(rec[0][0]+rec[1][0])/2,(rec[0][1]+rec[1][1])/2]);
+    street=Math.abs(f0-win.bb.lo)<=Math.abs(f0-win.bb.hi)?win.bb.lo:win.bb.hi;
+    endSrc='recorded';
+  }
+  if(street===null&&pu&&lot.pad){
     const padP=lot.pad.map(pr);
     const gapLo=Math.min.apply(null,padP)-win.bb.lo, gapHi=win.bb.hi-Math.max.apply(null,padP);
     const fits=(g,o)=>Math.abs(g-frontBL)<=4&&o>=rearBL-4;
     if(fits(gapLo,gapHi)!==fits(gapHi,gapLo)){ street=fits(gapLo,gapHi)?win.bb.lo:win.bb.hi; endSrc='pad'; }
   }
   let recAtStreet=null;
-  if(rec){
+  if(rec&&endSrc!=='recorded'){
     const f=pr([(rec[0][0]+rec[1][0])/2,(rec[0][1]+rec[1][1])/2]);
     const nearer=Math.abs(f-win.bb.lo)<=Math.abs(f-win.bb.hi)?win.bb.lo:win.bb.hi;
     if(street===null){ street=nearer; endSrc='recorded'; }
@@ -698,7 +715,11 @@ function draw(){
      above it claimed the figures were unaffected. They are two independent
      questions: whether the home fits, and whether we can draw where it sits.
      K-21 is the case in point — 19 plans fit it and the sheet said nothing. */
-  const availW = (LOT.padW!=null) ? LOT.padW
+  /* The measured buildable width wins where the data carries it: frontage less
+     two setbacks is the narrowest point of a wedge lot, not the width where the
+     house actually sits. See widthAvail() in lot-map.html for the long note. */
+  const availW = (LOT.buildableWidthMin!=null) ? LOT.buildableWidthMin
+               : (LOT.padW!=null) ? LOT.padW
                : (M.buildableWidth!=null) ? M.buildableWidth
                : (LOT.lw!=null) ? LOT.lw-sideI*2 : null;
   if(plan&&availW!=null) wm=availW-plan.w;
@@ -756,6 +777,12 @@ function draw(){
             wrap=document.getElementById('shiftWrap');
       if(!sl) return;
       wrap.style.display = MAXSHIFT>0 ? '' : 'none';
+      /* The control moves the home away from the line it is seated on: toward
+         the street on a rear-entry lot, back from the street on a front-entry
+         one. Saying "forward" on both would be wrong on half of them. */
+      const lab=document.getElementById('shiftLabel');
+      if(lab) lab.textContent = (MAP&&MAP.meta&&MAP.meta.rearEntry===false)
+        ? 'Move home back from the street' : 'Move home forward';
       sl.max=MAXSHIFT; sl.value=SHIFT; lb.textContent=F(SHIFT)+' of '+F(MAXSHIFT);
     })();
   }
@@ -924,6 +951,33 @@ function draw(){
         const x=cross(a1,a2,b1,b2);
         if(x && inPoly(x[0],x[1])){ A.pts[A.pts.length-1]=x; B.pts[0]=x.slice(); }
       }
+      /* The front and rear building lines are drawn RIGHT ACROSS the lot, from
+         one side property line to the other, the way a surveyor draws them. The
+         side lines still stop where they meet them. Showing the front line only
+         where it borders the pad read as an outline of the pad, not as a
+         building line. */
+      const edgeHit=(p,dx,dy)=>{
+        let best=null;
+        for(let i=0;i<n;i++){
+          const u=Q[i], v=Q[(i+1)%n];
+          const sx=v[0]-u[0], sy=v[1]-u[1];
+          const den=dx*sy-dy*sx;
+          if(Math.abs(den)<1e-9) continue;
+          const t=((u[0]-p[0])*sy-(u[1]-p[1])*sx)/den;
+          const w=((u[0]-p[0])*dy-(u[1]-p[1])*dx)/den;
+          if(t>1e-6&&w>=-1e-6&&w<=1+1e-6&&(best===null||t<best)) best=t;
+        }
+        return best===null?null:[p[0]+dx*best, p[1]+dy*best];
+      };
+      for(const r of runs){
+        if(r.kind!=='front'&&r.kind!=='rear') continue;
+        const P=r.pts;
+        const h0=edgeHit(P[0], P[0][0]-P[1][0], P[0][1]-P[1][1]);
+        if(h0) P[0]=h0;
+        const m=P.length-1;
+        const h1=edgeHit(P[m], P[m][0]-P[m-1][0], P[m][1]-P[m-1][1]);
+        if(h1) P[m]=h1;
+      }
       for(const r of runs){
         s+=`<polyline points="${r.pts.map(q=>X(q[0]).toFixed(1)+','+Y(q[1]).toFixed(1)).join(' ')}"`
           +` fill="none" stroke="#777" stroke-width=".8" stroke-dasharray="7,4"/>`;
@@ -971,11 +1025,25 @@ function draw(){
       const aL = padL!=null?padL:(minx+lotW/2-plan.w/2);
       const aR = padR!=null?padR:(minx+lotW/2+plan.w/2);
       const blT = rearY+rear;
-      let aT = padT!=null?padT:blT;
-      if(aT < blT){ rearClamp = blT-aT; aT = blT; }
-      /* Slide the home toward the street. y grows away from the alley here, so
-         forward travel is added to the rear face. */
-      aT += Math.max(0, Math.min(MAXSHIFT, SHIFT));
+      let aT;
+      if(REAR_IS_ALLEY){
+        /* Rear-entry: the home is pushed back against the rear building line so
+           the driveway off the alley stays as short as the grade allows. */
+        aT = padT!=null?padT:blT;
+        if(aT < blT){ rearClamp = blT-aT; aT = blT; }
+        /* Slide the home toward the street. y grows away from the alley here,
+           so forward travel is added to the rear face. */
+        aT += Math.max(0, Math.min(MAXSHIFT, SHIFT));
+      } else {
+        /* FRONT-ENTRY: the home sits on the FRONT building line, because the
+           driveway runs from the garage to the street and every foot the house
+           moves back is a foot of driveway. Seating a front-entry home against
+           the rear line, as the rear-entry rule does, put it at the wrong end
+           of the lot. The slider then moves it BACK toward the rear, and the
+           rear building line is still the hard stop. */
+        aT = (frontY - fbl) - plan.d - Math.max(0, Math.min(MAXSHIFT, SHIFT));
+        if(aT < blT){ rearClamp = blT-aT; aT = blT; }
+      }
       /* The margin is NOT penalised by the clamp. dm is computed from padD, the
          pad's DEPTH, and the depth model already assumes a home seated on the
          rear B.L. — at 713 Lincoln Mews padD is 80.0', which is exactly the
@@ -996,8 +1064,27 @@ function draw(){
            page's right — so the CAD plan as drawn is a RIGHT-hand garage, and it
            is LEFT that mirrors. (The rectangle fallback below already had this
            the right way round; this traced branch did not.) */
-        const px=v=>X(cx-fp.w/2+(GAR==='L'?(fp.w-v):v));
-        const py=v=>Y(aT+v);
+        /* WHICH END OF THE OUTLINE GOES TO THE STREET.
+           Every traced outline puts the GARAGE at y=0. On a rear-entry plan the
+           garage faces the alley, so y=0 goes to the rear of the lot. On a
+           FRONT-entry plan it faces the street, so y=0 goes to the FRONT —
+           footprints.json marks those with frontAtY0, and until now nothing
+           read the flag, so Webber drew with its garage at the alley end: the
+           house on the lot backwards.
+
+           Turning the plan end for end is a 180-degree rotation in plan view,
+           not a mirror, so x reverses with y. That also swaps which hand the
+           CAD plan reads as: a rear-entry plan as drawn is a RIGHT-hand garage
+           and LEFT mirrors it, and on a front-entry plan it is the other way
+           round. */
+        const FAY0=!!fp.frontAtY0;
+        const mirror = FAY0 ? (GAR==='R') : (GAR==='L');
+        const px=v=>X(cx-fp.w/2+(mirror?(fp.w-v):v));
+        const py=v=>Y(FAY0 ? (aT+fp.d-v) : (aT+v));
+        /* The garage face, in page terms: the alley end on a rear-entry plan,
+           the street end on a front-entry one. */
+        const garY = FAY0 ? (aT+fp.d) : aT;
+        const apronTo = FAY0 ? frontY : rearY;
         s+=`<polygon points="${fp.pts.map(p=>px(p[0])+','+py(p[1])).join(' ')}"
               fill="none" stroke="#000" stroke-width="1.35" stroke-linejoin="round"/>`;
         houseL=cx-fp.w/2; houseR=cx+fp.w/2; houseFrontY=aT+fp.d;
@@ -1006,15 +1093,15 @@ function draw(){
         const g=garageOpening(fp);
         if(g){
           doorFound=true;
-          const gl=GAR==='L'?(fp.w-g.hi):g.lo, gh=GAR==='L'?(fp.w-g.lo):g.hi;
+          const gl=mirror?(fp.w-g.hi):g.lo, gh=mirror?(fp.w-g.lo):g.hi;
           const gx1=X(cx-fp.w/2+gl), gx2=X(cx-fp.w/2+gh);
-          /* door shown as a heavy segment on the alley face */
-          s+=`<line x1="${gx1}" y1="${Y(aT)}" x2="${gx2}" y2="${Y(aT)}" stroke="#000" stroke-width="3.4"/>`;
-          /* apron, door to alley */
-          s+=`<line x1="${gx1}" y1="${Y(aT)}" x2="${gx1}" y2="${Y(rearY)}" stroke="#777" stroke-width=".8" stroke-dasharray="4,3"/>`;
-          s+=`<line x1="${gx2}" y1="${Y(aT)}" x2="${gx2}" y2="${Y(rearY)}" stroke="#777" stroke-width=".8" stroke-dasharray="4,3"/>`;
-          s+=note((gx1+gx2)/2,Y(rearY)+S(rear)/2+3,'DRIVE');
-          s+=dimH(gx1,gx2,Y(aT)-13,FT(g.w),null);
+          /* door shown as a heavy segment on the garage face */
+          s+=`<line x1="${gx1}" y1="${Y(garY)}" x2="${gx2}" y2="${Y(garY)}" stroke="#000" stroke-width="3.4"/>`;
+          /* apron, door to the alley or to the street */
+          s+=`<line x1="${gx1}" y1="${Y(garY)}" x2="${gx1}" y2="${Y(apronTo)}" stroke="#777" stroke-width=".8" stroke-dasharray="4,3"/>`;
+          s+=`<line x1="${gx2}" y1="${Y(garY)}" x2="${gx2}" y2="${Y(apronTo)}" stroke="#777" stroke-width=".8" stroke-dasharray="4,3"/>`;
+          s+=note((gx1+gx2)/2,(Y(garY)+Y(apronTo))/2,'DRIVE');
+          s+=dimH(gx1,gx2,Y(garY)+(FAY0?13:-13),FT(g.w),null);
           s+=note((gx1+gx2)/2,Y(aT)-19,'16\'-0" O.H. DOOR — GARAGE '+(GAR==='L'?'LEFT':'RIGHT'));
         }
       } else {
@@ -1190,6 +1277,12 @@ function draw(){
       <div><span>HOUSE </span><b>${plan?FT(plan.w)+' × '+FT(plan.d):'—'}</b></div>
       <div><span>LOT </span><b>${F(LOT.lw)} × ${F(LOT.ld)}</b></div>
       <div><span>PAD </span><b>${LOT.padW!=null?FT(LOT.padW)+' × '+FT(LOT.padD):'not graded'}</b></div>
+      <!-- The front building line varies lot by lot in some communities, and a
+           reader who assumes the community figure gets it wrong. Print this
+           lot's own value on every sheet, and say plainly that it varies. -->
+      <div><span>FRONT B.L. </span><b>${FT(fbl)}</b><span>${
+        LOT.frontBL!=null?' · set for this lot — the front building line varies from lot to lot here, so check it on every lot':
+        ' · community standard'}</span></div>
       <div><span>DRIVE SLOPE </span><b>${esc(slopeTxt)}</b></div>
     </div>
 
@@ -1262,7 +1355,8 @@ function draw(){
             : `<b>This elevation has no encroaching porch</b>, so it takes no front encroachment. Living space may never project into the front building line.`)
         : `<b>The ${porch}' porch encroachment is the community default and has not yet been confirmed for this elevation.</b> Only a projecting porch earns it — living space never can — so this figure may be generous by up to ${porch}'.`}
       ${frontNote?`<b>This lot's recorded frontage disagrees with the plat.</b> ${esc(frontNote)} Worth fixing in the orientation data so the map agrees. `:''}
-      ${DRAWN?`<b>The rear of the house is held at the rear edge of the engineer's graded pad</b>, which on some lots sits further from the alley than the ${rear}' building line. It is never placed closer to the alley than that line.`:''}
+      ${DRAWN&&REAR_IS_ALLEY?`<b>The rear of the house is held at the rear edge of the engineer's graded pad</b>, which on some lots sits further from the alley than the ${rear}' building line. It is never placed closer to the alley than that line.`:''}
+      ${DRAWN&&!REAR_IS_ALLEY?`<b>The front of the house is held on the ${FT(fbl)} front building line</b>, because the driveway runs from the garage to the street and every foot the house moves back is a foot of driveway. The ${rear}' rear building line is the hard stop behind it.`:''}
       ${DRAWN&&rearClamp>0?`<b>The drawn pad outline on this lot sits ${rearClamp.toFixed(1)}' nearer the alley than that line</b>, so the home is held at the line rather than at the pad edge. The depth margin above is unaffected — it is figured from the pad's ${F(LOT.padD)} depth, which already seats the home on the building line. Worth checking the pad geometry for this lot. `:''}
       ${LOT.pad?`<b>The graded pad is the engineer's</b>, from the grading drawing — not derived from setbacks.`
                :`No graded pad was recorded for this lot, so the home is measured against the setback envelope.`}
