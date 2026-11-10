@@ -33780,16 +33780,21 @@
    "renner_a",
    "renner_b",
    "renner_c",
-   "shelby_d",
-   "shelby_e",
-   "shelby_f",
    "webber_a",
    "webber_b",
    "webber_c"
   ],
-  "offersSource": "Every OCH plan in plans.json that matches this product and garage type. NOT a confirmed Sherley offering \u2014 OCH has not supplied the Sherley plan list. The only plan sourced to a Sherley document is Webber B on the model lot, 1A F-7, 2417 Milam Street.",
+  "offersSource": "OCH Sherley Farms 50\u2032 plan line-up, supplied by Brandi Williams 2026-11-09: Campbell, Cooper, Crawford, Evelyn, Merritt, Renner, Shelby and Webber, each A/B/C. Listed here are only those the plan library can actually draw. Missing: Crawford, Evelyn and Merritt are not in plans.json at all; Campbell A and B are in the library with no width or depth; and the library carries Shelby D/E/F where OCH lists Shelby A/B/C, so no Shelby is offered until the elevation letters are reconciled.",
   "retiredPlans": [],
   "rearEntry": false,
-  "entryNote": "Front entry. The rear line is a rear property line, not an alley."
+  "entryNote": "Front entry. The rear line is a rear property line, not an alley.",
+  "offersPending": {
+   "Crawford A/B/C": "not in plans.json at all \u2014 no footprint, no dimensions",
+   "Evelyn A/B/C": "not in plans.json at all \u2014 no footprint, no dimensions",
+   "Merritt A/B/C": "not in plans.json at all \u2014 no footprint, no dimensions",
+   "Campbell A, Campbell B": "present in plans.json but with no width or depth, so they cannot be fitted or drawn (Campbell C is complete at 40 x 80)",
+   "Shelby A/B/C": "genuinely different plans from the library\u2019s Shelby D/E/F, confirmed by OCH 2026-11-09. Shelby A, B and C do not exist in the plan library yet and need dimensions before they can be offered. The D/E/F entries stay in the library for The Heights."
+  },
+  "offersPendingNote": "OCH states the full 50-foot line-up is Campbell, Cooper, Crawford, Evelyn, Merritt, Renner, Shelby and Webber, each A/B/C. Four of the eight families cannot be listed yet for the reasons above. They are recorded here rather than dropped, so the gap stays visible."
  }
 }
