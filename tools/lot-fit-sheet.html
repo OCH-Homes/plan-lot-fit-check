@@ -180,7 +180,7 @@
 
 /* Printed in the footer so you can tell at a glance which file is actually
    live on the site. Bump it whenever this file changes. */
-const SHEET_BUILD='2026-11-09c';
+const SHEET_BUILD='2026-11-09d';
 /* Per-lot driveway grade, keyed block-lot. Empty where not measured. */
 let GRADE={};
 
@@ -659,7 +659,11 @@ function draw(){
      Anything a product omits falls through to the community value below. */
   const SBP=(M.setbacksByProduct&&LOT.prod!=null&&M.setbacksByProduct[String(LOT.prod)])||{};
   const sbv=(k,dflt)=>SBP[k]!=null?SBP[k]:(M[k]!=null?M[k]:dflt);
-  const fbl=sbv('frontBL',10), rear=sbv('rearBL',20),
+  /* At Sherley the front building line is a developer rule that varies lot by
+     lot — 20/25/30 on the fifty-foot lots, 10/15/20 on the forty-fives — so the
+     lot's own value wins where it has one. A community-wide number is still the
+     fallback, which is how The Heights and Grand Oaks keep working unchanged. */
+  const fbl=(LOT.frontBL!=null?LOT.frontBL:sbv('frontBL',10)), rear=sbv('rearBL',20),
         sideI=sbv('sideInterior',5),
         /* 15 ft where a side yard faces a street. Present in the data since the
            beginning and, until 2026-11-05, read by nothing. */

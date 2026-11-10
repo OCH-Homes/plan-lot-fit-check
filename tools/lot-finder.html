@@ -146,7 +146,7 @@
 
 /* Printed in the header so you can tell at a glance which file is live.
    Bump it whenever this file changes. */
-const FINDER_BUILD='2026-11-09d';
+const FINDER_BUILD='2026-11-09f';
 
 /* `verified` means the community's lot geometry, graded pads and driveway
    grades have been checked against the engineer's sealed drawings. Only The
@@ -167,9 +167,9 @@ const COMMUNITIES=[
      carries its own `phase` so it can still be traced back to the right plat
      and grading drawing. */
   {id:'sherley-50', name:"Sherley Farms — 50' lots", where:'Anna · front entry', verified:false,
-   why:"Front-entry driveway geometry is not built yet — the same gap that keeps Grand Oaks 1B closed — and Anna's setback standards are unconfirmed."},
-  {id:'sherley-45', name:"Sherley Farms — 45' lots", where:'Anna · rear entry', verified:false,
-   why:"Waiting on the Phase 1C plat geometry and Anna's setback standards. The rear-entry model itself already works."}
+   why:"Lot geometry, pads, addresses and setbacks are built and checked — data/sherley-50.json, all 167 lots now carry a front building line. Closed for one remaining reason: front-entry driveway geometry is not built yet, the same gap that keeps Grand Oaks 1B closed."},
+  {id:'sherley-45r', name:"Sherley Farms — 45' lots", where:'Anna · rear entry', verified:false,
+   why:"Lot geometry, pads, addresses and setbacks are built and checked against the sealed plats and the Spiars Pad Fit Exhibit — data/sherley-45r.json, 37 lots — and the rear-entry model already works. Held closed pending OCH sign-off and measured alley elevations; without those the driveway grade is unknown rather than wrong."}
 ];
 
 /* Community standards confirmed 9/28/26 and not yet in the data files.
