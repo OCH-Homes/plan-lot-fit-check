@@ -146,7 +146,7 @@
 
 /* Printed in the header so you can tell at a glance which file is live.
    Bump it whenever this file changes. */
-const FINDER_BUILD='2026-10-26a';
+const FINDER_BUILD='2026-11-09d';
 
 /* `verified` means the community's lot geometry, graded pads and driveway
    grades have been checked against the engineer's sealed drawings. Only The
@@ -155,7 +155,21 @@ const FINDER_BUILD='2026-10-26a';
 const COMMUNITIES=[
   {id:'heights-uptown', name:'The Heights at Uptown', where:'Celina', verified:true},
   {id:'grandoaks-1a',   name:'Grand Oaks at Green Meadows — Phase 1A', where:'Celina ETJ', verified:false},
-  {id:'grandoaks-1b',   name:'Grand Oaks at Green Meadows — Phase 1B', where:'Celina ETJ', verified:false}
+  {id:'grandoaks-1b',   name:'Grand Oaks at Green Meadows — Phase 1B', where:'Celina ETJ', verified:false},
+  /* Sherley Farms is in ANNA, not Celina. Celina's 10/20/5/15 setbacks and its
+     10% driveway grade do NOT carry over, and Anna's figures are unconfirmed.
+
+     Sherley is listed BY PRODUCT, not by phase, because the two products are
+     different builds: 50 ft lots are FRONT entry and 45 ft lots are REAR entry,
+     so they carry different setbacks, different driveway geometry and different
+     plans. 50 ft lots occur in 1A, 1B and 1C; 45 ft lots are all in 1C. Each
+     data file is therefore a product slice across phases, and every lot record
+     carries its own `phase` so it can still be traced back to the right plat
+     and grading drawing. */
+  {id:'sherley-50', name:"Sherley Farms — 50' lots", where:'Anna · front entry', verified:false,
+   why:"Front-entry driveway geometry is not built yet — the same gap that keeps Grand Oaks 1B closed — and Anna's setback standards are unconfirmed."},
+  {id:'sherley-45', name:"Sherley Farms — 45' lots", where:'Anna · rear entry', verified:false,
+   why:"Waiting on the Phase 1C plat geometry and Anna's setback standards. The rear-entry model itself already works."}
 ];
 
 /* Community standards confirmed 9/28/26 and not yet in the data files.
@@ -208,15 +222,22 @@ function slopeWith(G,dm){
 }
 
 /* ---------- fit, identical in spirit to the sheet ---------- */
-function porchCredit(plan,meta){
+function porchCredit(plan,meta,lot){
+  /* A porch may project up to `porchEncroach`, must be unconditioned, and must
+     stay `porchMinFromFrontPL` clear of the front property line — so the
+     allowance depends on the lot's own front building line. No credit at all
+     for an elevation whose porch has not been verified. */
+  if(plan.porch==null) return 0;
   const cap=meta.porchEncroach!=null?meta.porchEncroach:5;
-  return plan.porch!=null?Math.min(plan.porch,cap):cap;
+  const off=meta.porchMinFromFrontPL!=null?meta.porchMinFromFrontPL:0;
+  const fbl=(lot&&lot.frontBL!=null)?lot.frontBL:(meta.frontBL!=null?meta.frontBL:10);
+  return Math.min(plan.porch, cap, Math.max(0,fbl-off));
 }
 function fitOf(lot,plan,meta){
   if(plan.w==null||plan.d==null) return {state:'na',why:'this plan has never been measured'};
   const sideI=meta.sideInterior!=null?meta.sideInterior:5;
   const fbl=meta.frontBL!=null?meta.frontBL:10, rear=meta.rearBL!=null?meta.rearBL:20;
-  const credit=porchCredit(plan,meta);
+  const credit=porchCredit(plan,meta,lot);
 
   const availW=(lot.padW!=null)?lot.padW
              :(meta.buildableWidth!=null)?meta.buildableWidth
@@ -267,15 +288,15 @@ function screenCommunities(){
          <h2>${esc(c.name)}</h2><div class="meta">${esc(c.where)}</div></button>`
     : `<div class="card" style="opacity:.6;cursor:not-allowed">
          <h2>${esc(c.name)}</h2><div class="meta">${esc(c.where)}</div>
-         <div class="why" style="margin-top:8px">Not yet available. The lot and grade data for this
-         community has not been checked against the engineer's drawings.</div></div>`).join('')+'</div>';
+         <div class="why" style="margin-top:8px">Not yet available. ${esc(c.why||
+           "The lot and grade data for this community has not been checked against the engineer's drawings.")}</div></div>`).join('')+'</div>';
 }
 async function pickCommunity(id){
   const cm0=COMMUNITIES.find(c=>c.id===id);
   if(cm0&&!cm0.verified){
     $('app').innerHTML='<div class="err"><b>'+esc(cm0.name)+' is not yet available.</b><br>'+
-      'Its lot and grade data has not been checked against the engineer\'s drawings, so the fit and '+
-      'driveway figures would not be reliable.</div>';
+      esc(cm0.why||'Its lot and grade data has not been checked against the engineer\'s drawings, so the '+
+      'fit and driveway figures would not be reliable.')+'</div>';
     return;
   }
   COMM=id;
