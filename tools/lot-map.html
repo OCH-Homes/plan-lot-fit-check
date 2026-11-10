@@ -164,7 +164,7 @@ let PAD_DEPTH=80.0, BASE_RUN=21.0, MAXG=10.0, SLAB=0.83, STD_STEP=0.58;
    it is a lot that needs a City sign-off, which is a commercial decision rather
    than a dead lot. Stays null where a community records no approval allowance,
    in which case maxGrade is a hard ceiling exactly as before. */
-const MAP_BUILD='2026-11-10c';   /* printed in the header, like the other pages */
+const MAP_BUILD='2026-11-10f';   /* printed in the header, like the other pages */
 let MAXG_APPROVE=null;
 /* Verified per-lot driveway grade, built from the engineer's grading plan and
    the surveyed alley elevations (see <community>-grade.json). It REPLACES the
@@ -183,6 +183,19 @@ let RECORD=false, OCH_LOTS=0;
    below branches on the LOT, never on the community; these flags only decide
    which colour modes and which summary sections are worth showing. */
 let REAR=false, FRONT=false;
+/* TWO SEPARATE QUESTIONS, and conflating them put a front-entry community's
+   garage at the alley end.
+
+   `rearEntryComm()` — where the garage faces. The community says so.
+   `rearLot(l)`      — which fit route to use: a lot with no measured garage
+                       apron elevation can only be judged on the buildable
+                       envelope, whatever end its garage faces.
+
+   At The Heights the two always agreed, because every rear-alley lot also
+   lacked an apron elevation. At Sherley they do not: the 50 ft lots are FRONT
+   entry and no apron elevation has been measured yet, so the apron test alone
+   called them rear-alley and labelled their rear line an alley. */
+const rearEntryComm=()=>!(MAP&&MAP.meta&&MAP.meta.rearEntry===false);
 const rearLot=l=>(l.ap===undefined||l.ap===null);
 /* Where a slope sits against the design maximum and the approval ceiling. */
 function gradeCeiling(){return MAXG_APPROVE!=null?MAXG_APPROVE:MAXG;}
@@ -589,6 +602,16 @@ function depthFit(l,p){
    3. meta.buildableWidth, which is a single number and therefore only correct
       for whichever product it was measured on — last resort. */
 function widthAvail(l){
+  /* 0. The width MEASURED across the buildable envelope, where the data carries
+     it. Frontage less two setbacks is only right on a lot whose sides are
+     parallel. On a wedge or a lot on a curve the frontage is the NARROWEST the
+     lot ever gets, and the house does not sit on the property line — it sits
+     behind the front building line, where the lot has already widened. At
+     Sherley that understated 31 of 167 lots and produced 17 false "does not
+     fit" verdicts, the model lot among them. buildableWidthMin is the narrowest
+     the envelope actually gets anywhere under the pad depth, side setbacks
+     already taken off. */
+  if(l&&l.buildableWidthMin!=null)return {v:l.buildableWidthMin,src:'measured across the buildable area'};
   if(l&&l.padW!=null)return {v:l.padW,src:'pad'};
   const M=MAP.meta||{};
   if(l&&l.lw!=null&&M.sideInterior!=null){
@@ -670,14 +693,20 @@ function planVerdict(l,p){
   if(rearLot(l)){
     if(p.d==null||p.w==null) warn.push('dimensions not measured');
     const df=depthFit(l,p);
-    if(df&&df.margin<0)
+    /* Same three-inch tolerance as the fit sheet: a shortfall smaller than the
+       lot data can resolve is TIGHT, not a failure. 1A H-8 measured 39.9' wide
+       against every 40' plan and was rejecting all of them. */
+    const TOL=0.25;
+    if(df&&df.margin<-TOL)
       reasons.push(`short ${Math.abs(df.margin).toFixed(1)}' on depth against the ${df.src==='pad'?"engineer's pad":'lot depth'}`);
+    else if(df&&df.margin<0) warn.push(`within ${Math.abs(df.margin*12).toFixed(0)}" on depth — confirm on the plot plan`);
     else if(df&&df.margin<2) warn.push(`tight on depth, +${df.margin.toFixed(1)}'`);
     else if(!df&&p.d!=null) warn.push('depth not checkable');
     const wf=widthFit(l,p);
-    if(wf&&wf.margin<0)
+    if(wf&&wf.margin<-TOL)
       reasons.push(`needs ${wf.need.toFixed(1)}' of width on a ${wf.have.toFixed(1)}' ${wf.src==='pad'?'pad':'buildable width'}`);
-    else if(wf&&wf.margin<0.5&&wf.margin>=0) warn.push('tight on width');
+    else if(wf&&wf.margin<0) warn.push(`within ${Math.abs(wf.margin*12).toFixed(0)}" on width — confirm on the plot plan`);
+    else if(wf&&wf.margin<0.5) warn.push('tight on width');
   }
   /* evalLot returns null where the front-entry driveway maths cannot run:
      rear-alley lots (no front spot elevation) and plans with no measured depth.
@@ -1129,7 +1158,7 @@ function renderSide(hits){
   } else {
     h+=`<h3 class="sh">Elevations</h3><div class="kv">
       <span class="k">Finished pad (FP)</span><span class="v">${fmt(l.fp,1)}</span>
-      <span class="k">Rear grade at alley</span><span class="v">${fmt(l.dg,1)}</span>
+      <span class="k">${rearEntryComm()?'Rear grade at alley':'Rear grade'}</span><span class="v">${fmt(l.dg,1)}</span>
       <span class="k">Pad → rear drop</span><span class="v">${fmt(l.drop,1,' ft')}</span></div>`;
     if(l.padW!=null||l.padD!=null){
       h+=`<h3 class="sh">Engineer's pad</h3><div class="kv">
@@ -1161,11 +1190,11 @@ function renderSide(hits){
     if(slOf(l)!=null&&gradeVerdict(slOf(l))==='warn')
       h+=`<div class="remedy" style="border-left-color:var(--warn)"><b>Driveway slope ${slOf(l).toFixed(1)}%${gradeRec(l)?'':' (estimated)'} — needs City approval.</b><br>
         Over the ${MAXG}% design maximum but within the ${gradeCeiling()}% the City will consider. This lot is sellable with a variance, not lost.<br>
-        <span class="muted">Estimate only — (pad − rear grade) ÷ ${BASE_RUN} ft apron. Verify against the alley profile before applying.</span></div>`;
+        <span class="muted">Estimate only — (pad − rear grade) ÷ ${BASE_RUN} ft apron. Verify against the ${rearEntryComm()?'alley':'street'} profile before applying.</span></div>`;
     else if(slOf(l)!=null&&gradeVerdict(slOf(l))==='fail')
       h+=`<div class="remedy" style="border-left-color:var(--fail)"><b>Driveway slope ${slOf(l).toFixed(1)}%${gradeRec(l)?'':' (estimated)'} exceeds ${gradeCeiling()}%.</b><br>
         Beyond what the City will approve${MAXG_APPROVE!=null?' even with a variance':''}. Regrading or a different pad is needed.<br>
-        <span class="muted">Estimate only — (pad − rear grade) ÷ ${BASE_RUN} ft apron. Verify against the alley profile before relying on it.</span></div>`;
+        <span class="muted">Estimate only — (pad − rear grade) ÷ ${BASE_RUN} ft apron. Verify against the ${rearEntryComm()?'alley':'street'} profile before relying on it.</span></div>`;
   }
   if(!rearEntry&&typeof l.shift==='number') h+=`<h3 class="sh">To reach ${MAXG}%</h3><div class="kv">
       <span class="k">Required driveway length</span><span class="v">${fmt(l.need,1,' ft')}</span>
@@ -1220,7 +1249,7 @@ function renderSide(hits){
       } else {
         h+=`<span class="k">Lot depth</span><span class="v">${df.have.toFixed(0)}'</span>
             <span class="k">Plan depth</span><span class="v">${P.d.toFixed(1)}'</span>
-            <span class="k">Front BL + rear to alley</span><span class="v">${df.fbl}' + ${df.rear}'</span>
+            <span class="k">Front BL + ${rearEntryComm()?'rear to alley':'rear setback'}</span><span class="v">${df.fbl}' + ${df.rear}'</span>
             <span class="k">Porch encroachment credit</span><span class="v">−${df.porch}'</span>
             <span class="k">Required</span><span class="v">${df.need.toFixed(1)}'</span>`;
       }

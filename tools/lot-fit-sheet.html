@@ -180,7 +180,7 @@
 
 /* Printed in the footer so you can tell at a glance which file is actually
    live on the site. Bump it whenever this file changes. */
-const SHEET_BUILD='2026-11-10e';
+const SHEET_BUILD='2026-11-10i';
 /* Per-lot driveway grade, keyed block-lot. Empty where not measured. */
 let GRADE={};
 
@@ -943,6 +943,12 @@ function draw(){
         if(t<-6||t>7) return null;              /* refuse a silly extension */
         return [p1[0]+rx*t, p1[1]+ry*t];
       };
+      /* The mutual trim below is right for the SIDE lines — they stop where they
+         meet the front and rear building lines — but the front and rear lines
+         themselves run property line to property line. Keep an untouched copy
+         so they can be rebuilt from it afterwards. */
+      const fullFR=new Map();
+      for(const r of runs) if(r.kind==='front'||r.kind==='rear') fullFR.set(r, r.pts.map(q=>q.slice()));
       for(let i=0;i<runs.length;i++){
         const A=runs[i], B=runs[(i+1)%runs.length];
         if(A===B) continue;
@@ -969,14 +975,44 @@ function draw(){
         }
         return best===null?null:[p[0]+dx*best, p[1]+dy*best];
       };
+      /* Front and rear building lines: the full offset curve, clipped to the
+         lot. Walk the curve; drop the points that fall outside the lot, and
+         where it crosses the boundary put the crossing point in their place.
+         An end that stops short INSIDE the lot is carried on along its own
+         direction to the nearest boundary — the near one only, and never more
+         than the widest side yard and a margin, so an end can never be thrown
+         across to the far side of the lot. */
+      const segHit=(a,b)=>{
+        let best=null;
+        for(let i=0;i<n;i++){
+          const u=Q[i], v=Q[(i+1)%n];
+          const rx=b[0]-a[0], ry=b[1]-a[1], sx=v[0]-u[0], sy=v[1]-u[1];
+          const den=rx*sy-ry*sx; if(Math.abs(den)<1e-9) continue;
+          const t=((u[0]-a[0])*sy-(u[1]-a[1])*sx)/den;
+          const w=((u[0]-a[0])*ry-(u[1]-a[1])*rx)/den;
+          if(t>=0&&t<=1&&w>=0&&w<=1&&(best===null||t<best)) best=t;
+        }
+        return best===null?null:[a[0]+(b[0]-a[0])*best, a[1]+(b[1]-a[1])*best];
+      };
+      const REACH = Math.max(sideI, sideC) + 6;
+      const reachOut=(p,q)=>{
+        const dx=p[0]-q[0], dy=p[1]-q[1], L=Math.hypot(dx,dy);
+        if(L<1e-6) return p;
+        const h=edgeHit(p, dx/L, dy/L);
+        return (h && Math.hypot(h[0]-p[0],h[1]-p[1])<=REACH) ? h : p;
+      };
       for(const r of runs){
         if(r.kind!=='front'&&r.kind!=='rear') continue;
-        const P=r.pts;
-        const h0=edgeHit(P[0], P[0][0]-P[1][0], P[0][1]-P[1][1]);
-        if(h0) P[0]=h0;
-        const m=P.length-1;
-        const h1=edgeHit(P[m], P[m][0]-P[m-1][0], P[m][1]-P[m-1][1]);
-        if(h1) P[m]=h1;
+        const P=fullFR.get(r); if(!P||P.length<2) continue;
+        const ins=P.map(q=>inPoly(q[0],q[1]));
+        const i0=ins.indexOf(true), i1=ins.lastIndexOf(true);
+        if(i0<0){ r.pts=P; continue; }
+        const out=P.slice(i0,i1+1);
+        if(i0>0){ const x=segHit(P[i0],P[i0-1]); if(x) out.unshift(x); }
+        else out[0]=reachOut(out[0],out[1]||out[0]);
+        if(i1<P.length-1){ const x=segHit(P[i1],P[i1+1]); if(x) out.push(x); }
+        else out[out.length-1]=reachOut(out[out.length-1],out[out.length-2]||out[out.length-1]);
+        r.pts=out;
       }
       for(const r of runs){
         s+=`<polyline points="${r.pts.map(q=>X(q[0]).toFixed(1)+','+Y(q[1]).toFixed(1)).join(' ')}"`
@@ -1087,7 +1123,12 @@ function draw(){
            and LEFT mirrors it, and on a front-entry plan it is the other way
            round. */
         const FAY0=!!fp.frontAtY0;
-        const mirror = FAY0 ? (GAR==='R') : (GAR==='L');
+        /* The hand is NOT inverted for a front-entry plan. Its outline is stored
+           with the FRONT at y=0 — the opposite convention from the rear-entry
+           library — and that convention change already accounts for turning the
+           plan end for end. Inverting x on top of it drew a LEFT garage on the
+           right of the page. LEFT mirrors, on both. */
+        const mirror = (GAR==='L');
         const px=v=>X(cx-fp.w/2+(mirror?(fp.w-v):v));
         const py=v=>Y(FAY0 ? (aT+fp.d-v) : (aT+v));
         /* The garage face, in page terms: the alley end on a rear-entry plan,
@@ -1217,12 +1258,25 @@ function draw(){
 
   /* --- verdict, in words rather than colour --- */
   let verdict='NOT CHECKED', detail='';
+  /* A shortfall smaller than the data can resolve is not a shortfall. The plat
+     carries its dimensions to the hundredth, but the width here is measured
+     across a boundary built from chorded arcs and angled side yards, and 1A H-8
+     came out 39.9' against a 40' house — 1.2 inches — which turned every plan
+     on the lot into DOES NOT FIT. Under three inches is called TIGHT and sent
+     to the plot plan, which is where a real three-inch question gets settled. */
+  const TOL=0.25;
+  const wmNear = wm!=null && wm<0 && wm>=-TOL;
+  const dmNear = dm!=null && dm<0 && dm>=-TOL;
   if(dm!=null&&wm!=null){
-    if(dm<0||wm<0){
+    if((dm<0&&!dmNear)||(wm<0&&!wmNear)){
       verdict='DOES NOT FIT';
       detail=[dm<0?`short ${Math.abs(dm).toFixed(1)}' on depth`:null,
               wm<0?`short ${Math.abs(wm).toFixed(1)}' on width`:null]
              .filter(Boolean).join(' · ');
+    } else if(dmNear||wmNear){
+      verdict='FITS — TIGHT';
+      detail=(wmNear?`within ${Math.abs(wm*12).toFixed(0)}" on width`:`within ${Math.abs(dm*12).toFixed(0)}" on depth`)
+            +' — closer than the lot data can measure. Confirm on the surveyed plot plan.';
     } else if(dm<2||wm<0.5){
       verdict='FITS — TIGHT'; detail='confirm against the surveyed plot plan';
     } else { verdict='FITS'; detail=''; }
