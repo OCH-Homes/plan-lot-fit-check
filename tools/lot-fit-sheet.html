@@ -180,7 +180,7 @@
 
 /* Printed in the footer so you can tell at a glance which file is actually
    live on the site. Bump it whenever this file changes. */
-const SHEET_BUILD='2026-11-10c';
+const SHEET_BUILD='2026-11-10e';
 /* Per-lot driveway grade, keyed block-lot. Empty where not measured. */
 let GRADE={};
 
@@ -984,8 +984,17 @@ function draw(){
         const mp=r.pts[Math.floor(r.pts.length/2)];
         const lbl=r.d+"' B.L."+(r.kind==='rear'?(REAR_IS_ALLEY?' TO ALLEY':' TO REAR'):'')
                  +((r.kind==='left'||r.kind==='right')&&CORN.indexOf(r.kind)>=0?' (CORNER)':'');
+        /* The front building line's label used to sit just INSIDE the lot,
+           which was clear while the house stood at the rear. A front-entry home
+           sits on that line, so the label now goes on the street side of it,
+           where the front yard is empty. */
+        /* On a front-entry sheet the house sits ON the front line and the
+           garage door, its dimension and its label stack up just below it, so
+           the front line's own label drops clear beneath that stack instead of
+           landing in the middle of it. */
+        const lblOff = r.kind!=='front' ? 11 : (REAR_IS_ALLEY ? -4 : 46);
         s+=note(X(mp[0])+(r.kind==='left'?6:r.kind==='right'?-6:0),
-                Y(mp[1])+(r.kind==='front'?-4:11), lbl, r.kind==='right'?'end':'start');
+                Y(mp[1])+lblOff, lbl, r.kind==='right'?'end':'start');
       }
     })();
 
@@ -1100,9 +1109,18 @@ function draw(){
           /* apron, door to the alley or to the street */
           s+=`<line x1="${gx1}" y1="${Y(garY)}" x2="${gx1}" y2="${Y(apronTo)}" stroke="#777" stroke-width=".8" stroke-dasharray="4,3"/>`;
           s+=`<line x1="${gx2}" y1="${Y(garY)}" x2="${gx2}" y2="${Y(apronTo)}" stroke="#777" stroke-width=".8" stroke-dasharray="4,3"/>`;
-          s+=note((gx1+gx2)/2,(Y(garY)+Y(apronTo))/2,'DRIVE');
-          s+=dimH(gx1,gx2,Y(garY)+(FAY0?13:-13),FT(g.w),null);
-          s+=note((gx1+gx2)/2,Y(aT)-19,'16\'-0" O.H. DOOR — GARAGE '+(GAR==='L'?'LEFT':'RIGHT'));
+          /* The door dimension and its label sit OUTSIDE the house, on the
+             driveway side of the garage face — above it on a rear-entry plan,
+             below it on a front-entry one. Both were pinned to aT, the rear of
+             the house, which on a front-entry plan threw them to the far end of
+             the lot and on top of the rear building line's label. */
+          const dLab = FAY0 ? 1 : -1;
+          s+=note((gx1+gx2)/2,Y(garY)+dLab*(FAY0?30:19),
+                  '16\'-0" O.H. DOOR — GARAGE '+(GAR==='L'?'LEFT':'RIGHT'));
+          s+=dimH(gx1,gx2,Y(garY)+dLab*(FAY0?16:13),FT(g.w),null);
+          /* Keep DRIVE clear of the door label by sitting it two-thirds of the
+             way out toward the street or alley. */
+          s+=note((gx1+gx2)/2,Y(garY)+(Y(apronTo)-Y(garY))*0.66,'DRIVE');
         }
       } else {
         /* no traced outline for this plan — plain rectangle, stated in the notes */
