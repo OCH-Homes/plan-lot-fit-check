@@ -1,0 +1,2528 @@
+{
+ "source": "Brandi builder list, 10 Nov 2026, validated against plat product classification",
+ "note": "key is phase|block|lot. och is true only where builder is Olivia Clarke. One lot, 1A|F|9 (2425 Milam Street), is tagged Perry Homes but classifies 50 ft on the plat - unresolved, flagged.",
+ "counts": {
+  "total": 418,
+  "och": 79,
+  "by_builder": {
+   "DRB Homes": 82,
+   "Olivia Clarke": 79,
+   "Perry Homes": 76,
+   "Bloomfield Homes": 68,
+   "Homebound": 42,
+   "Highland Homes": 38,
+   "Drees": 33
+  }
+ },
+ "lots": {
+  "1A|A|1": {
+   "builder": "Drees",
+   "och": false,
+   "product": "70'",
+   "address": "1412 Homestead Road"
+  },
+  "1A|A|2": {
+   "builder": "Drees",
+   "och": false,
+   "product": "70'",
+   "address": "1408 Homestead Road"
+  },
+  "1A|A|3": {
+   "builder": "Drees",
+   "och": false,
+   "product": "70'",
+   "address": "1404 Homestead Road"
+  },
+  "1A|A|4": {
+   "builder": "Drees",
+   "och": false,
+   "product": "70'",
+   "address": "1400 Homestead Road"
+  },
+  "1A|A|5": {
+   "builder": "Drees",
+   "och": false,
+   "product": "70'",
+   "address": "1308 Homestead Road"
+  },
+  "1A|A|6": {
+   "builder": "Drees",
+   "och": false,
+   "product": "70'",
+   "address": "1304 Homestead Road"
+  },
+  "1A|A|7": {
+   "builder": "Drees",
+   "och": false,
+   "product": "70'",
+   "address": "1300 Homestead Road"
+  },
+  "1A|A|8": {
+   "builder": "Highland Homes",
+   "och": false,
+   "product": "60'",
+   "address": "1301 Guthrie Street"
+  },
+  "1A|A|9": {
+   "builder": "Bloomfield Homes",
+   "och": false,
+   "product": "60'",
+   "address": "1305 Guthrie Street"
+  },
+  "1A|A|10": {
+   "builder": "Perry Homes",
+   "och": false,
+   "product": "60'",
+   "address": "1309 Guthrie Street"
+  },
+  "1A|A|11": {
+   "builder": "Bloomfield Homes",
+   "och": false,
+   "product": "60'",
+   "address": "1313 Guthrie Street"
+  },
+  "1A|A|12": {
+   "builder": "Highland Homes",
+   "och": false,
+   "product": "60'",
+   "address": "1317 Guthrie Street"
+  },
+  "1A|A|13": {
+   "builder": "Bloomfield Homes",
+   "och": false,
+   "product": "60'",
+   "address": "1401 Guthrie Street"
+  },
+  "1A|A|14": {
+   "builder": "Perry Homes",
+   "och": false,
+   "product": "60'",
+   "address": "1405 Guthrie Street"
+  },
+  "1A|A|15": {
+   "builder": "Bloomfield Homes",
+   "och": false,
+   "product": "60'",
+   "address": "1409 Guthrie Street"
+  },
+  "1A|A|16": {
+   "builder": "Bloomfield Homes",
+   "och": false,
+   "product": "60'",
+   "address": "1413 Guthrie Street"
+  },
+  "1A|B|1": {
+   "builder": "Highland Homes",
+   "och": false,
+   "product": "60'",
+   "address": "1412 Guthrie Street"
+  },
+  "1A|B|2": {
+   "builder": "Perry Homes",
+   "och": false,
+   "product": "60'",
+   "address": "1408 Guthrie Street"
+  },
+  "1A|B|3": {
+   "builder": "Bloomfield Homes",
+   "och": false,
+   "product": "60'",
+   "address": "1404 Guthrie Street"
+  },
+  "1A|B|4": {
+   "builder": "Perry Homes",
+   "och": false,
+   "product": "60'",
+   "address": "1400 Guthrie Street"
+  },
+  "1A|B|5": {
+   "builder": "Bloomfield Homes",
+   "och": false,
+   "product": "60'",
+   "address": "1316 Guthrie Street"
+  },
+  "1A|B|6": {
+   "builder": "Highland Homes",
+   "och": false,
+   "product": "60'",
+   "address": "1312 Guthrie Street"
+  },
+  "1A|B|7": {
+   "builder": "Bloomfield Homes",
+   "och": false,
+   "product": "60'",
+   "address": "1308 Guthrie Street"
+  },
+  "1A|B|8": {
+   "builder": "Highland Homes",
+   "och": false,
+   "product": "60'",
+   "address": "1304 Guthrie Street"
+  },
+  "1A|B|9": {
+   "builder": "Highland Homes",
+   "och": false,
+   "product": "60'",
+   "address": "1300 Guthrie Street"
+  },
+  "1A|B|10": {
+   "builder": "Bloomfield Homes",
+   "och": false,
+   "product": "60'",
+   "address": "1301 Prairie Lane"
+  },
+  "1A|B|11": {
+   "builder": "Bloomfield Homes",
+   "och": false,
+   "product": "60'",
+   "address": "1305 Prairie Lane"
+  },
+  "1A|B|12": {
+   "builder": "Perry Homes",
+   "och": false,
+   "product": "60'",
+   "address": "1309 Prairie Lane"
+  },
+  "1A|B|13": {
+   "builder": "Bloomfield Homes",
+   "och": false,
+   "product": "60'",
+   "address": "1313 Prairie Lane"
+  },
+  "1A|B|14": {
+   "builder": "Highland Homes",
+   "och": false,
+   "product": "60'",
+   "address": "1317 Prairie Lane"
+  },
+  "1A|B|15": {
+   "builder": "Bloomfield Homes",
+   "och": false,
+   "product": "60'",
+   "address": "1321 Prairie Lane"
+  },
+  "1A|B|16": {
+   "builder": "Perry Homes",
+   "och": false,
+   "product": "60'",
+   "address": "1325 Prairie Lane"
+  },
+  "1A|B|17": {
+   "builder": "Highland Homes",
+   "och": false,
+   "product": "60'",
+   "address": "1329 Prairie Lane"
+  },
+  "1A|B|18": {
+   "builder": "Bloomfield Homes",
+   "och": false,
+   "product": "60'",
+   "address": "1333 Prairie Lane"
+  },
+  "1A|C|1": {
+   "builder": "Bloomfield Homes",
+   "och": false,
+   "product": "60'",
+   "address": "1504 Prairie Lane"
+  },
+  "1A|C|2": {
+   "builder": "Perry Homes",
+   "och": false,
+   "product": "60'",
+   "address": "1500 Prairie Lane"
+  },
+  "1A|C|3": {
+   "builder": "Bloomfield Homes",
+   "och": false,
+   "product": "60'",
+   "address": "1408 Prairie Lane"
+  },
+  "1A|C|4": {
+   "builder": "Highland Homes",
+   "och": false,
+   "product": "60'",
+   "address": "1404 Prairie Lane"
+  },
+  "1A|C|5": {
+   "builder": "Bloomfield Homes",
+   "och": false,
+   "product": "60'",
+   "address": "1400 Prairie Lane"
+  },
+  "1A|C|6": {
+   "builder": "Olivia Clarke",
+   "och": true,
+   "product": "50'",
+   "address": "1401 Rush Lane"
+  },
+  "1A|C|7": {
+   "builder": "Homebound",
+   "och": false,
+   "product": "50'",
+   "address": "1405 Rush Lane"
+  },
+  "1A|C|8": {
+   "builder": "DRB Homes",
+   "och": false,
+   "product": "50'",
+   "address": "1409 Rush Lane"
+  },
+  "1A|C|9": {
+   "builder": "DRB Homes",
+   "och": false,
+   "product": "50'",
+   "address": "1417 Rush Lane"
+  },
+  "1A|C|10": {
+   "builder": "Homebound",
+   "och": false,
+   "product": "50'",
+   "address": "1501 Rush Lane"
+  },
+  "1A|C|11": {
+   "builder": "DRB Homes",
+   "och": false,
+   "product": "50'",
+   "address": "1505 Rush Lane"
+  },
+  "1A|C|12": {
+   "builder": "Olivia Clarke",
+   "och": true,
+   "product": "50'",
+   "address": "1509 Rush Lane"
+  },
+  "1A|D|1": {
+   "builder": "Perry Homes",
+   "och": false,
+   "product": "60'",
+   "address": "1332 Prairie Lane"
+  },
+  "1A|D|2": {
+   "builder": "Highland Homes",
+   "och": false,
+   "product": "60'",
+   "address": "1328 Prairie Lane"
+  },
+  "1A|D|3": {
+   "builder": "Bloomfield Homes",
+   "och": false,
+   "product": "60'",
+   "address": "1324 Prairie Lane"
+  },
+  "1A|D|4": {
+   "builder": "Perry Homes",
+   "och": false,
+   "product": "60'",
+   "address": "1320 Prairie Lane"
+  },
+  "1A|D|5": {
+   "builder": "Drees",
+   "och": false,
+   "product": "70'",
+   "address": "2401 Milam Street"
+  },
+  "1A|D|6": {
+   "builder": "Drees",
+   "och": false,
+   "product": "70'",
+   "address": "2405 Milam Street"
+  },
+  "1A|D|7": {
+   "builder": "Drees",
+   "och": false,
+   "product": "70'",
+   "address": "2409 Milam Street"
+  },
+  "1A|D|8": {
+   "builder": "DRB Homes",
+   "och": false,
+   "product": "50'",
+   "address": "1301 Rush Lane"
+  },
+  "1A|D|9": {
+   "builder": "Homebound",
+   "och": false,
+   "product": "50'",
+   "address": "1305 Rush Lane"
+  },
+  "1A|D|10": {
+   "builder": "DRB Homes",
+   "och": false,
+   "product": "50'",
+   "address": "1309 Rush Lane"
+  },
+  "1A|D|11": {
+   "builder": "Olivia Clarke",
+   "och": true,
+   "product": "50'",
+   "address": "1313 Rush Lane"
+  },
+  "1A|D|12": {
+   "builder": "DRB Homes",
+   "och": false,
+   "product": "50'",
+   "address": "1317 Rush Lane"
+  },
+  "1A|E|1": {
+   "builder": "DRB Homes",
+   "och": false,
+   "product": "50'",
+   "address": "1504 Rush Lane"
+  },
+  "1A|E|2": {
+   "builder": "Olivia Clarke",
+   "och": true,
+   "product": "50'",
+   "address": "1500 Rush Lane"
+  },
+  "1A|E|3": {
+   "builder": "DRB Homes",
+   "och": false,
+   "product": "50'",
+   "address": "1416 Rush Lane"
+  },
+  "1A|E|4": {
+   "builder": "Homebound",
+   "och": false,
+   "product": "50'",
+   "address": "1412 Rush Lane"
+  },
+  "1A|E|5": {
+   "builder": "DRB Homes",
+   "och": false,
+   "product": "50'",
+   "address": "1408 Rush Lane"
+  },
+  "1A|E|6": {
+   "builder": "DRB Homes",
+   "och": false,
+   "product": "50'",
+   "address": "1404 Rush Lane"
+  },
+  "1A|E|7": {
+   "builder": "Olivia Clarke",
+   "och": true,
+   "product": "50'",
+   "address": "1400 Rush Lane"
+  },
+  "1A|E|8": {
+   "builder": "DRB Homes",
+   "och": false,
+   "product": "50'",
+   "address": "1401 Wild Brothers Lane"
+  },
+  "1A|E|9": {
+   "builder": "Olivia Clarke",
+   "och": true,
+   "product": "50'",
+   "address": "1405 Wild Brothers Lane"
+  },
+  "1A|E|10": {
+   "builder": "Homebound",
+   "och": false,
+   "product": "50'",
+   "address": "1409 Wild Brothers Lane"
+  },
+  "1A|E|11": {
+   "builder": "DRB Homes",
+   "och": false,
+   "product": "50'",
+   "address": "1413 Wild Brothers Lane"
+  },
+  "1A|E|12": {
+   "builder": "Olivia Clarke",
+   "och": true,
+   "product": "50'",
+   "address": "1421 Wild Brothers Lane"
+  },
+  "1A|E|13": {
+   "builder": "DRB Homes",
+   "och": false,
+   "product": "50'",
+   "address": "1425 Wild Brothers Lane"
+  },
+  "1A|E|14": {
+   "builder": "Homebound",
+   "och": false,
+   "product": "50'",
+   "address": "1501 Wild Brothers Lane"
+  },
+  "1A|E|15": {
+   "builder": "Homebound",
+   "och": false,
+   "product": "50'",
+   "address": "1505 Wild Brothers Lane"
+  },
+  "1A|F|1": {
+   "builder": "Homebound",
+   "och": false,
+   "product": "50'",
+   "address": "1316 Rush Lane"
+  },
+  "1A|F|2": {
+   "builder": "DRB Homes",
+   "och": false,
+   "product": "50'",
+   "address": "1312 Rush Lane"
+  },
+  "1A|F|3": {
+   "builder": "Olivia Clarke",
+   "och": true,
+   "product": "50'",
+   "address": "1308 Rush Lane"
+  },
+  "1A|F|4": {
+   "builder": "DRB Homes",
+   "och": false,
+   "product": "50'",
+   "address": "1304 Rush Lane"
+  },
+  "1A|F|5": {
+   "builder": "DRB Homes",
+   "och": false,
+   "product": "50'",
+   "address": "1300 Rush Lane"
+  },
+  "1A|F|6": {
+   "builder": "Homebound",
+   "och": false,
+   "product": "50'",
+   "address": "2413 Milam Street"
+  },
+  "1A|F|7": {
+   "builder": "Olivia Clarke",
+   "och": true,
+   "product": "50'",
+   "address": "2417 Milam Street"
+  },
+  "1A|F|8": {
+   "builder": "DRB Homes",
+   "och": false,
+   "product": "50'",
+   "address": "2421 Milam Street"
+  },
+  "1A|F|9": {
+   "builder": "Perry Homes",
+   "och": false,
+   "product": "50'",
+   "address": "2425 Milam Street",
+   "conflict": "builder does not match plat product for this lot"
+  },
+  "1A|F|10": {
+   "builder": "DRB Homes",
+   "och": false,
+   "product": "50'",
+   "address": "1209 Wild Brothers Lane"
+  },
+  "1A|F|11": {
+   "builder": "Homebound",
+   "och": false,
+   "product": "50'",
+   "address": "1213 Wild Brothers Lane"
+  },
+  "1A|F|12": {
+   "builder": "DRB Homes",
+   "och": false,
+   "product": "50'",
+   "address": "1301 Wild Brothers Lane"
+  },
+  "1A|F|13": {
+   "builder": "Olivia Clarke",
+   "och": true,
+   "product": "50'",
+   "address": "1305 Wild Brothers Lane"
+  },
+  "1A|F|14": {
+   "builder": "DRB Homes",
+   "och": false,
+   "product": "50'",
+   "address": "1309 Wild Brothers Lane"
+  },
+  "1A|G|1": {
+   "builder": "Olivia Clarke",
+   "och": true,
+   "product": "50'",
+   "address": "1512 Wild Brothers Lane"
+  },
+  "1A|G|2": {
+   "builder": "DRB Homes",
+   "och": false,
+   "product": "50'",
+   "address": "1508 Wild Brothers Lane"
+  },
+  "1A|G|3": {
+   "builder": "Homebound",
+   "och": false,
+   "product": "50'",
+   "address": "1504 Wild Brothers Lane"
+  },
+  "1A|G|4": {
+   "builder": "DRB Homes",
+   "och": false,
+   "product": "50'",
+   "address": "1428 Wild Brothers Lane"
+  },
+  "1A|G|5": {
+   "builder": "Olivia Clarke",
+   "och": true,
+   "product": "50'",
+   "address": "1424 Wild Brothers Lane"
+  },
+  "1A|G|6": {
+   "builder": "Homebound",
+   "och": false,
+   "product": "50'",
+   "address": "1420 Wild Brothers Lane"
+  },
+  "1A|G|7": {
+   "builder": "DRB Homes",
+   "och": false,
+   "product": "50'",
+   "address": "1416 Wild Brothers Lane"
+  },
+  "1A|G|8": {
+   "builder": "DRB Homes",
+   "och": false,
+   "product": "50'",
+   "address": "1412 Wild Brothers Lane"
+  },
+  "1A|G|9": {
+   "builder": "Olivia Clarke",
+   "och": true,
+   "product": "50'",
+   "address": "1408 Wild Brothers Lane"
+  },
+  "1A|G|10": {
+   "builder": "DRB Homes",
+   "och": false,
+   "product": "50'",
+   "address": "1404 Wild Brothers Lane"
+  },
+  "1A|G|11": {
+   "builder": "Homebound",
+   "och": false,
+   "product": "50'",
+   "address": "1400 Wild Brothers Lane"
+  },
+  "1A|H|1": {
+   "builder": "DRB Homes",
+   "och": false,
+   "product": "50'",
+   "address": "1312 Wild Brothers Lane"
+  },
+  "1A|H|2": {
+   "builder": "DRB Homes",
+   "och": false,
+   "product": "50'",
+   "address": "1308 Wild Brothers Lane"
+  },
+  "1A|H|3": {
+   "builder": "Homebound",
+   "och": false,
+   "product": "50'",
+   "address": "1304 Wild Brothers Lane"
+  },
+  "1A|H|4": {
+   "builder": "DRB Homes",
+   "och": false,
+   "product": "50'",
+   "address": "1216 Wild Brothers Lane"
+  },
+  "1A|H|5": {
+   "builder": "Olivia Clarke",
+   "och": true,
+   "product": "50'",
+   "address": "1212 Wild Brothers Lane"
+  },
+  "1A|H|6": {
+   "builder": "DRB Homes",
+   "och": false,
+   "product": "50'",
+   "address": "1208 Wild Brothers Lane"
+  },
+  "1A|H|7": {
+   "builder": "DRB Homes",
+   "och": false,
+   "product": "50'",
+   "address": "1204 Wild Brothers Lane"
+  },
+  "1A|H|8": {
+   "builder": "Homebound",
+   "och": false,
+   "product": "50'",
+   "address": "1200 Wild Brothers Lane"
+  },
+  "1A|I|1": {
+   "builder": "Perry Homes",
+   "och": false,
+   "product": "60'",
+   "address": "2416 Wild Brothers Lane"
+  },
+  "1A|I|2": {
+   "builder": "Bloomfield Homes",
+   "och": false,
+   "product": "60'",
+   "address": "2420 Wild Brothers Lane"
+  },
+  "1A|I|3": {
+   "builder": "Highland Homes",
+   "och": false,
+   "product": "60'",
+   "address": "2424 Wild Brothers Lane"
+  },
+  "1A|J|16": {
+   "builder": "Drees",
+   "och": false,
+   "product": "70'",
+   "address": "2412 Wild Brothers Lane"
+  },
+  "1A|J|17": {
+   "builder": "Drees",
+   "och": false,
+   "product": "70'",
+   "address": "2408 Wild Brothers Lane"
+  },
+  "1A|J|18": {
+   "builder": "Drees",
+   "och": false,
+   "product": "70'",
+   "address": "2404 Wild Brothers Lane"
+  },
+  "1A|J|19": {
+   "builder": "Drees",
+   "och": false,
+   "product": "70'",
+   "address": "2400 Wild Brothers Lane"
+  },
+  "1A|J|20": {
+   "builder": "Drees",
+   "och": false,
+   "product": "70'",
+   "address": "2320 Wild Brothers Lane"
+  },
+  "1A|J|21": {
+   "builder": "Drees",
+   "och": false,
+   "product": "70'",
+   "address": "2316 Wild Brothers Lane"
+  },
+  "1A|J|22": {
+   "builder": "Drees",
+   "och": false,
+   "product": "70'",
+   "address": "2312 Wild Brothers Lane"
+  },
+  "1A|J|23": {
+   "builder": "Drees",
+   "och": false,
+   "product": "70'",
+   "address": "2308 Wild Brothers Lane"
+  },
+  "1A|J|24": {
+   "builder": "Drees",
+   "och": false,
+   "product": "70'",
+   "address": "2304 Wild Brothers Lane"
+  },
+  "1A|J|25": {
+   "builder": "Drees",
+   "och": false,
+   "product": "70'",
+   "address": "2300 Wild Brothers Lane"
+  },
+  "1B|I|1": {
+   "builder": "DRB Homes",
+   "och": false,
+   "product": "50'",
+   "address": "2401 Grain Lane"
+  },
+  "1B|I|2": {
+   "builder": "Homebound",
+   "och": false,
+   "product": "50'",
+   "address": "2405 Grain Lane"
+  },
+  "1B|I|3": {
+   "builder": "DRB Homes",
+   "och": false,
+   "product": "50'",
+   "address": "2409 Grain Lane"
+  },
+  "1B|I|4": {
+   "builder": "Olivia Clarke",
+   "och": true,
+   "product": "50'",
+   "address": "2413 Grain Lane"
+  },
+  "1B|I|5": {
+   "builder": "Homebound",
+   "och": false,
+   "product": "50'",
+   "address": "2417 Grain Lane"
+  },
+  "1B|I|6": {
+   "builder": "Olivia Clarke",
+   "och": true,
+   "product": "50'",
+   "address": "2421 Grain Lane"
+  },
+  "1B|I|7": {
+   "builder": "DRB Homes",
+   "och": false,
+   "product": "50'",
+   "address": "2425 Grain Lane"
+  },
+  "1B|I|8": {
+   "builder": "DRB Homes",
+   "och": false,
+   "product": "50'",
+   "address": "2501 Grain Lane"
+  },
+  "1B|I|9": {
+   "builder": "Homebound",
+   "och": false,
+   "product": "50'",
+   "address": "2505 Grain Lane"
+  },
+  "1B|I|10": {
+   "builder": "Olivia Clarke",
+   "och": true,
+   "product": "50'",
+   "address": "2509 Grain Lane"
+  },
+  "1B|I|11": {
+   "builder": "Homebound",
+   "och": false,
+   "product": "50'",
+   "address": "2513 Grain Lane"
+  },
+  "1B|I|12": {
+   "builder": "DRB Homes",
+   "och": false,
+   "product": "50'",
+   "address": "2517 Grain Lane"
+  },
+  "1B|I|13": {
+   "builder": "Olivia Clarke",
+   "och": true,
+   "product": "50'",
+   "address": "2521 Grain Lane"
+  },
+  "1B|I|14": {
+   "builder": "DRB Homes",
+   "och": false,
+   "product": "50'",
+   "address": "2601 Grain Lane"
+  },
+  "1B|I|15": {
+   "builder": "DRB Homes",
+   "och": false,
+   "product": "50'",
+   "address": "2605 Grain Lane"
+  },
+  "1B|I|16": {
+   "builder": "Homebound",
+   "och": false,
+   "product": "50'",
+   "address": "2609 Grain Lane"
+  },
+  "1B|I|17": {
+   "builder": "Olivia Clarke",
+   "och": true,
+   "product": "50'",
+   "address": "2613 Grain Lane"
+  },
+  "1B|I|18": {
+   "builder": "DRB Homes",
+   "och": false,
+   "product": "50'",
+   "address": "2617 Grain Lane"
+  },
+  "1B|I|19": {
+   "builder": "Homebound",
+   "och": false,
+   "product": "50'",
+   "address": "2621 Grain Lane"
+  },
+  "1B|J|1": {
+   "builder": "Drees",
+   "och": false,
+   "product": "70'",
+   "address": "1220 Homestead Road"
+  },
+  "1B|J|2": {
+   "builder": "Drees",
+   "och": false,
+   "product": "70'",
+   "address": "1216 Homestead Road"
+  },
+  "1B|J|3": {
+   "builder": "Drees",
+   "och": false,
+   "product": "70'",
+   "address": "1212 Homestead Road"
+  },
+  "1B|J|4": {
+   "builder": "Perry Homes",
+   "och": false,
+   "product": "60'",
+   "address": "2205 Grain Lane"
+  },
+  "1B|J|5": {
+   "builder": "Bloomfield Homes",
+   "och": false,
+   "product": "60'",
+   "address": "2209 Grain Lane"
+  },
+  "1B|J|6": {
+   "builder": "Bloomfield Homes",
+   "och": false,
+   "product": "60'",
+   "address": "2213 Grain Lane"
+  },
+  "1B|J|7": {
+   "builder": "Highland Homes",
+   "och": false,
+   "product": "60'",
+   "address": "2217 Grain Lane"
+  },
+  "1B|J|8": {
+   "builder": "Perry Homes",
+   "och": false,
+   "product": "60'",
+   "address": "2221 Grain Lane"
+  },
+  "1B|J|9": {
+   "builder": "Bloomfield Homes",
+   "och": false,
+   "product": "60'",
+   "address": "2301 Grain Lane"
+  },
+  "1B|J|10": {
+   "builder": "Bloomfield Homes",
+   "och": false,
+   "product": "60'",
+   "address": "2305 Grain Lane"
+  },
+  "1B|J|11": {
+   "builder": "Highland Homes",
+   "och": false,
+   "product": "60'",
+   "address": "2309 Grain Lane"
+  },
+  "1B|J|12": {
+   "builder": "Bloomfield Homes",
+   "och": false,
+   "product": "60'",
+   "address": "2313 Grain Lane"
+  },
+  "1B|J|13": {
+   "builder": "Perry Homes",
+   "och": false,
+   "product": "60'",
+   "address": "2317 Grain Lane"
+  },
+  "1B|J|14": {
+   "builder": "Bloomfield Homes",
+   "och": false,
+   "product": "60'",
+   "address": "2321 Grain Lane"
+  },
+  "1B|J|15": {
+   "builder": "Highland Homes",
+   "och": false,
+   "product": "60'",
+   "address": "2325 Grain Lane"
+  },
+  "1B|K|1": {
+   "builder": "Drees",
+   "och": false,
+   "product": "70'",
+   "address": "1208 Homestead Road"
+  },
+  "1B|K|2": {
+   "builder": "Drees",
+   "och": false,
+   "product": "70'",
+   "address": "1204 Homestead Road"
+  },
+  "1B|K|3": {
+   "builder": "Drees",
+   "och": false,
+   "product": "70'",
+   "address": "1200 Homestead Road"
+  },
+  "1B|K|4": {
+   "builder": "Highland Homes",
+   "och": false,
+   "product": "60'",
+   "address": "2209 Sunflower Lane"
+  },
+  "1B|K|5": {
+   "builder": "Bloomfield Homes",
+   "och": false,
+   "product": "60'",
+   "address": "2213 Sunflower Lane"
+  },
+  "1B|K|6": {
+   "builder": "Perry Homes",
+   "och": false,
+   "product": "60'",
+   "address": "2217 Sunflower Lane"
+  },
+  "1B|K|7": {
+   "builder": "Bloomfield Homes",
+   "och": false,
+   "product": "60'",
+   "address": "2221 Sunflower Lane"
+  },
+  "1B|K|8": {
+   "builder": "Highland Homes",
+   "och": false,
+   "product": "60'",
+   "address": "2301 Sunflower Lane"
+  },
+  "1B|K|9": {
+   "builder": "Perry Homes",
+   "och": false,
+   "product": "60'",
+   "address": "2305 Sunflower Lane"
+  },
+  "1B|K|10": {
+   "builder": "Bloomfield Homes",
+   "och": false,
+   "product": "60'",
+   "address": "2309 Sunflower Lane"
+  },
+  "1B|K|11": {
+   "builder": "Bloomfield Homes",
+   "och": false,
+   "product": "60'",
+   "address": "2313 Sunflower Lane"
+  },
+  "1B|K|12": {
+   "builder": "Highland Homes",
+   "och": false,
+   "product": "60'",
+   "address": "2317 Sunflower Lane"
+  },
+  "1B|K|13": {
+   "builder": "Bloomfield Homes",
+   "och": false,
+   "product": "60'",
+   "address": "2321 Sunflower Lane"
+  },
+  "1B|K|14": {
+   "builder": "Perry Homes",
+   "och": false,
+   "product": "60'",
+   "address": "2324 Grain Lane"
+  },
+  "1B|K|15": {
+   "builder": "Perry Homes",
+   "och": false,
+   "product": "60'",
+   "address": "2320 Grain Lane"
+  },
+  "1B|K|16": {
+   "builder": "Highland Homes",
+   "och": false,
+   "product": "60'",
+   "address": "2316 Grain Lane"
+  },
+  "1B|K|17": {
+   "builder": "Bloomfield Homes",
+   "och": false,
+   "product": "60'",
+   "address": "2312 Grain Lane"
+  },
+  "1B|K|18": {
+   "builder": "Perry Homes",
+   "och": false,
+   "product": "60'",
+   "address": "2308 Grain Lane"
+  },
+  "1B|K|19": {
+   "builder": "Bloomfield Homes",
+   "och": false,
+   "product": "60'",
+   "address": "2304 Grain Lane"
+  },
+  "1B|K|20": {
+   "builder": "Perry Homes",
+   "och": false,
+   "product": "60'",
+   "address": "2300 Grain Lane"
+  },
+  "1B|K|21": {
+   "builder": "Bloomfield Homes",
+   "och": false,
+   "product": "60'",
+   "address": "2220 Grain Lane"
+  },
+  "1B|K|22": {
+   "builder": "Perry Homes",
+   "och": false,
+   "product": "60'",
+   "address": "2216 Grain Lane"
+  },
+  "1B|K|23": {
+   "builder": "Bloomfield Homes",
+   "och": false,
+   "product": "60'",
+   "address": "2212 Grain Lane"
+  },
+  "1B|L|1": {
+   "builder": "Homebound",
+   "och": false,
+   "product": "50'",
+   "address": "2404 Grain Lane"
+  },
+  "1B|L|2": {
+   "builder": "Olivia Clarke",
+   "och": true,
+   "product": "50'",
+   "address": "2408 Grain Lane"
+  },
+  "1B|L|3": {
+   "builder": "DRB Homes",
+   "och": false,
+   "product": "50'",
+   "address": "2412 Grain Lane"
+  },
+  "1B|L|4": {
+   "builder": "DRB Homes",
+   "och": false,
+   "product": "50'",
+   "address": "2416 Grain Lane"
+  },
+  "1B|L|5": {
+   "builder": "Olivia Clarke",
+   "och": true,
+   "product": "50'",
+   "address": "2420 Grain Lane"
+  },
+  "1B|L|6": {
+   "builder": "DRB Homes",
+   "och": false,
+   "product": "50'",
+   "address": "2424 Grain Lane"
+  },
+  "1B|L|7": {
+   "builder": "Homebound",
+   "och": false,
+   "product": "50'",
+   "address": "2428 Grain Lane"
+  },
+  "1B|L|8": {
+   "builder": "Homebound",
+   "och": false,
+   "product": "50'",
+   "address": "2504 Grain Lane"
+  },
+  "1B|L|9": {
+   "builder": "DRB Homes",
+   "och": false,
+   "product": "50'",
+   "address": "2508 Grain Lane"
+  },
+  "1B|L|10": {
+   "builder": "Olivia Clarke",
+   "och": true,
+   "product": "50'",
+   "address": "2512 Grain Lane"
+  },
+  "1B|L|11": {
+   "builder": "Homebound",
+   "och": false,
+   "product": "50'",
+   "address": "2516 Grain Lane"
+  },
+  "1B|L|12": {
+   "builder": "DRB Homes",
+   "och": false,
+   "product": "50'",
+   "address": "2520 Grain Lane"
+  },
+  "1B|L|13": {
+   "builder": "Olivia Clarke",
+   "och": true,
+   "product": "50'",
+   "address": "2524 Grain Lane"
+  },
+  "1B|L|14": {
+   "builder": "Homebound",
+   "och": false,
+   "product": "50'",
+   "address": "2604 Grain Lane"
+  },
+  "1B|L|15": {
+   "builder": "DRB Homes",
+   "och": false,
+   "product": "50'",
+   "address": "2608 Grain Lane"
+  },
+  "1B|L|16": {
+   "builder": "DRB Homes",
+   "och": false,
+   "product": "50'",
+   "address": "2616 Grain Lane"
+  },
+  "1B|L|17": {
+   "builder": "Olivia Clarke",
+   "och": true,
+   "product": "50'",
+   "address": "2525 Sunflower Lane"
+  },
+  "1B|L|18": {
+   "builder": "DRB Homes",
+   "och": false,
+   "product": "50'",
+   "address": "2521 Sunflower Lane"
+  },
+  "1B|L|19": {
+   "builder": "DRB Homes",
+   "och": false,
+   "product": "50'",
+   "address": "2517 Sunflower Lane"
+  },
+  "1B|L|20": {
+   "builder": "Homebound",
+   "och": false,
+   "product": "50'",
+   "address": "2513 Sunflower Lane"
+  },
+  "1B|L|21": {
+   "builder": "Olivia Clarke",
+   "och": true,
+   "product": "50'",
+   "address": "2509 Sunflower Lane"
+  },
+  "1B|L|22": {
+   "builder": "DRB Homes",
+   "och": false,
+   "product": "50'",
+   "address": "2505 Sunflower Lane"
+  },
+  "1B|L|23": {
+   "builder": "DRB Homes",
+   "och": false,
+   "product": "50'",
+   "address": "2501 Sunflower Lane"
+  },
+  "1B|L|24": {
+   "builder": "Olivia Clarke",
+   "och": true,
+   "product": "50'",
+   "address": "2429 Sunflower Lane"
+  },
+  "1B|L|25": {
+   "builder": "Homebound",
+   "och": false,
+   "product": "50'",
+   "address": "2425 Sunflower Lane"
+  },
+  "1B|L|26": {
+   "builder": "DRB Homes",
+   "och": false,
+   "product": "50'",
+   "address": "2421 Sunflower Lane"
+  },
+  "1B|L|27": {
+   "builder": "DRB Homes",
+   "och": false,
+   "product": "50'",
+   "address": "2417 Sunflower Lane"
+  },
+  "1B|L|28": {
+   "builder": "Olivia Clarke",
+   "och": true,
+   "product": "50'",
+   "address": "2413 Sunflower Lane"
+  },
+  "1B|L|29": {
+   "builder": "Homebound",
+   "och": false,
+   "product": "50'",
+   "address": "2409 Sunflower Lane"
+  },
+  "1B|L|30": {
+   "builder": "DRB Homes",
+   "och": false,
+   "product": "50'",
+   "address": "2405 Sunflower Lane"
+  },
+  "1B|L|31": {
+   "builder": "DRB Homes",
+   "och": false,
+   "product": "50'",
+   "address": "2401 Sunflower Lane"
+  },
+  "1B|M|1": {
+   "builder": "Drees",
+   "och": false,
+   "product": "70'",
+   "address": "1124 Homestead Road"
+  },
+  "1B|M|2": {
+   "builder": "Drees",
+   "och": false,
+   "product": "70'",
+   "address": "1120 Homestead Road"
+  },
+  "1B|M|3": {
+   "builder": "Drees",
+   "och": false,
+   "product": "70'",
+   "address": "1116 Homestead Road"
+  },
+  "1B|M|4": {
+   "builder": "Bloomfield Homes",
+   "och": false,
+   "product": "60'",
+   "address": "2205 Harvest Drive"
+  },
+  "1B|M|5": {
+   "builder": "Highland Homes",
+   "och": false,
+   "product": "60'",
+   "address": "2209 Harvest Drive"
+  },
+  "1B|M|6": {
+   "builder": "Perry Homes",
+   "och": false,
+   "product": "60'",
+   "address": "2213 Harvest Drive"
+  },
+  "1B|M|7": {
+   "builder": "Bloomfield Homes",
+   "och": false,
+   "product": "60'",
+   "address": "2217 Harvest Drive"
+  },
+  "1B|M|8": {
+   "builder": "Highland Homes",
+   "och": false,
+   "product": "60'",
+   "address": "2221 Harvest Drive"
+  },
+  "1B|M|9": {
+   "builder": "Perry Homes",
+   "och": false,
+   "product": "60'",
+   "address": "2225 Harvest Drive"
+  },
+  "1B|M|10": {
+   "builder": "Bloomfield Homes",
+   "och": false,
+   "product": "60'",
+   "address": "2301 Harvest Drive"
+  },
+  "1B|M|11": {
+   "builder": "Highland Homes",
+   "och": false,
+   "product": "60'",
+   "address": "2305 Harvest Drive"
+  },
+  "1B|M|12": {
+   "builder": "Highland Homes",
+   "och": false,
+   "product": "60'",
+   "address": "2309 Harvest Drive"
+  },
+  "1B|M|13": {
+   "builder": "Bloomfield Homes",
+   "och": false,
+   "product": "60'",
+   "address": "2313 Harvest Drive"
+  },
+  "1B|M|14": {
+   "builder": "Highland Homes",
+   "och": false,
+   "product": "60'",
+   "address": "2320 Sunflower Lane"
+  },
+  "1B|M|15": {
+   "builder": "Highland Homes",
+   "och": false,
+   "product": "60'",
+   "address": "2316 Sunflower Lane"
+  },
+  "1B|M|16": {
+   "builder": "Bloomfield Homes",
+   "och": false,
+   "product": "60'",
+   "address": "2312 Sunflower Lane"
+  },
+  "1B|M|17": {
+   "builder": "Bloomfield Homes",
+   "och": false,
+   "product": "60'",
+   "address": "2308 Sunflower Lane"
+  },
+  "1B|M|18": {
+   "builder": "Perry Homes",
+   "och": false,
+   "product": "60'",
+   "address": "2304 Sunflower Lane"
+  },
+  "1B|M|19": {
+   "builder": "Bloomfield Homes",
+   "och": false,
+   "product": "60'",
+   "address": "2300 Sunflower Lane"
+  },
+  "1B|M|20": {
+   "builder": "Perry Homes",
+   "och": false,
+   "product": "60'",
+   "address": "2220 Sunflower Lane"
+  },
+  "1B|M|21": {
+   "builder": "Bloomfield Homes",
+   "och": false,
+   "product": "60'",
+   "address": "2216 Sunflower Lane"
+  },
+  "1B|M|22": {
+   "builder": "Highland Homes",
+   "och": false,
+   "product": "60'",
+   "address": "2212 Sunflower Lane"
+  },
+  "1B|M|23": {
+   "builder": "Highland Homes",
+   "och": false,
+   "product": "60'",
+   "address": "2208 Sunflower Lane"
+  },
+  "1B|N|1": {
+   "builder": "Homebound",
+   "och": false,
+   "product": "50'",
+   "address": "2400 Sunflower Lane"
+  },
+  "1B|N|2": {
+   "builder": "Olivia Clarke",
+   "och": true,
+   "product": "50'",
+   "address": "2404 Sunflower Lane"
+  },
+  "1B|N|3": {
+   "builder": "DRB Homes",
+   "och": false,
+   "product": "50'",
+   "address": "2408 Sunflower Lane"
+  },
+  "1B|N|4": {
+   "builder": "Homebound",
+   "och": false,
+   "product": "50'",
+   "address": "2412 Sunflower Lane"
+  },
+  "1B|N|5": {
+   "builder": "DRB Homes",
+   "och": false,
+   "product": "50'",
+   "address": "2416 Sunflower Lane"
+  },
+  "1B|N|6": {
+   "builder": "DRB Homes",
+   "och": false,
+   "product": "50'",
+   "address": "2420 Sunflower Lane"
+  },
+  "1B|N|7": {
+   "builder": "Homebound",
+   "och": false,
+   "product": "50'",
+   "address": "2424 Sunflower Lane"
+  },
+  "1B|N|8": {
+   "builder": "Olivia Clarke",
+   "och": true,
+   "product": "50'",
+   "address": "2428 Sunflower Lane"
+  },
+  "1B|N|9": {
+   "builder": "DRB Homes",
+   "och": false,
+   "product": "50'",
+   "address": "2500 Sunflower Lane"
+  },
+  "1B|N|10": {
+   "builder": "Olivia Clarke",
+   "och": true,
+   "product": "50'",
+   "address": "2504 Sunflower Lane"
+  },
+  "1B|N|11": {
+   "builder": "DRB Homes",
+   "och": false,
+   "product": "50'",
+   "address": "2508 Sunflower Lane"
+  },
+  "1B|N|12": {
+   "builder": "DRB Homes",
+   "och": false,
+   "product": "50'",
+   "address": "2512 Sunflower Lane"
+  },
+  "1B|N|13": {
+   "builder": "Homebound",
+   "och": false,
+   "product": "50'",
+   "address": "2516 Sunflower Lane"
+  },
+  "1B|N|14": {
+   "builder": "Olivia Clarke",
+   "och": true,
+   "product": "50'",
+   "address": "2524 Sunflower Lane"
+  },
+  "1B|N|15": {
+   "builder": "DRB Homes",
+   "och": false,
+   "product": "50'",
+   "address": "2528 Sunflower Lane"
+  },
+  "1B|O|1": {
+   "builder": "Drees",
+   "och": false,
+   "product": "70'",
+   "address": "1112 Homestead Road"
+  },
+  "1B|O|2": {
+   "builder": "Drees",
+   "och": false,
+   "product": "70'",
+   "address": "1108 Homestead Road"
+  },
+  "1B|O|3": {
+   "builder": "Drees",
+   "och": false,
+   "product": "70'",
+   "address": "1104 Homestead Road"
+  },
+  "1B|O|4": {
+   "builder": "Drees",
+   "och": false,
+   "product": "70'",
+   "address": "1100 Homestead Road"
+  },
+  "1B|O|5": {
+   "builder": "Homebound",
+   "och": false,
+   "product": "50'",
+   "address": "2101 Bouquet Street"
+  },
+  "1B|O|6": {
+   "builder": "DRB Homes",
+   "och": false,
+   "product": "50'",
+   "address": "2105 Bouquet Street"
+  },
+  "1B|O|7": {
+   "builder": "DRB Homes",
+   "och": false,
+   "product": "50'",
+   "address": "2109 Bouquet Street"
+  },
+  "1B|O|8": {
+   "builder": "Olivia Clarke",
+   "och": true,
+   "product": "50'",
+   "address": "2113 Bouquet Street"
+  },
+  "1B|O|9": {
+   "builder": "Homebound",
+   "och": false,
+   "product": "50'",
+   "address": "2201 Bouquet Street"
+  },
+  "1B|O|10": {
+   "builder": "DRB Homes",
+   "och": false,
+   "product": "50'",
+   "address": "2205 Bouquet Street"
+  },
+  "1B|O|11": {
+   "builder": "Olivia Clarke",
+   "och": true,
+   "product": "50'",
+   "address": "2209 Bouquet Street"
+  },
+  "1B|O|12": {
+   "builder": "DRB Homes",
+   "och": false,
+   "product": "50'",
+   "address": "2213 Bouquet Street"
+  },
+  "1B|O|13": {
+   "builder": "Olivia Clarke",
+   "och": true,
+   "product": "50'",
+   "address": "2217 Bouquet Street"
+  },
+  "1B|O|14": {
+   "builder": "DRB Homes",
+   "och": false,
+   "product": "50'",
+   "address": "2221 Bouquet Street"
+  },
+  "1B|O|15": {
+   "builder": "DRB Homes",
+   "och": false,
+   "product": "50'",
+   "address": "2225 Bouquet Street"
+  },
+  "1B|O|16": {
+   "builder": "Homebound",
+   "och": false,
+   "product": "50'",
+   "address": "2229 Bouquet Street"
+  },
+  "1B|O|17": {
+   "builder": "Olivia Clarke",
+   "och": true,
+   "product": "50'",
+   "address": "2233 Bouquet Street"
+  },
+  "1B|O|18": {
+   "builder": "DRB Homes",
+   "och": false,
+   "product": "50'",
+   "address": "2301 Bouquet Street"
+  },
+  "1B|O|19": {
+   "builder": "DRB Homes",
+   "och": false,
+   "product": "50'",
+   "address": "2305 Bouquet Street"
+  },
+  "1B|O|20": {
+   "builder": "Homebound",
+   "och": false,
+   "product": "50'",
+   "address": "2309 Bouquet Street"
+  },
+  "1B|O|21": {
+   "builder": "DRB Homes",
+   "och": false,
+   "product": "50'",
+   "address": "2313 Bouquet Street"
+  },
+  "1B|O|22": {
+   "builder": "Bloomfield Homes",
+   "och": false,
+   "product": "60'",
+   "address": "2312 Harvest Drive"
+  },
+  "1B|O|23": {
+   "builder": "Highland Homes",
+   "och": false,
+   "product": "60'",
+   "address": "2308 Harvest Drive"
+  },
+  "1B|O|24": {
+   "builder": "Bloomfield Homes",
+   "och": false,
+   "product": "60'",
+   "address": "2304 Harvest Drive"
+  },
+  "1B|O|25": {
+   "builder": "Bloomfield Homes",
+   "och": false,
+   "product": "60'",
+   "address": "2300 Harvest Drive"
+  },
+  "1B|O|26": {
+   "builder": "Perry Homes",
+   "och": false,
+   "product": "60'",
+   "address": "2224 Harvest Drive"
+  },
+  "1B|O|27": {
+   "builder": "Bloomfield Homes",
+   "och": false,
+   "product": "60'",
+   "address": "2220 Harvest Drive"
+  },
+  "1B|O|28": {
+   "builder": "Bloomfield Homes",
+   "och": false,
+   "product": "60'",
+   "address": "2216 Harvest Drive"
+  },
+  "1B|O|29": {
+   "builder": "Perry Homes",
+   "och": false,
+   "product": "60'",
+   "address": "2212 Harvest Drive"
+  },
+  "1B|O|30": {
+   "builder": "Highland Homes",
+   "och": false,
+   "product": "60'",
+   "address": "2208 Harvest Drive"
+  },
+  "1B|O|31": {
+   "builder": "Bloomfield Homes",
+   "och": false,
+   "product": "60'",
+   "address": "2204 Harvest Drive"
+  },
+  "1B|P|1": {
+   "builder": "DRB Homes",
+   "och": false,
+   "product": "50'",
+   "address": "2104 Bouquet Street"
+  },
+  "1B|P|2": {
+   "builder": "DRB Homes",
+   "och": false,
+   "product": "50'",
+   "address": "2112 Bouquet Street"
+  },
+  "1B|P|3": {
+   "builder": "Olivia Clarke",
+   "och": true,
+   "product": "50'",
+   "address": "2200 Bouquet Street"
+  },
+  "1B|P|4": {
+   "builder": "DRB Homes",
+   "och": false,
+   "product": "50'",
+   "address": "2212 Bouquet Street"
+  },
+  "1B|P|5": {
+   "builder": "Olivia Clarke",
+   "och": true,
+   "product": "50'",
+   "address": "2216 Bouquet Street"
+  },
+  "1B|P|6": {
+   "builder": "DRB Homes",
+   "och": false,
+   "product": "50'",
+   "address": "2220 Bouquet Street"
+  },
+  "1B|P|7": {
+   "builder": "Homebound",
+   "och": false,
+   "product": "50'",
+   "address": "2224 Bouquet Street"
+  },
+  "1B|P|8": {
+   "builder": "Olivia Clarke",
+   "och": true,
+   "product": "50'",
+   "address": "2228 Bouquet Street"
+  },
+  "1C|G|12": {
+   "builder": "Highland Homes",
+   "och": false,
+   "product": "60'",
+   "address": "1301 Pioneer Street"
+  },
+  "1C|G|13": {
+   "builder": "Bloomfield Homes",
+   "och": false,
+   "product": "60'",
+   "address": "1309 Pioneer Street"
+  },
+  "1C|G|14": {
+   "builder": "Perry Homes",
+   "och": false,
+   "product": "60'",
+   "address": "1313 Pioneer Street"
+  },
+  "1C|G|15": {
+   "builder": "Highland Homes",
+   "och": false,
+   "product": "60'",
+   "address": "1321 Pioneer Street"
+  },
+  "1C|G|16": {
+   "builder": "Bloomfield Homes",
+   "och": false,
+   "product": "60'",
+   "address": "1401 Pioneer Street"
+  },
+  "1C|G|17": {
+   "builder": "Bloomfield Homes",
+   "och": false,
+   "product": "60'",
+   "address": "1409 Pioneer Street"
+  },
+  "1C|G|18": {
+   "builder": "Highland Homes",
+   "och": false,
+   "product": "60'",
+   "address": "1413 Pioneer Street"
+  },
+  "1C|G|19": {
+   "builder": "Perry Homes",
+   "och": false,
+   "product": "60'",
+   "address": "1501 Pioneer Street"
+  },
+  "1C|G|20": {
+   "builder": "Bloomfield Homes",
+   "och": false,
+   "product": "60'",
+   "address": "1505 Pioneer Street"
+  },
+  "1C|G|21": {
+   "builder": "Bloomfield Homes",
+   "och": false,
+   "product": "60'",
+   "address": "1509 Pioneer Street"
+  },
+  "1C|H|9": {
+   "builder": "Highland Homes",
+   "och": false,
+   "product": "60'",
+   "address": "2505 Milam Street"
+  },
+  "1C|H|10": {
+   "builder": "Perry Homes",
+   "och": false,
+   "product": "60'",
+   "address": "2509 Milam Street"
+  },
+  "1C|H|11": {
+   "builder": "Bloomfield Homes",
+   "och": false,
+   "product": "60'",
+   "address": "2513 Milam Street"
+  },
+  "1C|H|12": {
+   "builder": "Bloomfield Homes",
+   "och": false,
+   "product": "60'",
+   "address": "2517 Milam Street"
+  },
+  "1C|H|13": {
+   "builder": "Highland Homes",
+   "och": false,
+   "product": "60'",
+   "address": "1205 Pioneer Street"
+  },
+  "1C|H|14": {
+   "builder": "Bloomfield Homes",
+   "och": false,
+   "product": "60'",
+   "address": "1209 Pioneer Street"
+  },
+  "1C|H|15": {
+   "builder": "Bloomfield Homes",
+   "och": false,
+   "product": "60'",
+   "address": "1213 Pioneer Street"
+  },
+  "1C|H|16": {
+   "builder": "Perry Homes",
+   "och": false,
+   "product": "60'",
+   "address": "1217 Pioneer Street"
+  },
+  "1C|H|17": {
+   "builder": "Highland Homes",
+   "och": false,
+   "product": "60'",
+   "address": "1221 Pioneer Street"
+  },
+  "1C|H|18": {
+   "builder": "Bloomfield Homes",
+   "och": false,
+   "product": "60'",
+   "address": "1225 Pioneer Street"
+  },
+  "1C|H|19": {
+   "builder": "Bloomfield Homes",
+   "och": false,
+   "product": "60'",
+   "address": "1229 Pioneer Street"
+  },
+  "1C|I|1": {
+   "builder": "Perry Homes",
+   "och": false,
+   "product": "60'",
+   "address": "2500 Milam Street"
+  },
+  "1C|I|2": {
+   "builder": "Bloomfield Homes",
+   "och": false,
+   "product": "60'",
+   "address": "2504 Milam Street"
+  },
+  "1C|I|3": {
+   "builder": "Bloomfield Homes",
+   "och": false,
+   "product": "60'",
+   "address": "2508 Milam Street"
+  },
+  "1C|I|4": {
+   "builder": "Perry Homes",
+   "och": false,
+   "product": "60'",
+   "address": "2512 Milam Street"
+  },
+  "1C|I|5": {
+   "builder": "Bloomfield Homes",
+   "och": false,
+   "product": "60'",
+   "address": "2516 Milam Street"
+  },
+  "1C|I|6": {
+   "builder": "Highland Homes",
+   "och": false,
+   "product": "60'",
+   "address": "2520 Milam Street"
+  },
+  "1C|I|7": {
+   "builder": "Perry Homes",
+   "och": false,
+   "product": "60'",
+   "address": "2600 Milam Street"
+  },
+  "1C|I|8": {
+   "builder": "Bloomfield Homes",
+   "och": false,
+   "product": "60'",
+   "address": "2604 Milam Street"
+  },
+  "1C|I|9": {
+   "builder": "Bloomfield Homes",
+   "och": false,
+   "product": "60'",
+   "address": "2608 Milam Street"
+  },
+  "1C|I|10": {
+   "builder": "Highland Homes",
+   "och": false,
+   "product": "60'",
+   "address": "2612 Milam Street"
+  },
+  "1C|I|11": {
+   "builder": "Highland Homes",
+   "och": false,
+   "product": "60'",
+   "address": "2620 Milam Street"
+  },
+  "1C|I|12": {
+   "builder": "Bloomfield Homes",
+   "och": false,
+   "product": "60'",
+   "address": "2624 Milam Street"
+  },
+  "1C|I|13": {
+   "builder": "Perry Homes",
+   "och": false,
+   "product": "60'",
+   "address": "2628 Milam Street"
+  },
+  "1C|P|1": {
+   "builder": "Olivia Clarke",
+   "och": true,
+   "product": "50'",
+   "address": "1224 Hendricks Street"
+  },
+  "1C|P|2": {
+   "builder": "Homebound",
+   "och": false,
+   "product": "50'",
+   "address": "1220 Hendricks Street"
+  },
+  "1C|P|3": {
+   "builder": "DRB Homes",
+   "och": false,
+   "product": "50'",
+   "address": "1216 Hendricks Street"
+  },
+  "1C|Q|1": {
+   "builder": "DRB Homes",
+   "och": false,
+   "product": "50'",
+   "address": "2701 Lair Road"
+  },
+  "1C|Q|2": {
+   "builder": "Olivia Clarke",
+   "och": true,
+   "product": "50'",
+   "address": "2705 Lair Road"
+  },
+  "1C|Q|3": {
+   "builder": "DRB Homes",
+   "och": false,
+   "product": "50'",
+   "address": "2709 Lair Road"
+  },
+  "1C|Q|4": {
+   "builder": "DRB Homes",
+   "och": false,
+   "product": "50'",
+   "address": "2713 Lair Road"
+  },
+  "1C|Q|5": {
+   "builder": "Olivia Clarke",
+   "och": true,
+   "product": "50'",
+   "address": "2717 Lair Road"
+  },
+  "1C|Q|6": {
+   "builder": "DRB Homes",
+   "och": false,
+   "product": "50'",
+   "address": "1424 Hendricks Street"
+  },
+  "1C|Q|7": {
+   "builder": "Homebound",
+   "och": false,
+   "product": "50'",
+   "address": "1420 Hendricks Street"
+  },
+  "1C|Q|8": {
+   "builder": "DRB Homes",
+   "och": false,
+   "product": "50'",
+   "address": "1416 Hendricks Street"
+  },
+  "1C|Q|9": {
+   "builder": "Homebound",
+   "och": false,
+   "product": "50'",
+   "address": "1412 Hendricks Street"
+  },
+  "1C|Q|10": {
+   "builder": "DRB Homes",
+   "och": false,
+   "product": "50'",
+   "address": "1408 Hendricks Street"
+  },
+  "1C|Q|11": {
+   "builder": "Olivia Clarke",
+   "och": true,
+   "product": "50'",
+   "address": "1404 Hendricks Street"
+  },
+  "1C|Q|12": {
+   "builder": "DRB Homes",
+   "och": false,
+   "product": "50'",
+   "address": "1320 Hendricks Street"
+  },
+  "1C|Q|13": {
+   "builder": "DRB Homes",
+   "och": false,
+   "product": "50'",
+   "address": "1316 Hendricks Street"
+  },
+  "1C|Q|14": {
+   "builder": "Homebound",
+   "och": false,
+   "product": "50'",
+   "address": "1312 Hendricks Street"
+  },
+  "1C|R|1": {
+   "builder": "Olivia Clarke",
+   "och": true,
+   "product": "45' rear",
+   "address": "1416 Lair Road"
+  },
+  "1C|R|2": {
+   "builder": "Olivia Clarke",
+   "och": true,
+   "product": "45' rear",
+   "address": "1412 Lair Road"
+  },
+  "1C|R|3": {
+   "builder": "Olivia Clarke",
+   "och": true,
+   "product": "45' rear",
+   "address": "1408 Lair Road"
+  },
+  "1C|R|4": {
+   "builder": "Olivia Clarke",
+   "och": true,
+   "product": "45' rear",
+   "address": "1404 Lair Road"
+  },
+  "1C|R|5": {
+   "builder": "Olivia Clarke",
+   "och": true,
+   "product": "45' rear",
+   "address": "1400 Lair Road"
+  },
+  "1C|R|6": {
+   "builder": "Olivia Clarke",
+   "och": true,
+   "product": "45' rear",
+   "address": "1320 Lair Road"
+  },
+  "1C|R|7": {
+   "builder": "Olivia Clarke",
+   "och": true,
+   "product": "45' rear",
+   "address": "1316 Lair Road"
+  },
+  "1C|R|8": {
+   "builder": "Olivia Clarke",
+   "och": true,
+   "product": "45' rear",
+   "address": "1312 Lair Road"
+  },
+  "1C|R|9": {
+   "builder": "Olivia Clarke",
+   "och": true,
+   "product": "45' rear",
+   "address": "1308 Lair Road"
+  },
+  "1C|R|10": {
+   "builder": "Olivia Clarke",
+   "och": true,
+   "product": "45' rear",
+   "address": "1304 Lair Road"
+  },
+  "1C|R|11": {
+   "builder": "Olivia Clarke",
+   "och": true,
+   "product": "45' rear",
+   "address": "1300 Lair Road"
+  },
+  "1C|R|12": {
+   "builder": "Olivia Clarke",
+   "och": true,
+   "product": "45' rear",
+   "address": "2701 Lair Road"
+  },
+  "1C|R|13": {
+   "builder": "Olivia Clarke",
+   "och": true,
+   "product": "45' rear",
+   "address": "2709 Louley Road"
+  },
+  "1C|R|14": {
+   "builder": "Olivia Clarke",
+   "och": true,
+   "product": "45' rear",
+   "address": "2717 Louley Road"
+  },
+  "1C|R|15": {
+   "builder": "Olivia Clarke",
+   "och": true,
+   "product": "45' rear",
+   "address": "2721 Louley Road"
+  },
+  "1C|R|16": {
+   "builder": "Olivia Clarke",
+   "och": true,
+   "product": "45' rear",
+   "address": "2725 Louley Road"
+  },
+  "1C|R|17": {
+   "builder": "Olivia Clarke",
+   "och": true,
+   "product": "45' rear",
+   "address": "2729 Louley Road"
+  },
+  "1C|R|18": {
+   "builder": "Olivia Clarke",
+   "och": true,
+   "product": "45' rear",
+   "address": "2733 Louley Road"
+  },
+  "1C|R|19": {
+   "builder": "Olivia Clarke",
+   "och": true,
+   "product": "45' rear",
+   "address": "2737 Louley Road"
+  },
+  "1C|R|20": {
+   "builder": "Olivia Clarke",
+   "och": true,
+   "product": "45' rear",
+   "address": "1201 Rattan Street"
+  },
+  "1C|R|21": {
+   "builder": "Olivia Clarke",
+   "och": true,
+   "product": "45' rear",
+   "address": "1205 Rattan Street"
+  },
+  "1C|R|22": {
+   "builder": "Olivia Clarke",
+   "och": true,
+   "product": "45' rear",
+   "address": "1209 Rattan Street"
+  },
+  "1C|R|23": {
+   "builder": "Olivia Clarke",
+   "och": true,
+   "product": "45' rear",
+   "address": "1213 Rattan Street"
+  },
+  "1C|R|24": {
+   "builder": "Olivia Clarke",
+   "och": true,
+   "product": "45' rear",
+   "address": "1217 Rattan Street"
+  },
+  "1C|R|25": {
+   "builder": "Olivia Clarke",
+   "och": true,
+   "product": "45' rear",
+   "address": "1221 Rattan Street"
+  },
+  "1C|R|26": {
+   "builder": "Olivia Clarke",
+   "och": true,
+   "product": "45' rear",
+   "address": "1225 Rattan Street"
+  },
+  "1C|R|27": {
+   "builder": "Olivia Clarke",
+   "och": true,
+   "product": "45' rear",
+   "address": "1229 Rattan Street"
+  },
+  "1C|R|28": {
+   "builder": "Olivia Clarke",
+   "och": true,
+   "product": "45' rear",
+   "address": "1233 Rattan Street"
+  },
+  "1C|R|29": {
+   "builder": "Olivia Clarke",
+   "och": true,
+   "product": "45' rear",
+   "address": "1301 Lair Road"
+  },
+  "1C|R|30": {
+   "builder": "Olivia Clarke",
+   "och": true,
+   "product": "45' rear",
+   "address": "1305 Lair Road"
+  },
+  "1C|R|31": {
+   "builder": "Olivia Clarke",
+   "och": true,
+   "product": "45' rear",
+   "address": "1309 Lair Road"
+  },
+  "1C|R|32": {
+   "builder": "Olivia Clarke",
+   "och": true,
+   "product": "45' rear",
+   "address": "1313 Lair Road"
+  },
+  "1C|R|33": {
+   "builder": "Olivia Clarke",
+   "och": true,
+   "product": "45' rear",
+   "address": "1317 Lair Road"
+  },
+  "1C|R|34": {
+   "builder": "Olivia Clarke",
+   "och": true,
+   "product": "45' rear",
+   "address": "1401 Lair Road"
+  },
+  "1C|R|35": {
+   "builder": "Olivia Clarke",
+   "och": true,
+   "product": "45' rear",
+   "address": "1405 Lair Road"
+  },
+  "1C|R|36": {
+   "builder": "Olivia Clarke",
+   "och": true,
+   "product": "45' rear",
+   "address": "1409 Lair Road"
+  },
+  "1C|R|37": {
+   "builder": "Olivia Clarke",
+   "och": true,
+   "product": "45' rear",
+   "address": "1413 Lair Road"
+  },
+  "1C|S|1": {
+   "builder": "Perry Homes",
+   "och": false,
+   "product": "45' front",
+   "address": "2612 Louley Road"
+  },
+  "1C|S|2": {
+   "builder": "Perry Homes",
+   "och": false,
+   "product": "45' front",
+   "address": "2616 Louley Road"
+  },
+  "1C|S|3": {
+   "builder": "Perry Homes",
+   "och": false,
+   "product": "45' front",
+   "address": "2620 Louley Road"
+  },
+  "1C|S|4": {
+   "builder": "Perry Homes",
+   "och": false,
+   "product": "45' front",
+   "address": "2700 Louley Road"
+  },
+  "1C|S|5": {
+   "builder": "Perry Homes",
+   "och": false,
+   "product": "45' front",
+   "address": "2704 Louley Road"
+  },
+  "1C|S|6": {
+   "builder": "Perry Homes",
+   "och": false,
+   "product": "45' front",
+   "address": "2708 Louley Road"
+  },
+  "1C|S|7": {
+   "builder": "Perry Homes",
+   "och": false,
+   "product": "45' front",
+   "address": "2712 Louley Road"
+  },
+  "1C|S|8": {
+   "builder": "Perry Homes",
+   "och": false,
+   "product": "45' front",
+   "address": "2716 Louley Road"
+  },
+  "1C|S|9": {
+   "builder": "Perry Homes",
+   "och": false,
+   "product": "45' front",
+   "address": "2720 Louley Road"
+  },
+  "1C|S|10": {
+   "builder": "Perry Homes",
+   "och": false,
+   "product": "45' front",
+   "address": "2724 Louley Road"
+  },
+  "1C|S|11": {
+   "builder": "Perry Homes",
+   "och": false,
+   "product": "45' front",
+   "address": "2728 Louley Road"
+  },
+  "1C|S|12": {
+   "builder": "Perry Homes",
+   "och": false,
+   "product": "45' front",
+   "address": "2732 Louley Road"
+  },
+  "1C|S|13": {
+   "builder": "Perry Homes",
+   "och": false,
+   "product": "45' front",
+   "address": "2736 Louley Road"
+  },
+  "1C|S|14": {
+   "builder": "Perry Homes",
+   "och": false,
+   "product": "45' front",
+   "address": "2729 Asbury Lane"
+  },
+  "1C|S|15": {
+   "builder": "Perry Homes",
+   "och": false,
+   "product": "45' front",
+   "address": "2725 Asbury Lane"
+  },
+  "1C|S|16": {
+   "builder": "Perry Homes",
+   "och": false,
+   "product": "45' front",
+   "address": "2721 Asbury Lane"
+  },
+  "1C|S|17": {
+   "builder": "Perry Homes",
+   "och": false,
+   "product": "45' front",
+   "address": "2717 Asbury Lane"
+  },
+  "1C|S|18": {
+   "builder": "Perry Homes",
+   "och": false,
+   "product": "45' front",
+   "address": "2713 Asbury Lane"
+  },
+  "1C|S|19": {
+   "builder": "Perry Homes",
+   "och": false,
+   "product": "45' front",
+   "address": "2709 Asbury Lane"
+  },
+  "1C|S|20": {
+   "builder": "Perry Homes",
+   "och": false,
+   "product": "45' front",
+   "address": "2705 Asbury Lane"
+  },
+  "1C|S|21": {
+   "builder": "Perry Homes",
+   "och": false,
+   "product": "45' front",
+   "address": "2701 Asbury Lane"
+  },
+  "1C|S|22": {
+   "builder": "Perry Homes",
+   "och": false,
+   "product": "45' front",
+   "address": "2621 Asbury Lane"
+  },
+  "1C|S|23": {
+   "builder": "Perry Homes",
+   "och": false,
+   "product": "45' front",
+   "address": "2617 Asbury Lane"
+  },
+  "1C|S|24": {
+   "builder": "Perry Homes",
+   "och": false,
+   "product": "45' front",
+   "address": "2613 Asbury Lane"
+  },
+  "1C|S|25": {
+   "builder": "Perry Homes",
+   "och": false,
+   "product": "45' front",
+   "address": "2609 Asbury Lane"
+  },
+  "1C|S|26": {
+   "builder": "Perry Homes",
+   "och": false,
+   "product": "45' front",
+   "address": "2605 Asbury Lane"
+  },
+  "1C|T|1": {
+   "builder": "Perry Homes",
+   "och": false,
+   "product": "45' front",
+   "address": "2608 Asbury Lane"
+  },
+  "1C|T|2": {
+   "builder": "Perry Homes",
+   "och": false,
+   "product": "45' front",
+   "address": "2612 Asbury Lane"
+  },
+  "1C|T|3": {
+   "builder": "Perry Homes",
+   "och": false,
+   "product": "45' front",
+   "address": "2616 Asbury Lane"
+  },
+  "1C|T|4": {
+   "builder": "Perry Homes",
+   "och": false,
+   "product": "45' front",
+   "address": "2620 Asbury Lane"
+  },
+  "1C|T|5": {
+   "builder": "Perry Homes",
+   "och": false,
+   "product": "45' front",
+   "address": "2704 Asbury Lane"
+  },
+  "1C|T|6": {
+   "builder": "Perry Homes",
+   "och": false,
+   "product": "45' front",
+   "address": "2708 Asbury Lane"
+  },
+  "1C|T|7": {
+   "builder": "Perry Homes",
+   "och": false,
+   "product": "45' front",
+   "address": "2712 Asbury Lane"
+  },
+  "1C|T|8": {
+   "builder": "Perry Homes",
+   "och": false,
+   "product": "45' front",
+   "address": "2716 Asbury Lane"
+  },
+  "1C|T|9": {
+   "builder": "Perry Homes",
+   "och": false,
+   "product": "45' front",
+   "address": "2720 Asbury Lane"
+  },
+  "1C|T|10": {
+   "builder": "Perry Homes",
+   "och": false,
+   "product": "45' front",
+   "address": "2724 Asbury Lane"
+  },
+  "1C|T|11": {
+   "builder": "Perry Homes",
+   "och": false,
+   "product": "45' front",
+   "address": "2728 Asbury Lane"
+  },
+  "1C|T|12": {
+   "builder": "Perry Homes",
+   "och": false,
+   "product": "45' front",
+   "address": "2732 Asbury Lane"
+  },
+  "1C|T|13": {
+   "builder": "Perry Homes",
+   "och": false,
+   "product": "60'",
+   "address": "2629 Milam Street"
+  },
+  "1C|T|14": {
+   "builder": "Bloomfield Homes",
+   "och": false,
+   "product": "60'",
+   "address": "2625 Milam Street"
+  },
+  "1C|T|15": {
+   "builder": "Bloomfield Homes",
+   "och": false,
+   "product": "60'",
+   "address": "2621 Milam Street"
+  },
+  "1C|T|16": {
+   "builder": "Perry Homes",
+   "och": false,
+   "product": "60'",
+   "address": "2617 Milam Street"
+  },
+  "1C|T|17": {
+   "builder": "Bloomfield Homes",
+   "och": false,
+   "product": "60'",
+   "address": "2613 Milam Street"
+  },
+  "1C|T|18": {
+   "builder": "Bloomfield Homes",
+   "och": false,
+   "product": "60'",
+   "address": "2609 Milam Street"
+  },
+  "1C|T|19": {
+   "builder": "Highland Homes",
+   "och": false,
+   "product": "60'",
+   "address": "2605 Milam Street"
+  },
+  "1C|T|20": {
+   "builder": "Perry Homes",
+   "och": false,
+   "product": "60'",
+   "address": "2601 Milam Street"
+  }
+ }
+}
