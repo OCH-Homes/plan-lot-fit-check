@@ -2,7 +2,7 @@
  "communities": [
   {
    "id": "grandoaks-1b",
-   "name": "Grand Oaks at Green Meadows \u2014 Phase 1B",
+   "name": "Grand Oaks at Green Meadows — Phase 1B",
    "short": "Grand Oaks Ph 1B",
    "city": "Celina, TX",
    "lots": 179,
@@ -12,23 +12,33 @@
   },
   {
    "id": "grandoaks-1a",
-   "name": "Grand Oaks at Green Meadows \u2014 Phase 1A",
+   "name": "Grand Oaks at Green Meadows — Phase 1A",
    "short": "Grand Oaks Ph 1A",
    "city": "Celina, TX",
    "lots": 178,
    "status": "record",
    "data": "data/grandoaks-1a.json",
-   "note": "Built out. 6 OCH lots \u2014 1 model, 5 specs \u2014 all surveyed."
+   "note": "Built out. 6 OCH lots — 1 model, 5 specs — all surveyed."
   },
   {
-   "id": "sherley-farms",
-   "name": "Sherley Farms",
-   "short": "Sherley Farms",
-   "city": "\u2014",
-   "lots": null,
-   "status": "pending",
-   "data": null,
-   "note": "Awaiting plat and grading xref."
+   "id": "sherley-45r",
+   "name": "Sherley Farms — 45′ rear-entry",
+   "short": "Sherley 45′ rear",
+   "city": "Anna, TX",
+   "lots": 37,
+   "status": "active",
+   "data": "data/sherley-45r.json",
+   "note": "Testing only — not yet checked against the engineer's drawings. 37 OCH lots, all Phase 1C Block R, rear alley entry. 8 carry driveway restrictions and 1 is marked non-conforming. No rear grade measured, so every lot draws grey."
+  },
+  {
+   "id": "sherley-50",
+   "name": "Sherley Farms — 50′ front-entry",
+   "short": "Sherley 50′ front",
+   "city": "Anna, TX",
+   "lots": 167,
+   "status": "active",
+   "data": "data/sherley-50.json",
+   "note": "Testing only — not yet checked against the engineer's drawings. 167 OCH lots across Phases 1A, 1B and 1C. Front building lines vary 20/25/30 by lot. No driveway grade measured yet, and 14 of the 24 plans in the line-up are still missing dimensions."
   },
   {
    "id": "heights-uptown",
@@ -38,7 +48,7 @@
    "lots": 227,
    "status": "active",
    "data": "data/heights-uptown.json",
-   "note": "48 OCH lots \u2014 26 built, 22 to build. Rear alley entry."
+   "note": "48 OCH lots — 26 built, 22 to build. Rear alley entry."
   }
  ]
 }
