@@ -94,6 +94,45 @@
    "retired": false
   },
   {
+   "id": "shelby_a",
+   "name": "Shelby A",
+   "collection": "MR 40' FE",
+   "lotProduct": 50,
+   "w": 40,
+   "d": 85,
+   "garage": "Front",
+   "hand": null,
+   "mirror": false,
+   "porch": null,
+   "retired": false
+  },
+  {
+   "id": "shelby_b",
+   "name": "Shelby B",
+   "collection": "MR 40' FE",
+   "lotProduct": 50,
+   "w": 40,
+   "d": 85,
+   "garage": "Front",
+   "hand": null,
+   "mirror": false,
+   "porch": null,
+   "retired": false
+  },
+  {
+   "id": "shelby_c",
+   "name": "Shelby C",
+   "collection": "MR 40' FE",
+   "lotProduct": 50,
+   "w": 40,
+   "d": 85,
+   "garage": "Front",
+   "hand": null,
+   "mirror": false,
+   "porch": null,
+   "retired": false
+  },
+  {
    "id": "shelby_d",
    "name": "Shelby D",
    "collection": "MR 40' FE",
@@ -743,26 +782,26 @@
    "name": "Campbell A",
    "collection": "MR 40' FE",
    "lotProduct": 50,
-   "w": null,
-   "d": null,
+   "w": 40,
+   "d": 83.0,
    "garage": "Front",
    "hand": null,
    "mirror": false,
    "porch": null,
-   "retired": true
+   "retired": false
   },
   {
    "id": "campbell_b",
    "name": "Campbell B",
    "collection": "MR 40' FE",
    "lotProduct": 50,
-   "w": null,
-   "d": null,
+   "w": 40,
+   "d": 83.0,
    "garage": "Front",
    "hand": null,
    "mirror": false,
    "porch": null,
-   "retired": true
+   "retired": false
   },
   {
    "id": "logan_b",

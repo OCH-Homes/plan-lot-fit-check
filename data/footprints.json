@@ -1010,24 +1010,87 @@
     ],
     [
      0.0,
+     8.0
+    ],
+    [
+     0.0,
+     73.0
+    ],
+    [
+     0.0,
+     78.0
+    ],
+    [
+     21.417,
      78.0
     ],
     [
      40.0,
      78.0
+    ],
+    [
+     40.0,
+     31.583
+    ],
+    [
+     40.0,
+     10.0
     ]
    ],
-   "source": "CAD: Webber E40A 2026-03-18.dwg, layer A-Area, closed area polylines unioned. AC1032 (AutoCAD 2018).",
-   "note": "One FIRST FLOOR PLAN \"A\" shared by front elevations A, B and C \u2014 same arrangement as Pearl and Logan. 40.00 x 78.00 ft, 2,896.7 sf, which matches plans.json and the 2417 Milam Street plot plan (Webber E40A Elev. B) exactly. FRONT ENTRY plan: the garage faces the street, so the y=0 end of this outline is the FRONT, the opposite of the rear-entry plans at The Heights. PORCH ENCROACHMENT NOT SUPPLIED \u2014 set to 0 as the conservative placeholder.",
+   "door": {
+    "lo": 21.08,
+    "hi": 37.08,
+    "width": 16.0,
+    "source": "CAD: centred on the garage, 16 ft overall per OCH spec"
+   },
+   "source": "CAD: Webber_E40A_2026-03-18.dwg, layer A-Area-Masonry, finish-face area polylines unioned. AC1032 (AutoCAD 2018).",
+   "note": "One family at 40 x 78 ft across A/B/C; per-elevation front details differ (B slab 2918.3 vs A/C 2896.7). Supersedes the earlier A-Area trace that treated A/B/C as identical. areaSf matches the 2417 Milam plot plan (Webber E40A Elev B). FRONT ENTRY: y=0 is the FRONT. Re-extracted 11/10/26 from A-Area-Masonry.",
+   "garageCentre": 29.08,
    "frontAtY0": true,
-   "porchNote": "Porch encroachment NOT VERIFIED. Deliberately absent from porchByPlan so the tool gives no credit and flags it, rather than assuming a figure. Verify the allowable from zoning, not from the plan outline."
+   "porchNote": "Porch encroachment NOT VERIFIED. Deliberately absent from porchByPlan so the tool gives no credit and flags it, rather than assuming a figure."
   },
   "webber_b": {
    "w": 40.0,
    "d": 78.0,
-   "areaSf": 2896.7,
+   "areaSf": 2918.3,
    "pts": [
     [
+     19.833,
+     0.0
+    ],
+    [
+     12.167,
+     0.0
+    ],
+    [
+     0.0,
+     0.0
+    ],
+    [
+     0.0,
+     8.0
+    ],
+    [
+     0.0,
+     73.0
+    ],
+    [
+     0.0,
+     78.0
+    ],
+    [
+     21.417,
+     78.0
+    ],
+    [
+     40.0,
+     78.0
+    ],
+    [
+     40.0,
+     31.583
+    ],
+    [
      40.0,
      10.0
     ],
@@ -1037,33 +1100,24 @@
     ],
     [
      19.833,
+     8.0
+    ],
+    [
+     19.833,
      0.0
-    ],
-    [
-     10.833,
-     0.0
-    ],
-    [
-     10.833,
-     2.0
-    ],
-    [
-     0.0,
-     2.0
-    ],
-    [
-     0.0,
-     78.0
-    ],
-    [
-     40.0,
-     78.0
     ]
    ],
-   "source": "CAD: Webber E40A 2026-03-18.dwg, layer A-Area, closed area polylines unioned. AC1032 (AutoCAD 2018).",
-   "note": "One FIRST FLOOR PLAN \"A\" shared by front elevations A, B and C \u2014 same arrangement as Pearl and Logan. 40.00 x 78.00 ft, 2,896.7 sf, which matches plans.json and the 2417 Milam Street plot plan (Webber E40A Elev. B) exactly. FRONT ENTRY plan: the garage faces the street, so the y=0 end of this outline is the FRONT, the opposite of the rear-entry plans at The Heights. PORCH ENCROACHMENT NOT SUPPLIED \u2014 set to 0 as the conservative placeholder.",
+   "door": {
+    "lo": 21.46,
+    "hi": 37.46,
+    "width": 16.0,
+    "source": "CAD: centred on the garage, 16 ft overall per OCH spec"
+   },
+   "source": "CAD: Webber_E40A_2026-03-18.dwg, layer A-Area-Masonry, finish-face area polylines unioned. AC1032 (AutoCAD 2018).",
+   "note": "One family at 40 x 78 ft across A/B/C; per-elevation front details differ (B slab 2918.3 vs A/C 2896.7). Supersedes the earlier A-Area trace that treated A/B/C as identical. areaSf matches the 2417 Milam plot plan (Webber E40A Elev B). FRONT ENTRY: y=0 is the FRONT. Re-extracted 11/10/26 from A-Area-Masonry.",
+   "garageCentre": 29.46,
    "frontAtY0": true,
-   "porchNote": "Porch encroachment NOT VERIFIED. Deliberately absent from porchByPlan so the tool gives no credit and flags it, rather than assuming a figure. Verify the allowable from zoning, not from the plan outline."
+   "porchNote": "Porch encroachment NOT VERIFIED. Deliberately absent from porchByPlan so the tool gives no credit and flags it, rather than assuming a figure."
   },
   "webber_c": {
    "w": 40.0,
@@ -1096,17 +1150,1066 @@
     ],
     [
      0.0,
+     8.0
+    ],
+    [
+     0.0,
+     73.0
+    ],
+    [
+     0.0,
+     78.0
+    ],
+    [
+     21.417,
      78.0
     ],
     [
      40.0,
      78.0
+    ],
+    [
+     40.0,
+     31.583
+    ],
+    [
+     40.0,
+     10.0
     ]
    ],
-   "source": "CAD: Webber E40A 2026-03-18.dwg, layer A-Area, closed area polylines unioned. AC1032 (AutoCAD 2018).",
-   "note": "One FIRST FLOOR PLAN \"A\" shared by front elevations A, B and C \u2014 same arrangement as Pearl and Logan. 40.00 x 78.00 ft, 2,896.7 sf, which matches plans.json and the 2417 Milam Street plot plan (Webber E40A Elev. B) exactly. FRONT ENTRY plan: the garage faces the street, so the y=0 end of this outline is the FRONT, the opposite of the rear-entry plans at The Heights. PORCH ENCROACHMENT NOT SUPPLIED \u2014 set to 0 as the conservative placeholder.",
+   "door": {
+    "lo": 21.08,
+    "hi": 37.08,
+    "width": 16.0,
+    "source": "CAD: centred on the garage, 16 ft overall per OCH spec"
+   },
+   "source": "CAD: Webber_E40A_2026-03-18.dwg, layer A-Area-Masonry, finish-face area polylines unioned. AC1032 (AutoCAD 2018).",
+   "note": "One family at 40 x 78 ft across A/B/C; per-elevation front details differ (B slab 2918.3 vs A/C 2896.7). Supersedes the earlier A-Area trace that treated A/B/C as identical. areaSf matches the 2417 Milam plot plan (Webber E40A Elev B). FRONT ENTRY: y=0 is the FRONT. Re-extracted 11/10/26 from A-Area-Masonry.",
+   "garageCentre": 29.08,
    "frontAtY0": true,
-   "porchNote": "Porch encroachment NOT VERIFIED. Deliberately absent from porchByPlan so the tool gives no credit and flags it, rather than assuming a figure. Verify the allowable from zoning, not from the plan outline."
+   "porchNote": "Porch encroachment NOT VERIFIED. Deliberately absent from porchByPlan so the tool gives no credit and flags it, rather than assuming a figure."
+  },
+  "campbell_a": {
+   "w": 40.0,
+   "d": 83.0,
+   "areaSf": 3116.5,
+   "pts": [
+    [
+     40.0,
+     11.0
+    ],
+    [
+     21.5,
+     11.0
+    ],
+    [
+     21.5,
+     0.0
+    ],
+    [
+     0.0,
+     0.0
+    ],
+    [
+     0.0,
+     8.0
+    ],
+    [
+     0.0,
+     75.0
+    ],
+    [
+     0.0,
+     75.0
+    ],
+    [
+     0.0,
+     83.0
+    ],
+    [
+     19.833,
+     83.0
+    ],
+    [
+     40.0,
+     83.0
+    ],
+    [
+     40.0,
+     32.75
+    ],
+    [
+     40.0,
+     11.0
+    ]
+   ],
+   "door": {
+    "lo": 21.92,
+    "hi": 37.92,
+    "width": 16.0,
+    "source": "CAD: centred on the garage, 16 ft overall per OCH spec"
+   },
+   "source": "CAD: Campbell_A40A_2025-01-16.dwg, layer A-Area-Masonry, finish-face area polylines unioned. AC1032 (AutoCAD 2018).",
+   "note": "Campbell A/B share a 40 x 83 ft footprint, C is 40 x 80 (3' shorter at the front). One-storey; the main conditioned polygon is 2,315 sf, matching the plan library A/C. FRONT ENTRY: garage faces the street, y=0 is the FRONT. CAD-extracted 11/10/26 from A-Area-Masonry (18-elevation front-entry pass).",
+   "garageCentre": 29.92,
+   "frontAtY0": true,
+   "porchNote": "Porch encroachment NOT VERIFIED. Deliberately absent from porchByPlan so the tool gives no credit and flags it, rather than assuming a figure."
+  },
+  "campbell_b": {
+   "w": 40.0,
+   "d": 83.0,
+   "areaSf": 3019.6,
+   "pts": [
+    [
+     0.0,
+     8.0
+    ],
+    [
+     0.0,
+     8.0
+    ],
+    [
+     0.0,
+     75.0
+    ],
+    [
+     0.0,
+     75.0
+    ],
+    [
+     0.0,
+     78.0
+    ],
+    [
+     19.833,
+     78.0
+    ],
+    [
+     19.833,
+     83.0
+    ],
+    [
+     40.0,
+     83.0
+    ],
+    [
+     40.0,
+     32.75
+    ],
+    [
+     40.0,
+     11.0
+    ],
+    [
+     21.708,
+     11.0
+    ],
+    [
+     21.708,
+     0.0
+    ],
+    [
+     0.0,
+     0.0
+    ],
+    [
+     0.0,
+     8.0
+    ]
+   ],
+   "door": {
+    "lo": 21.92,
+    "hi": 37.92,
+    "width": 16.0,
+    "source": "CAD: centred on the garage, 16 ft overall per OCH spec"
+   },
+   "source": "CAD: Campbell_A40A_2025-01-16.dwg, layer A-Area-Masonry, finish-face area polylines unioned. AC1032 (AutoCAD 2018).",
+   "note": "Campbell A/B share a 40 x 83 ft footprint, C is 40 x 80 (3' shorter at the front). One-storey; the main conditioned polygon is 2,315 sf, matching the plan library A/C. FRONT ENTRY: garage faces the street, y=0 is the FRONT. CAD-extracted 11/10/26 from A-Area-Masonry (18-elevation front-entry pass).",
+   "garageCentre": 29.92,
+   "frontAtY0": true,
+   "porchNote": "Porch encroachment NOT VERIFIED. Deliberately absent from porchByPlan so the tool gives no credit and flags it, rather than assuming a figure."
+  },
+  "campbell_c": {
+   "w": 40.0,
+   "d": 80.0,
+   "areaSf": 3004.6,
+   "pts": [
+    [
+     8.75,
+     5.0
+    ],
+    [
+     0.0,
+     5.0
+    ],
+    [
+     0.0,
+     72.0
+    ],
+    [
+     0.0,
+     72.0
+    ],
+    [
+     0.0,
+     80.0
+    ],
+    [
+     19.833,
+     80.0
+    ],
+    [
+     40.0,
+     80.0
+    ],
+    [
+     40.0,
+     29.75
+    ],
+    [
+     40.0,
+     8.0
+    ],
+    [
+     21.042,
+     8.0
+    ],
+    [
+     21.042,
+     5.0
+    ],
+    [
+     21.042,
+     0.0
+    ],
+    [
+     8.75,
+     0.0
+    ],
+    [
+     8.75,
+     5.0
+    ]
+   ],
+   "door": {
+    "lo": 21.92,
+    "hi": 37.92,
+    "width": 16.0,
+    "source": "CAD: centred on the garage, 16 ft overall per OCH spec"
+   },
+   "source": "CAD: Campbell_A40A_2025-01-16.dwg, layer A-Area-Masonry, finish-face area polylines unioned. AC1032 (AutoCAD 2018).",
+   "note": "Campbell A/B share a 40 x 83 ft footprint, C is 40 x 80 (3' shorter at the front). One-storey; the main conditioned polygon is 2,315 sf, matching the plan library A/C. FRONT ENTRY: garage faces the street, y=0 is the FRONT. CAD-extracted 11/10/26 from A-Area-Masonry (18-elevation front-entry pass).",
+   "garageCentre": 29.92,
+   "frontAtY0": true,
+   "porchNote": "Porch encroachment NOT VERIFIED. Deliberately absent from porchByPlan so the tool gives no credit and flags it, rather than assuming a figure."
+  },
+  "cooper_a": {
+   "w": 40.0,
+   "d": 68.0,
+   "areaSf": 2504.0,
+   "pts": [
+    [
+     40.0,
+     10.0
+    ],
+    [
+     20.5,
+     10.0
+    ],
+    [
+     20.5,
+     0.0
+    ],
+    [
+     10.5,
+     0.0
+    ],
+    [
+     10.5,
+     2.0
+    ],
+    [
+     0.0,
+     2.0
+    ],
+    [
+     0.0,
+     8.0
+    ],
+    [
+     0.0,
+     50.75
+    ],
+    [
+     0.0,
+     68.0
+    ],
+    [
+     9.0,
+     68.0
+    ],
+    [
+     40.0,
+     68.0
+    ],
+    [
+     40.0,
+     30.75
+    ],
+    [
+     40.0,
+     10.0
+    ]
+   ],
+   "door": {
+    "lo": 21.25,
+    "hi": 37.25,
+    "width": 16.0,
+    "source": "CAD: centred on the garage, 16 ft overall per OCH spec"
+   },
+   "source": "CAD: Cooper_C40A_2026-03-25.dwg, layer A-Area-Masonry, finish-face area polylines unioned. AC1032 (AutoCAD 2018).",
+   "note": "Cooper A/B/C all 40 x 68 ft, front-facade variants (slabs differ 2504/2573/2524 at the front). FRONT ENTRY: y=0 is the FRONT. CAD-extracted 11/10/26 from A-Area-Masonry.",
+   "garageCentre": 29.25,
+   "frontAtY0": true,
+   "porchNote": "Porch encroachment NOT VERIFIED. Deliberately absent from porchByPlan so the tool gives no credit and flags it, rather than assuming a figure."
+  },
+  "cooper_b": {
+   "w": 40.0,
+   "d": 68.0,
+   "areaSf": 2573.0,
+   "pts": [
+    [
+     40.0,
+     10.0
+    ],
+    [
+     40.0,
+     7.0
+    ],
+    [
+     20.5,
+     7.0
+    ],
+    [
+     20.5,
+     0.0
+    ],
+    [
+     10.5,
+     0.0
+    ],
+    [
+     10.5,
+     1.0
+    ],
+    [
+     0.0,
+     1.0
+    ],
+    [
+     0.0,
+     8.0
+    ],
+    [
+     0.0,
+     50.75
+    ],
+    [
+     0.0,
+     68.0
+    ],
+    [
+     9.0,
+     68.0
+    ],
+    [
+     40.0,
+     68.0
+    ],
+    [
+     40.0,
+     30.75
+    ],
+    [
+     40.0,
+     10.0
+    ]
+   ],
+   "door": {
+    "lo": 21.25,
+    "hi": 37.25,
+    "width": 16.0,
+    "source": "CAD: centred on the garage, 16 ft overall per OCH spec"
+   },
+   "source": "CAD: Cooper_C40A_2026-03-25.dwg, layer A-Area-Masonry, finish-face area polylines unioned. AC1032 (AutoCAD 2018).",
+   "note": "Cooper A/B/C all 40 x 68 ft, front-facade variants (slabs differ 2504/2573/2524 at the front). FRONT ENTRY: y=0 is the FRONT. CAD-extracted 11/10/26 from A-Area-Masonry.",
+   "garageCentre": 29.25,
+   "frontAtY0": true,
+   "porchNote": "Porch encroachment NOT VERIFIED. Deliberately absent from porchByPlan so the tool gives no credit and flags it, rather than assuming a figure."
+  },
+  "cooper_c": {
+   "w": 40.0,
+   "d": 68.0,
+   "areaSf": 2523.7,
+   "pts": [
+    [
+     40.0,
+     10.0
+    ],
+    [
+     20.375,
+     10.0
+    ],
+    [
+     20.375,
+     0.0
+    ],
+    [
+     0.0,
+     0.0
+    ],
+    [
+     0.0,
+     8.0
+    ],
+    [
+     0.0,
+     50.75
+    ],
+    [
+     0.0,
+     68.0
+    ],
+    [
+     9.0,
+     68.0
+    ],
+    [
+     40.0,
+     68.0
+    ],
+    [
+     40.0,
+     30.75
+    ],
+    [
+     40.0,
+     10.0
+    ]
+   ],
+   "door": {
+    "lo": 21.25,
+    "hi": 37.25,
+    "width": 16.0,
+    "source": "CAD: centred on the garage, 16 ft overall per OCH spec"
+   },
+   "source": "CAD: Cooper_C40A_2026-03-25.dwg, layer A-Area-Masonry, finish-face area polylines unioned. AC1032 (AutoCAD 2018).",
+   "note": "Cooper A/B/C all 40 x 68 ft, front-facade variants (slabs differ 2504/2573/2524 at the front). FRONT ENTRY: y=0 is the FRONT. CAD-extracted 11/10/26 from A-Area-Masonry.",
+   "garageCentre": 29.25,
+   "frontAtY0": true,
+   "porchNote": "Porch encroachment NOT VERIFIED. Deliberately absent from porchByPlan so the tool gives no credit and flags it, rather than assuming a figure."
+  },
+  "renner_a": {
+   "w": 40.0,
+   "d": 69.667,
+   "areaSf": 2746.1,
+   "pts": [
+    [
+     0.0,
+     0.0
+    ],
+    [
+     0.0,
+     6.0
+    ],
+    [
+     0.0,
+     62.917
+    ],
+    [
+     0.0,
+     69.667
+    ],
+    [
+     24.458,
+     69.667
+    ],
+    [
+     40.0,
+     69.667
+    ],
+    [
+     40.0,
+     23.75
+    ],
+    [
+     40.0,
+     2.0
+    ],
+    [
+     19.708,
+     2.0
+    ],
+    [
+     19.708,
+     0.0
+    ],
+    [
+     7.042,
+     0.0
+    ],
+    [
+     0.0,
+     0.0
+    ]
+   ],
+   "door": {
+    "lo": 21.62,
+    "hi": 37.62,
+    "width": 16.0,
+    "source": "CAD: centred on the garage, 16 ft overall per OCH spec"
+   },
+   "source": "CAD: Renner_B40A_2026-02-21.dwg, layer A-Area-Masonry, finish-face area polylines unioned. AC1032 (AutoCAD 2018).",
+   "note": "Renner A is 40 x 69'-8\" (flush front); B and C are 40 x 77'-8\" with an 8' front projection. FRONT ENTRY: y=0 is the FRONT. CAD-extracted 11/10/26 from A-Area-Masonry.",
+   "garageCentre": 29.62,
+   "frontAtY0": true,
+   "porchNote": "Porch encroachment NOT VERIFIED. Deliberately absent from porchByPlan so the tool gives no credit and flags it, rather than assuming a figure."
+  },
+  "renner_b": {
+   "w": 40.0,
+   "d": 77.667,
+   "areaSf": 2903.8,
+   "pts": [
+    [
+     19.708,
+     0.0
+    ],
+    [
+     0.0,
+     0.0
+    ],
+    [
+     0.0,
+     14.0
+    ],
+    [
+     0.0,
+     70.917
+    ],
+    [
+     0.0,
+     77.667
+    ],
+    [
+     24.458,
+     77.667
+    ],
+    [
+     40.0,
+     77.667
+    ],
+    [
+     40.0,
+     31.75
+    ],
+    [
+     40.0,
+     10.0
+    ],
+    [
+     19.708,
+     10.0
+    ],
+    [
+     19.708,
+     8.0
+    ],
+    [
+     19.708,
+     0.0
+    ]
+   ],
+   "door": {
+    "lo": 21.62,
+    "hi": 37.62,
+    "width": 16.0,
+    "source": "CAD: centred on the garage, 16 ft overall per OCH spec"
+   },
+   "source": "CAD: Renner_B40A_2026-02-21.dwg, layer A-Area-Masonry, finish-face area polylines unioned. AC1032 (AutoCAD 2018).",
+   "note": "Renner A is 40 x 69'-8\" (flush front); B and C are 40 x 77'-8\" with an 8' front projection. FRONT ENTRY: y=0 is the FRONT. CAD-extracted 11/10/26 from A-Area-Masonry.",
+   "garageCentre": 29.62,
+   "frontAtY0": true,
+   "porchNote": "Porch encroachment NOT VERIFIED. Deliberately absent from porchByPlan so the tool gives no credit and flags it, rather than assuming a figure."
+  },
+  "renner_c": {
+   "w": 40.0,
+   "d": 77.667,
+   "areaSf": 2964.6,
+   "pts": [
+    [
+     19.708,
+     7.0
+    ],
+    [
+     19.708,
+     0.0
+    ],
+    [
+     0.0,
+     0.0
+    ],
+    [
+     0.0,
+     8.0
+    ],
+    [
+     0.0,
+     8.0
+    ],
+    [
+     0.0,
+     70.917
+    ],
+    [
+     0.0,
+     77.667
+    ],
+    [
+     24.458,
+     77.667
+    ],
+    [
+     40.0,
+     77.667
+    ],
+    [
+     40.0,
+     31.75
+    ],
+    [
+     40.0,
+     10.0
+    ],
+    [
+     40.0,
+     7.0
+    ],
+    [
+     19.708,
+     7.0
+    ]
+   ],
+   "door": {
+    "lo": 21.63,
+    "hi": 37.63,
+    "width": 16.0,
+    "source": "CAD: centred on the garage, 16 ft overall per OCH spec"
+   },
+   "source": "CAD: Renner_B40A_2026-02-21.dwg, layer A-Area-Masonry, finish-face area polylines unioned. AC1032 (AutoCAD 2018).",
+   "note": "Renner A is 40 x 69'-8\" (flush front); B and C are 40 x 77'-8\" with an 8' front projection. FRONT ENTRY: y=0 is the FRONT. CAD-extracted 11/10/26 from A-Area-Masonry.",
+   "garageCentre": 29.63,
+   "frontAtY0": true,
+   "porchNote": "Porch encroachment NOT VERIFIED. Deliberately absent from porchByPlan so the tool gives no credit and flags it, rather than assuming a figure."
+  },
+  "shelby_a": {
+   "w": 40.0,
+   "d": 85.0,
+   "areaSf": 3203.7,
+   "pts": [
+    [
+     40.0,
+     10.0
+    ],
+    [
+     20.375,
+     10.0
+    ],
+    [
+     20.375,
+     0.0
+    ],
+    [
+     0.0,
+     0.0
+    ],
+    [
+     0.0,
+     8.0
+    ],
+    [
+     0.0,
+     85.0
+    ],
+    [
+     18.542,
+     85.0
+    ],
+    [
+     40.0,
+     85.0
+    ],
+    [
+     40.0,
+     77.25
+    ],
+    [
+     40.0,
+     31.75
+    ],
+    [
+     40.0,
+     10.0
+    ]
+   ],
+   "door": {
+    "lo": 21.25,
+    "hi": 37.25,
+    "width": 16.0,
+    "source": "CAD: centred on the garage, 16 ft overall per OCH spec"
+   },
+   "source": "CAD: Shelby_F40A_2026-03-27.dwg, layer A-Area-Masonry, finish-face area polylines unioned. AC1032 (AutoCAD 2018).",
+   "note": "Shelby A/B/C are 40 x 85 ft (the newly-added plans, different from D/E/F); D/E/F are 40 x 80. All six read from Shelby_F40A (FIRST FLOOR/ELEC \"A\"..\"F\"). FRONT ENTRY: y=0 is the FRONT. CAD-extracted 11/10/26 from A-Area-Masonry.",
+   "garageCentre": 29.25,
+   "frontAtY0": true,
+   "porchNote": "Porch encroachment NOT VERIFIED. Deliberately absent from porchByPlan so the tool gives no credit and flags it, rather than assuming a figure."
+  },
+  "shelby_b": {
+   "w": 40.0,
+   "d": 85.0,
+   "areaSf": 3203.8,
+   "pts": [
+    [
+     40.0,
+     10.0
+    ],
+    [
+     20.375,
+     10.0
+    ],
+    [
+     20.375,
+     0.0
+    ],
+    [
+     0.0,
+     0.0
+    ],
+    [
+     0.0,
+     8.0
+    ],
+    [
+     0.0,
+     85.0
+    ],
+    [
+     18.542,
+     85.0
+    ],
+    [
+     40.0,
+     85.0
+    ],
+    [
+     40.0,
+     77.25
+    ],
+    [
+     40.0,
+     31.75
+    ],
+    [
+     40.0,
+     10.0
+    ]
+   ],
+   "door": {
+    "lo": 21.25,
+    "hi": 37.25,
+    "width": 16.0,
+    "source": "CAD: centred on the garage, 16 ft overall per OCH spec"
+   },
+   "source": "CAD: Shelby_F40A_2026-03-27.dwg, layer A-Area-Masonry, finish-face area polylines unioned. AC1032 (AutoCAD 2018).",
+   "note": "Shelby A/B/C are 40 x 85 ft (the newly-added plans, different from D/E/F); D/E/F are 40 x 80. All six read from Shelby_F40A (FIRST FLOOR/ELEC \"A\"..\"F\"). FRONT ENTRY: y=0 is the FRONT. CAD-extracted 11/10/26 from A-Area-Masonry.",
+   "garageCentre": 29.25,
+   "frontAtY0": true,
+   "porchNote": "Porch encroachment NOT VERIFIED. Deliberately absent from porchByPlan so the tool gives no credit and flags it, rather than assuming a figure."
+  },
+  "shelby_c": {
+   "w": 40.0,
+   "d": 85.0,
+   "areaSf": 3182.5,
+   "pts": [
+    [
+     40.0,
+     10.0
+    ],
+    [
+     20.375,
+     10.0
+    ],
+    [
+     20.375,
+     0.0
+    ],
+    [
+     10.625,
+     0.0
+    ],
+    [
+     10.625,
+     2.0
+    ],
+    [
+     0.0,
+     2.0
+    ],
+    [
+     0.0,
+     8.0
+    ],
+    [
+     0.0,
+     85.0
+    ],
+    [
+     18.542,
+     85.0
+    ],
+    [
+     40.0,
+     85.0
+    ],
+    [
+     40.0,
+     77.25
+    ],
+    [
+     40.0,
+     31.75
+    ],
+    [
+     40.0,
+     10.0
+    ]
+   ],
+   "door": {
+    "lo": 21.25,
+    "hi": 37.25,
+    "width": 16.0,
+    "source": "CAD: centred on the garage, 16 ft overall per OCH spec"
+   },
+   "source": "CAD: Shelby_F40A_2026-03-27.dwg, layer A-Area-Masonry, finish-face area polylines unioned. AC1032 (AutoCAD 2018).",
+   "note": "Shelby A/B/C are 40 x 85 ft (the newly-added plans, different from D/E/F); D/E/F are 40 x 80. All six read from Shelby_F40A (FIRST FLOOR/ELEC \"A\"..\"F\"). FRONT ENTRY: y=0 is the FRONT. CAD-extracted 11/10/26 from A-Area-Masonry.",
+   "garageCentre": 29.25,
+   "frontAtY0": true,
+   "porchNote": "Porch encroachment NOT VERIFIED. Deliberately absent from porchByPlan so the tool gives no credit and flags it, rather than assuming a figure."
+  },
+  "shelby_d": {
+   "w": 40.0,
+   "d": 80.0,
+   "areaSf": 3085.9,
+   "pts": [
+    [
+     3.0,
+     1.5
+    ],
+    [
+     0.0,
+     1.5
+    ],
+    [
+     0.0,
+     80.0
+    ],
+    [
+     18.542,
+     80.0
+    ],
+    [
+     40.0,
+     80.0
+    ],
+    [
+     40.0,
+     72.25
+    ],
+    [
+     40.0,
+     26.75
+    ],
+    [
+     40.0,
+     5.0
+    ],
+    [
+     20.375,
+     5.0
+    ],
+    [
+     20.375,
+     0.0
+    ],
+    [
+     10.625,
+     0.0
+    ],
+    [
+     10.625,
+     1.5
+    ],
+    [
+     9.5,
+     1.5
+    ],
+    [
+     3.0,
+     1.5
+    ]
+   ],
+   "door": {
+    "lo": 21.25,
+    "hi": 37.25,
+    "width": 16.0,
+    "source": "CAD: centred on the garage, 16 ft overall per OCH spec"
+   },
+   "source": "CAD: Shelby_F40A_2026-03-27.dwg, layer A-Area-Masonry, finish-face area polylines unioned. AC1032 (AutoCAD 2018).",
+   "note": "Shelby A/B/C are 40 x 85 ft (the newly-added plans, different from D/E/F); D/E/F are 40 x 80. All six read from Shelby_F40A (FIRST FLOOR/ELEC \"A\"..\"F\"). FRONT ENTRY: y=0 is the FRONT. CAD-extracted 11/10/26 from A-Area-Masonry.",
+   "garageCentre": 29.25,
+   "frontAtY0": true,
+   "porchNote": "Porch encroachment NOT VERIFIED. Deliberately absent from porchByPlan so the tool gives no credit and flags it, rather than assuming a figure."
+  },
+  "shelby_e": {
+   "w": 40.0,
+   "d": 80.0,
+   "areaSf": 3110.9,
+   "pts": [
+    [
+     40.0,
+     4.0
+    ],
+    [
+     20.375,
+     4.0
+    ],
+    [
+     20.375,
+     0.0
+    ],
+    [
+     10.625,
+     0.0
+    ],
+    [
+     10.625,
+     1.0
+    ],
+    [
+     0.0,
+     1.0
+    ],
+    [
+     0.0,
+     80.0
+    ],
+    [
+     18.542,
+     80.0
+    ],
+    [
+     40.0,
+     80.0
+    ],
+    [
+     40.0,
+     72.25
+    ],
+    [
+     40.0,
+     26.75
+    ],
+    [
+     40.0,
+     4.0
+    ]
+   ],
+   "door": {
+    "lo": 21.25,
+    "hi": 37.25,
+    "width": 16.0,
+    "source": "CAD: centred on the garage, 16 ft overall per OCH spec"
+   },
+   "source": "CAD: Shelby_F40A_2026-03-27.dwg, layer A-Area-Masonry, finish-face area polylines unioned. AC1032 (AutoCAD 2018).",
+   "note": "Shelby A/B/C are 40 x 85 ft (the newly-added plans, different from D/E/F); D/E/F are 40 x 80. All six read from Shelby_F40A (FIRST FLOOR/ELEC \"A\"..\"F\"). FRONT ENTRY: y=0 is the FRONT. CAD-extracted 11/10/26 from A-Area-Masonry.",
+   "garageCentre": 29.25,
+   "frontAtY0": true,
+   "porchNote": "Porch encroachment NOT VERIFIED. Deliberately absent from porchByPlan so the tool gives no credit and flags it, rather than assuming a figure."
+  },
+  "shelby_f": {
+   "w": 40.0,
+   "d": 80.0,
+   "areaSf": 3077.1,
+   "pts": [
+    [
+     40.0,
+     5.0
+    ],
+    [
+     20.375,
+     5.0
+    ],
+    [
+     20.375,
+     0.0
+    ],
+    [
+     10.625,
+     0.0
+    ],
+    [
+     10.625,
+     2.333
+    ],
+    [
+     0.0,
+     2.333
+    ],
+    [
+     0.0,
+     80.0
+    ],
+    [
+     18.542,
+     80.0
+    ],
+    [
+     40.0,
+     80.0
+    ],
+    [
+     40.0,
+     72.25
+    ],
+    [
+     40.0,
+     26.75
+    ],
+    [
+     40.0,
+     5.0
+    ]
+   ],
+   "door": {
+    "lo": 21.25,
+    "hi": 37.25,
+    "width": 16.0,
+    "source": "CAD: centred on the garage, 16 ft overall per OCH spec"
+   },
+   "source": "CAD: Shelby_F40A_2026-03-27.dwg, layer A-Area-Masonry, finish-face area polylines unioned. AC1032 (AutoCAD 2018).",
+   "note": "Shelby A/B/C are 40 x 85 ft (the newly-added plans, different from D/E/F); D/E/F are 40 x 80. All six read from Shelby_F40A (FIRST FLOOR/ELEC \"A\"..\"F\"). FRONT ENTRY: y=0 is the FRONT. CAD-extracted 11/10/26 from A-Area-Masonry.",
+   "garageCentre": 29.25,
+   "frontAtY0": true,
+   "porchNote": "Porch encroachment NOT VERIFIED. Deliberately absent from porchByPlan so the tool gives no credit and flags it, rather than assuming a figure."
   }
  },
  "validation": "Every footprint matches the plan library's width and depth and the sheet's stated slab area to within a square foot. Unlike the 9/22 raster traces there is no wall-line undercount, so areaSf equals slabSf rather than running 49-59 sf under it.",
