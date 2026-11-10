@@ -112,7 +112,8 @@
    "buildableWidthMin": 40.0,
    "buildableWidthAtDepth": 0.0,
    "padWidthSlack": 5.0,
-   "blk": "R"
+   "blk": "R",
+   "driveRestriction": "inlet"
   },
   {
    "i": 1,
@@ -222,7 +223,8 @@
    "buildableWidthMin": 37.1,
    "buildableWidthAtDepth": 85.0,
    "padWidthSlack": 2.1,
-   "blk": "R"
+   "blk": "R",
+   "driveRestriction": "inlet"
   },
   {
    "i": 2,
@@ -1248,7 +1250,8 @@
    "buildableWidthMin": 28.3,
    "buildableWidthAtDepth": 0.0,
    "padWidthSlack": -6.7,
-   "blk": "R"
+   "blk": "R",
+   "driveRestriction": "lot12"
   },
   {
    "i": 11,
@@ -2180,7 +2183,8 @@
    "buildableWidthMin": 57.2,
    "buildableWidthAtDepth": 85.0,
    "padWidthSlack": 22.2,
-   "blk": "R"
+   "blk": "R",
+   "driveRestriction": "alleyEntrance"
   },
   {
    "i": 12,
@@ -3040,7 +3044,8 @@
    "buildableWidthMin": 47.7,
    "buildableWidthAtDepth": 85.0,
    "padWidthSlack": 12.7,
-   "blk": "R"
+   "blk": "R",
+   "driveRestriction": "alleyEntrance"
   },
   {
    "i": 13,
@@ -4532,7 +4537,8 @@
    "buildableWidthMin": 36.3,
    "buildableWidthAtDepth": 0.0,
    "padWidthSlack": 1.3,
-   "blk": "R"
+   "blk": "R",
+   "driveRestriction": "inlet"
   },
   {
    "i": 19,
@@ -5570,7 +5576,8 @@
    "buildableWidthMin": 34.2,
    "buildableWidthAtDepth": 85.0,
    "padWidthSlack": -0.8,
-   "blk": "R"
+   "blk": "R",
+   "driveRestriction": "alleyEntrance"
   },
   {
    "i": 20,
@@ -9202,7 +9209,8 @@
    "buildableWidthMin": 34.9,
    "buildableWidthAtDepth": 0.0,
    "padWidthSlack": -0.1,
-   "blk": "R"
+   "blk": "R",
+   "driveRestriction": "alleyEntrance"
   },
   {
    "i": 28,
@@ -11064,7 +11072,8 @@
    "buildableWidthMin": 63.3,
    "buildableWidthAtDepth": 0.0,
    "padWidthSlack": 28.3,
-   "blk": "R"
+   "blk": "R",
+   "nonConforming": true
   }
  ],
  "streets": [],
@@ -11103,7 +11112,7 @@
    "Sherley Farms is Anna. The Heights at Uptown is Celina. The two carry different rules and are never combined."
   ],
   "openItems": [
-   "Driveway restrictions from Pad Fit Exhibit sheet 1 (inlet conflicts, lot-12 driveway conflict, alley-entrance proximity) and the asterisked non-conforming lots are not yet extracted per lot.",
+   "Driveway restrictions are extracted and live in data/sherley-45r-driveway.json: 8 restricted lots in Block R (R-1 and R-2 inlet, R-11 lot-12 driveway conflict, R-12 R-13 R-20 R-28 alley-entrance proximity, R-19 inlet) plus R-37 asterisked non-conforming. The exhibit names the lot and the hazard but not which side the driveway must move to, so no side is recorded.",
    "Webber porch projection by elevation is not verified, so no porch credit is applied for Webber.",
    "Still to build for the driveway model: ROW width per street (measurable off the plat right-of-way lines), top-of-curb elevation at each lot driveway (grading plan spot elevations, now readable), and which side the driveway sits on per lot (Pad Fit Exhibit sheet 1)."
   ],
@@ -11159,6 +11168,7 @@
   ],
   "offersSource": "Every OCH plan in plans.json that matches this product and garage type. NOT a confirmed Sherley offering \u2014 OCH has not supplied the Sherley plan list. The only plan sourced to a Sherley document is Webber B on the model lot, 1A F-7, 2417 Milam Street.",
   "retiredPlans": [],
-  "rearEntry": true
+  "rearEntry": true,
+  "driveRestrictionFile": "sherley-45r-driveway.json"
  }
 }

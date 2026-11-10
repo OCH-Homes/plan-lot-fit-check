@@ -1,0 +1,31 @@
+{
+ "meta": {
+  "community": "sherley-45r",
+  "title": "Driveway restrictions and non-conforming lots — Sherley Farms, 45' rear-entry",
+  "source": "Pad Fit Exhibit, Sherley Farms Phase 1, Spiars Engineering & Surveying, sheet 1 of 2, October 2026, SEI Job No. 24-109. PDF created 2026-10-08.",
+  "extracted": "2026-11-09",
+  "method": "The exhibit marks each restricted driveway with a small red square on the lot's alley frontage and ties it to a leader note. Eight such markers are on the sheet and all eight were located and read. The lots are all in Block R, which is the whole of OCH's 45' rear-entry product. The inlets themselves are the small purple rectangles the notes refer to.",
+  "reasons": {
+   "inlet": "Restricted due to inlet — a storm inlet sits in the alley at this lot.",
+   "lot12": "Restricted to avoid conflict with the lot 12 driveway.",
+   "alleyEntrance": "Restricted due to proximity to the alley entrance."
+  },
+  "whatThisMeans": "The exhibit identifies the lot and the thing to avoid. It does not state which side of the lot the driveway must move to, so no side is recorded here and none should be inferred. Treat a listed lot as one whose driveway placement has to be settled on the plot plan rather than assumed.",
+  "nonConformingNote": "The exhibit fills lot 37 in red and marks it with an asterisk. No legend or note on either sheet says what the asterisk means. It is recorded here as marked, with no interpretation attached. Worth asking Spiars.",
+  "scope": "Block R only. The 45' FRONT-entry lots on the same exhibit (the magenta blocks) are another builder's and are not in OCH's data.",
+  "caveat": "Preliminary. Confirm against the surveyed plot plan before making commitments."
+ },
+ "restrictions": {
+  "1C R-1": { "reason": "inlet", "note": "Storm inlet in the alley between lots 1 and 2." },
+  "1C R-2": { "reason": "inlet", "note": "Storm inlet in the alley between lots 1 and 2." },
+  "1C R-11": { "reason": "lot12", "note": "Driveway must not conflict with the lot 12 driveway." },
+  "1C R-12": { "reason": "alleyEntrance" },
+  "1C R-13": { "reason": "alleyEntrance" },
+  "1C R-19": { "reason": "inlet", "note": "Storm inlet in the alley at the lot 19 / lot 20 end of the run." },
+  "1C R-20": { "reason": "alleyEntrance" },
+  "1C R-28": { "reason": "alleyEntrance" }
+ },
+ "nonConforming": {
+  "1C R-37": { "mark": "asterisk", "note": "Filled red and asterisked on the exhibit. Meaning not stated on either sheet." }
+ }
+}
