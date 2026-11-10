@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Lot Fit Check</title>
 <style>
+.spot{font-size:3.1px;font-style:italic;fill:#5A6166;font-family:system-ui,sans-serif;
+      text-anchor:middle;pointer-events:none;paint-order:stroke;stroke:#fff;stroke-width:.7px}
+.spotfp{font-weight:700;fill:#223D40;font-size:3.5px}
 @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
 :root{
  --paper:#EDEFF1;--card:#F8F9FA;--ink:#16232E;--structural:#2E4A63;
@@ -161,7 +164,7 @@ let PAD_DEPTH=80.0, BASE_RUN=21.0, MAXG=10.0, SLAB=0.83, STD_STEP=0.58;
    it is a lot that needs a City sign-off, which is a commercial decision rather
    than a dead lot. Stays null where a community records no approval allowance,
    in which case maxGrade is a hard ceiling exactly as before. */
-const MAP_BUILD='2026-11-05b';   /* printed in the header, like the other pages */
+const MAP_BUILD='2026-11-10c';   /* printed in the header, like the other pages */
 let MAXG_APPROVE=null;
 /* Verified per-lot driveway grade, built from the engineer's grading plan and
    the surveyed alley elevations (see <community>-grade.json). It REPLACES the
@@ -567,7 +570,11 @@ function depthFit(l,p){
     return {src:'pad',need:need,have:l.padD,margin:l.padD-need,porch:porch};
   }
   if(l.ld!=null){
-    const fbl=M.frontBL!=null?M.frontBL:10, rear=M.rearBL!=null?M.rearBL:20;
+    /* The front building line varies lot by lot at Sherley, so the lot's own
+       value wins where it has one; a community-wide number is the fallback,
+       which keeps The Heights and Grand Oaks working unchanged. */
+    const fbl=l.frontBL!=null?l.frontBL:(M.frontBL!=null?M.frontBL:10),
+          rear=M.rearBL!=null?M.rearBL:20;
     const need=p.d+fbl+rear-porch;
     return {src:'lot',need:need,have:l.ld,margin:l.ld-need,porch:porch,fbl:fbl,rear:rear};
   }
@@ -863,8 +870,11 @@ function drawLegend(){
   if(rows===null){
     if(mode==='slope'){
       /* Bands follow the community's own design max and approval ceiling. */
-      rows=[['#2F7D5A','under '+(MAXG*0.8)+'%'],
-            ['#7FA86B',(MAXG*0.8)+'–'+MAXG+'%']];
+      /* MAXG*0.8 is 9.600000000000001 in binary floating point when MAXG is
+         12, so round it for display. */
+      const soft=Math.round(MAXG*0.8*10)/10;
+      rows=[['#2F7D5A','under '+soft+'%'],
+            ['#7FA86B',soft+'–'+MAXG+'%']];
       if(MAXG_APPROVE!=null){
         rows.push(['#B8791E',MAXG+'–'+MAXG_APPROVE+'% — City approval'],
                   ['#A6392E','over '+MAXG_APPROVE+'% — not approvable']);
@@ -892,9 +902,24 @@ function toggleNums(){showNums=!showNums;
   document.getElementById('numBtn').textContent='lot #: '+(showNums?'on':'off');
   document.getElementById('gNums').style.display=showNums?'':'none';}
 
+/* Show grade labels once the view is tight enough to read them, and always on
+   the lot that is selected. */
+function paintSpots(){
+  const gg=document.getElementById('gSpots'); if(!gg) return;
+  const near=vb.w<=SPOTZOOM;
+  for(const g of gg.children)
+    g.style.display=(near||String(g.dataset.i)===String(sel))?'':'none';
+}
+
 /* ---------- svg ---------- */
 const NS='http://www.w3.org/2000/svg';
 let vb={x:0,y:0,w:1000,h:600};
+/* Engineer's finished-grade labels, keyed block-lot, from
+   data/<community>-spots.json. Optional: a community without the file simply
+   draws none. They are drawn only when the view is zoomed in far enough to
+   read them, plus always on the selected lot — 2,700 labels over a whole
+   community is a grey smear, not information. */
+let SPOTS={}, SPOTZOOM=420;
 const svg=document.getElementById('map');
 function build(){
   svg.innerHTML='';
@@ -921,6 +946,18 @@ function build(){
   svg.appendChild(gl);
   /* The engineer's pads, where the grading drawing gave them. Drawn above the
      lot so the buildable area is visible without opening the fit sheet. */
+  /* Grade labels, italic and small, drawn where the engineer placed them. */
+  const gg=document.createElementNS(NS,'g'); gg.id='gSpots';
+  MAP.lots.forEach(l=>{
+    const sp=SPOTS[l.b+'-'+l.l]; if(!sp) return;
+    const g=document.createElementNS(NS,'g'); g.dataset.i=l.i;
+    sp.forEach(z=>{ const t=document.createElementNS(NS,'text');
+      t.setAttribute('x',z.x); t.setAttribute('y',z.y);
+      t.setAttribute('class','spot'+(z.k==='FP'?' spotfp':''));
+      t.textContent=(z.k==='FG'?'':z.k+' ')+z.v.toFixed(1);
+      g.appendChild(t); });
+    gg.appendChild(g);});
+  svg.appendChild(gg);
   const gp=document.createElementNS(NS,'g');gp.id='gPads';
   MAP.lots.forEach(l=>{ if(!l.pad||!l.pad.length)return;
     const p=document.createElementNS(NS,'polygon');
@@ -961,8 +998,26 @@ function paint(){
   });
   tagOurs();
 }
-function setVB(){svg.setAttribute('viewBox',`${vb.x} ${vb.y} ${vb.w} ${vb.h}`);}
-function fit(){vb={x:-10,y:-10,w:MAP.w+20,h:MAP.h+20};setVB();}
+function setVB(){svg.setAttribute('viewBox',`${vb.x} ${vb.y} ${vb.w} ${vb.h}`); paintSpots();}
+/* Fit to the lots that are actually in the file, not to the community frame.
+   A product slice (Sherley's 45 ft lots) occupies one corner of a frame shared
+   with the other product, and framing the whole thing left it a speck. Falls
+   back to the frame when no lot carries geometry. */
+function lotBounds(){
+  let x0=Infinity,y0=Infinity,x1=-Infinity,y1=-Infinity;
+  for(const l of (MAP.lots||[])) for(const q of (l.pts||[])){
+    if(q[0]<x0)x0=q[0]; if(q[0]>x1)x1=q[0];
+    if(q[1]<y0)y0=q[1]; if(q[1]>y1)y1=q[1];
+  }
+  return isFinite(x0)&&x1>x0&&y1>y0 ? {x0,y0,x1,y1} : null;
+}
+function fit(){
+  const b=lotBounds();
+  if(b){ const m=Math.max(20,(b.x1-b.x0)*0.03);
+         vb={x:b.x0-m,y:b.y0-m,w:(b.x1-b.x0)+2*m,h:(b.y1-b.y0)+2*m}; }
+  else vb={x:-10,y:-10,w:MAP.w+20,h:MAP.h+20};
+  setVB();
+}
 function zoom(f,cx,cy){
   const r=svg.getBoundingClientRect();
   cx=cx===undefined?vb.x+vb.w/2:cx;cy=cy===undefined?vb.y+vb.h/2:cy;
@@ -998,7 +1053,7 @@ function searchKey(e){
 }
 
 /* ---------- side panel ---------- */
-function select(i){sel=i;paint();safeSide();}
+function select(i){sel=i;paint();paintSpots();safeSide();}
 function safeSide(hits){ try{renderSide(hits);}catch(e){sideError(e);} }
 function pill(cls,txt){return `<span class="pill p-${cls}">${txt}</span>`;}
 function fmt(v,dp,suf){return v==null||isNaN(v)?'—':v.toFixed(dp==null?1:dp)+(suf||'');}
@@ -1416,7 +1471,7 @@ function overview(){
   if(REAR){
     const M=MAP.meta||{};
     h+=`<p style="font-size:13px">A home has to sit on the engineer's pad. Depth fit is the pad depth less the plan depth, with the porch allowed to encroach ${M.porchEncroach!=null?M.porchEncroach:5} ft into the front building line, so the porch does not eat buildable depth. Width fit is the pad width against the plan width.</p>
-     <p style="font-size:13px">Where no pad was extracted, the check falls back to the plat lot depth against the front building line (${M.frontBL!=null?M.frontBL:10} ft) plus rear-to-alley (${M.rearBL!=null?M.rearBL:20} ft), less the same porch credit. Both routes agree on every lot where both are available.</p>
+     <p style="font-size:13px">Where no pad was extracted, the check falls back to the plat lot depth against the front building line (${M.frontBL!=null?M.frontBL:(M.frontBLvalues?M.frontBLvalues.join(' / ')+' ft, per lot':'10 ft')})) plus rear-to-alley (${M.rearBL!=null?M.rearBL:20} ft), less the same porch credit. Both routes agree on every lot where both are available.</p>
      <p style="font-size:13px">Driveway slope is an <b>estimate</b> — pad less rear grade over a ${BASE_RUN} ft apron — and only exists where a rear grade was recorded. ${MAXG_APPROVE!=null?`The design maximum is ${MAXG}%; between ${MAXG}% and ${MAXG_APPROVE}% the lot is buildable with a City approval, and only above ${MAXG_APPROVE}% is it treated as a failure.`:`Anything over ${MAXG}% is treated as a failure.`}</p>`;
   }
   if(FRONT){
@@ -1532,6 +1587,8 @@ async function boot(){
     GRADE=await fetch('../data/'+COMMUNITY+'-grade.json',{cache:'no-store'})
             .then(x=>x.ok?x.json():null).catch(()=>null) || {};
     /* Optional: a community with no swing file simply has no locks. */
+    SPOTS=await fetch('../data/'+COMMUNITY+'-spots.json',{cache:'no-store'})
+      .then(r=>r.ok?r.json():null).catch(()=>null).then(j=>(j&&j.lots)||{});
     const sw=await fetch('../data/'+COMMUNITY+'-swing.json',{cache:'no-store'})
             .then(x=>x.ok?x.json():null).catch(()=>null);
     SWING=(sw&&sw.locks)||{}; SWINGMETA=(sw&&sw.meta)||{};
@@ -1556,7 +1613,9 @@ async function boot(){
   REAR = RES.some(rearLot); FRONT = RES.some(l=>!rearLot(l));
   applyStandardsPatch();
   applyMeta(MAP.meta);
-  vb={x:0,y:0,w:MAP.w,h:MAP.h};
+  { const b=lotBounds();
+    vb = b ? {x:b.x0-20,y:b.y0-20,w:(b.x1-b.x0)+40,h:(b.y1-b.y0)+40}
+           : {x:0,y:0,w:MAP.w,h:MAP.h}; }
   build();
   if(RECORD){
     ['pickBtn','hideBtn','padBtn'].forEach(id=>{const e=document.getElementById(id); if(e)e.style.display='none';});
