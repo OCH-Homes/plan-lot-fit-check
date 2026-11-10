@@ -868,7 +868,8 @@
     ]
    ],
    "source": "CAD: Thompson D35A 2024-07-29.dwg, layer A-Area-Frame, closed area polylines unioned. AutoCAD 2018 format.",
-   "note": "A and B share one 34.0 x 79.0 ft footprint and differ only at the front facade; C is 73.0 ft. Depths confirmed by Brandi 5 Nov 2026: A 79', B 79', C 73'. Garage end at y=0. PORCH ENCROACHMENT NOT YET SUPPLIED \u2014 set to 0 as the conservative placeholder, which charges each elevation its full depth. Replace when OCH gives the figure."
+   "note": "A and B share one 34.0 x 79.0 ft footprint and differ only at the front facade; C is 73.0 ft. Depths confirmed by Brandi 5 Nov 2026: A 79', B 79', C 73'. Garage end at y=0. PORCH ENCROACHMENT NOT YET SUPPLIED \u2014 set to 0 as the conservative placeholder, which charges each elevation its full depth. Replace when OCH gives the figure.",
+   "porchNote": "Porch encroachment NOT VERIFIED. Deliberately absent from porchByPlan so the tool gives no credit and flags it, rather than assuming a figure. Verify the allowable from zoning, not from the plan outline."
   },
   "thompson_b": {
    "w": 34.0,
@@ -929,7 +930,8 @@
     ]
    ],
    "source": "CAD: Thompson D35A 2024-07-29.dwg, layer A-Area-Frame, closed area polylines unioned. AutoCAD 2018 format.",
-   "note": "A and B share one 34.0 x 79.0 ft footprint and differ only at the front facade; C is 73.0 ft. Depths confirmed by Brandi 5 Nov 2026: A 79', B 79', C 73'. Garage end at y=0. PORCH ENCROACHMENT NOT YET SUPPLIED \u2014 set to 0 as the conservative placeholder, which charges each elevation its full depth. Replace when OCH gives the figure."
+   "note": "A and B share one 34.0 x 79.0 ft footprint and differ only at the front facade; C is 73.0 ft. Depths confirmed by Brandi 5 Nov 2026: A 79', B 79', C 73'. Garage end at y=0. PORCH ENCROACHMENT NOT YET SUPPLIED \u2014 set to 0 as the conservative placeholder, which charges each elevation its full depth. Replace when OCH gives the figure.",
+   "porchNote": "Porch encroachment NOT VERIFIED. Deliberately absent from porchByPlan so the tool gives no credit and flags it, rather than assuming a figure. Verify the allowable from zoning, not from the plan outline."
   },
   "thompson_c": {
    "w": 34.0,
@@ -974,7 +976,137 @@
     ]
    ],
    "source": "CAD: Thompson D35A 2024-07-29.dwg, layer A-Area-Frame, closed area polylines unioned. AutoCAD 2018 format.",
-   "note": "A and B share one 34.0 x 79.0 ft footprint and differ only at the front facade; C is 73.0 ft. Depths confirmed by Brandi 5 Nov 2026: A 79', B 79', C 73'. Garage end at y=0. PORCH ENCROACHMENT NOT YET SUPPLIED \u2014 set to 0 as the conservative placeholder, which charges each elevation its full depth. Replace when OCH gives the figure."
+   "note": "A and B share one 34.0 x 79.0 ft footprint and differ only at the front facade; C is 73.0 ft. Depths confirmed by Brandi 5 Nov 2026: A 79', B 79', C 73'. Garage end at y=0. PORCH ENCROACHMENT NOT YET SUPPLIED \u2014 set to 0 as the conservative placeholder, which charges each elevation its full depth. Replace when OCH gives the figure.",
+   "porchNote": "Porch encroachment NOT VERIFIED. Deliberately absent from porchByPlan so the tool gives no credit and flags it, rather than assuming a figure. Verify the allowable from zoning, not from the plan outline."
+  },
+  "webber_a": {
+   "w": 40.0,
+   "d": 78.0,
+   "areaSf": 2896.7,
+   "pts": [
+    [
+     40.0,
+     10.0
+    ],
+    [
+     19.833,
+     10.0
+    ],
+    [
+     19.833,
+     0.0
+    ],
+    [
+     10.833,
+     0.0
+    ],
+    [
+     10.833,
+     2.0
+    ],
+    [
+     0.0,
+     2.0
+    ],
+    [
+     0.0,
+     78.0
+    ],
+    [
+     40.0,
+     78.0
+    ]
+   ],
+   "source": "CAD: Webber E40A 2026-03-18.dwg, layer A-Area, closed area polylines unioned. AC1032 (AutoCAD 2018).",
+   "note": "One FIRST FLOOR PLAN \"A\" shared by front elevations A, B and C \u2014 same arrangement as Pearl and Logan. 40.00 x 78.00 ft, 2,896.7 sf, which matches plans.json and the 2417 Milam Street plot plan (Webber E40A Elev. B) exactly. FRONT ENTRY plan: the garage faces the street, so the y=0 end of this outline is the FRONT, the opposite of the rear-entry plans at The Heights. PORCH ENCROACHMENT NOT SUPPLIED \u2014 set to 0 as the conservative placeholder.",
+   "frontAtY0": true,
+   "porchNote": "Porch encroachment NOT VERIFIED. Deliberately absent from porchByPlan so the tool gives no credit and flags it, rather than assuming a figure. Verify the allowable from zoning, not from the plan outline."
+  },
+  "webber_b": {
+   "w": 40.0,
+   "d": 78.0,
+   "areaSf": 2896.7,
+   "pts": [
+    [
+     40.0,
+     10.0
+    ],
+    [
+     19.833,
+     10.0
+    ],
+    [
+     19.833,
+     0.0
+    ],
+    [
+     10.833,
+     0.0
+    ],
+    [
+     10.833,
+     2.0
+    ],
+    [
+     0.0,
+     2.0
+    ],
+    [
+     0.0,
+     78.0
+    ],
+    [
+     40.0,
+     78.0
+    ]
+   ],
+   "source": "CAD: Webber E40A 2026-03-18.dwg, layer A-Area, closed area polylines unioned. AC1032 (AutoCAD 2018).",
+   "note": "One FIRST FLOOR PLAN \"A\" shared by front elevations A, B and C \u2014 same arrangement as Pearl and Logan. 40.00 x 78.00 ft, 2,896.7 sf, which matches plans.json and the 2417 Milam Street plot plan (Webber E40A Elev. B) exactly. FRONT ENTRY plan: the garage faces the street, so the y=0 end of this outline is the FRONT, the opposite of the rear-entry plans at The Heights. PORCH ENCROACHMENT NOT SUPPLIED \u2014 set to 0 as the conservative placeholder.",
+   "frontAtY0": true,
+   "porchNote": "Porch encroachment NOT VERIFIED. Deliberately absent from porchByPlan so the tool gives no credit and flags it, rather than assuming a figure. Verify the allowable from zoning, not from the plan outline."
+  },
+  "webber_c": {
+   "w": 40.0,
+   "d": 78.0,
+   "areaSf": 2896.7,
+   "pts": [
+    [
+     40.0,
+     10.0
+    ],
+    [
+     19.833,
+     10.0
+    ],
+    [
+     19.833,
+     0.0
+    ],
+    [
+     10.833,
+     0.0
+    ],
+    [
+     10.833,
+     2.0
+    ],
+    [
+     0.0,
+     2.0
+    ],
+    [
+     0.0,
+     78.0
+    ],
+    [
+     40.0,
+     78.0
+    ]
+   ],
+   "source": "CAD: Webber E40A 2026-03-18.dwg, layer A-Area, closed area polylines unioned. AC1032 (AutoCAD 2018).",
+   "note": "One FIRST FLOOR PLAN \"A\" shared by front elevations A, B and C \u2014 same arrangement as Pearl and Logan. 40.00 x 78.00 ft, 2,896.7 sf, which matches plans.json and the 2417 Milam Street plot plan (Webber E40A Elev. B) exactly. FRONT ENTRY plan: the garage faces the street, so the y=0 end of this outline is the FRONT, the opposite of the rear-entry plans at The Heights. PORCH ENCROACHMENT NOT SUPPLIED \u2014 set to 0 as the conservative placeholder.",
+   "frontAtY0": true,
+   "porchNote": "Porch encroachment NOT VERIFIED. Deliberately absent from porchByPlan so the tool gives no credit and flags it, rather than assuming a figure. Verify the allowable from zoning, not from the plan outline."
   }
  },
  "validation": "Every footprint matches the plan library's width and depth and the sheet's stated slab area to within a square foot. Unlike the 9/22 raster traces there is no wall-line undercount, so areaSf equals slabSf rather than running 49-59 sf under it.",
@@ -1001,10 +1133,7 @@
   "pearl_a": 0.0,
   "logan_a": 3.5,
   "logan_b": 0.0,
-  "logan_c": 0.0,
-  "thompson_a": 0.0,
-  "thompson_b": 0.0,
-  "thompson_c": 0.0
+  "logan_c": 0.0
  },
  "porchNote": "Depth the front porch projects ahead of the living area, in feet, per ELEVATION. Only a porch may encroach into the front building line; living space never may. The community porchEncroach figure is the CAP (5' at Celina) \u2014 a deeper porch is still capped, a shallower one gets only what it has. Confirmed by Brandi 13-14 Oct 2026 against the elevations, not inferred from CAD geometry: Knox C and Addison C both differ from what the geometry suggested."
 }
