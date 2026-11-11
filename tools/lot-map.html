@@ -169,7 +169,7 @@ let PAD_DEPTH=80.0, BASE_RUN=21.0, MAXG=10.0, SLAB=0.83, STD_STEP=0.58;
    it is a lot that needs a City sign-off, which is a commercial decision rather
    than a dead lot. Stays null where a community records no approval allowance,
    in which case maxGrade is a hard ceiling exactly as before. */
-const MAP_BUILD='2026-11-11g';   /* printed in the header, like the other pages */
+const MAP_BUILD='2026-11-11h';   /* printed in the header, like the other pages */
 let MAXG_APPROVE=null;
 /* Verified per-lot driveway grade, built from the engineer's grading plan and
    the surveyed alley elevations (see <community>-grade.json). It REPLACES the
@@ -1044,6 +1044,10 @@ function build(){
     p.setAttribute('points',l.pts.map(q=>q.join(',')).join(' '));
     p.setAttribute('class','lot');p.dataset.i=l.i;
     p.addEventListener('click',()=>{ if(pickMode&&l.type==='Residential') toggleOwn(l.i); else select(l.i); });
+    /* hover shows block, lot and address */
+    const tt=document.createElementNS(NS,'title');
+    tt.textContent='Block '+l.b+' · Lot '+l.l+(l.addr?' · '+l.addr:'');
+    p.appendChild(tt);
     gl.appendChild(p);});
   svg.appendChild(gl);
   /* The engineer's pads, where the grading drawing gave them. Drawn above the
@@ -1071,7 +1075,11 @@ function build(){
   MAP.lots.forEach(l=>{const c=centroid(l.pts);
     const t=document.createElementNS(NS,'text');
     t.setAttribute('x',c[0]);t.setAttribute('y',c[1]+1.8);t.setAttribute('class','lotno');
-    t.textContent=l.type==='Residential'?l.l:l.l+'X';gn.appendChild(t);});
+    /* Block AND lot on the map: lot numbers repeat in every block, so a bare
+       "7" does not say which lot it is. Sherley's phase-qualified blocks
+       ("1A F") carry the plain letter in blk. */
+    const bk=l.blk||(String(l.b||'').length<=3?l.b:'');
+    t.textContent=(bk?bk+'-':'')+(l.type==='Residential'?l.l:l.l+'X');gn.appendChild(t);});
   svg.appendChild(gn);
   paint();fit();
 }
@@ -1135,10 +1143,20 @@ svg.addEventListener('wheel',e=>{e.preventDefault();
   const cx=vb.x+(e.clientX-r.left)/r.width*vb.w, cy=vb.y+(e.clientY-r.top)/r.height*vb.h;
   zoom(e.deltaY<0?1.15:1/1.15,cx,cy);},{passive:false});
 let drag=null;
-svg.addEventListener('pointerdown',e=>{drag={x:e.clientX,y:e.clientY,vx:vb.x,vy:vb.y};svg.classList.add('drag');svg.setPointerCapture(e.pointerId);});
-svg.addEventListener('pointermove',e=>{if(!drag)return;const r=svg.getBoundingClientRect();
+/* Pan by dragging, click to pick a lot. The pointer is only captured once the
+   mouse has actually moved a few pixels: capturing on pointerdown sent every
+   click to the map background instead of the lot under it, so clicking a lot
+   did nothing and the only way in was typing the block and lot. A drag that
+   ends over a lot does not select it. */
+let dragMoved=false;
+svg.addEventListener('pointerdown',e=>{drag={x:e.clientX,y:e.clientY,vx:vb.x,vy:vb.y,id:e.pointerId,cap:false};dragMoved=false;});
+svg.addEventListener('pointermove',e=>{if(!drag)return;
+  if(!drag.cap){ if(Math.hypot(e.clientX-drag.x,e.clientY-drag.y)<4) return;
+    drag.cap=true; dragMoved=true; svg.classList.add('drag'); try{svg.setPointerCapture(drag.id);}catch(_){} }
+  const r=svg.getBoundingClientRect();
   vb.x=drag.vx-(e.clientX-drag.x)/r.width*vb.w;vb.y=drag.vy-(e.clientY-drag.y)/r.height*vb.h;setVB();});
 svg.addEventListener('pointerup',e=>{drag=null;svg.classList.remove('drag');});
+svg.addEventListener('click',e=>{ if(dragMoved){ e.stopPropagation(); dragMoved=false; } },true);
 function matches(l,qq){
   return (l.b+'-'+l.l).toUpperCase().includes(qq) || (l.addr && l.addr.toUpperCase().includes(qq));
 }
