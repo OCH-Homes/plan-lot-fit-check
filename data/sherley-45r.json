@@ -11094,7 +11094,7 @@
   "garageBL": 20,
   "sideInterior": 5,
   "sideCorner": 15,
-  "porchEncroach": 5,
+  "porchEncroach": 10.0,
   "padNominal": "35 x 85 or 35 x 90",
   "lotNominal": "45' x 120'",
   "entry": "rear (alley),",
@@ -11158,6 +11158,14 @@
   "offersSource": "OCH Sherley Farms 45\u2032 plan line-up, supplied by Brandi Williams 2026-11-09: Addison A/B/C, Carmichael A/B/C, Holland A/B/C, Knox A/B/C, Parker A/B. Crowder and Pearl are not offered here and were removed.",
   "retiredPlans": [],
   "rearEntry": true,
-  "driveRestrictionFile": "sherley-45r-driveway.json"
+  "driveRestrictionFile": "sherley-45r-driveway.json",
+  "residentialLots": 37,
+  "baseRun": 24.0,
+  "padDepth": 85.0,
+  "baseRunNote": "Garage face to alley pavement edge: 20 ft garage setback plus the 4 ft alley parkway on a 20 ft alley ROW. 22 ft off a 28 ft alley.",
+  "orientAuthoritative": true,
+  "orientNote": "The front line of every lot was read off the plat right-of-way geometry, so it is authoritative: the sheet uses it for both the frontage direction and which end faces the street, instead of inferring either from how squarely the lot boxes up.",
+  "porchMinFromFrontPL": 5.0,
+  "porchRule": "OCH, 9 Nov 2026: a porch may project into the front setback up to 10 ft, must be unconditioned (no A/C space), and must stay at least 5 ft off the front property line. Webber A, B and C may all encroach."
  }
 }

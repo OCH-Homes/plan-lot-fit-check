@@ -113,9 +113,7 @@
    "buildableWidthAtDepth": 80.0,
    "through": false,
    "padWidthSlack": 2.5,
-   "blk": "C",
-   "builder": "Olivia Clarke",
-   "och": true
+   "blk": "C"
   },
   {
    "i": 1,
@@ -474,9 +472,7 @@
    "buildableWidthAtDepth": 80.0,
    "through": false,
    "padWidthSlack": 2.5,
-   "blk": "C",
-   "builder": "Homebound",
-   "och": false
+   "blk": "C"
   },
   {
    "i": 2,
@@ -891,9 +887,7 @@
    "buildableWidthAtDepth": 80.0,
    "through": false,
    "padWidthSlack": 3.4,
-   "blk": "C",
-   "builder": "DRB Homes",
-   "och": false
+   "blk": "C"
   },
   {
    "i": 3,
@@ -1228,9 +1222,7 @@
    "buildableWidthAtDepth": 80.0,
    "through": false,
    "padWidthSlack": 3.3,
-   "blk": "C",
-   "builder": "DRB Homes",
-   "och": false
+   "blk": "C"
   },
   {
    "i": 4,
@@ -1359,9 +1351,7 @@
    "buildableWidthAtDepth": 80.0,
    "through": false,
    "padWidthSlack": 1.6,
-   "blk": "C",
-   "builder": "Homebound",
-   "och": false
+   "blk": "C"
   },
   {
    "i": 5,
@@ -1472,9 +1462,7 @@
    "buildableWidthAtDepth": 80.0,
    "through": false,
    "padWidthSlack": 1.5,
-   "blk": "C",
-   "builder": "DRB Homes",
-   "och": false
+   "blk": "C"
   },
   {
    "i": 6,
@@ -1585,9 +1573,7 @@
    "buildableWidthAtDepth": 0.0,
    "through": false,
    "padWidthSlack": 1.0,
-   "blk": "C",
-   "builder": "Olivia Clarke",
-   "och": true
+   "blk": "C"
   },
   {
    "i": 7,
@@ -1698,9 +1684,7 @@
    "buildableWidthAtDepth": 80.0,
    "through": false,
    "padWidthSlack": 0.0,
-   "blk": "D",
-   "builder": "DRB Homes",
-   "och": false
+   "blk": "D"
   },
   {
    "i": 8,
@@ -1811,9 +1795,7 @@
    "buildableWidthAtDepth": 80.0,
    "through": false,
    "padWidthSlack": 0.0,
-   "blk": "D",
-   "builder": "Homebound",
-   "och": false
+   "blk": "D"
   },
   {
    "i": 9,
@@ -1924,9 +1906,7 @@
    "buildableWidthAtDepth": 12.0,
    "through": false,
    "padWidthSlack": 0.0,
-   "blk": "D",
-   "builder": "DRB Homes",
-   "och": false
+   "blk": "D"
   },
   {
    "i": 10,
@@ -2037,9 +2017,7 @@
    "buildableWidthAtDepth": 80.0,
    "through": false,
    "padWidthSlack": 0.0,
-   "blk": "D",
-   "builder": "Olivia Clarke",
-   "och": true
+   "blk": "D"
   },
   {
    "i": 11,
@@ -2150,9 +2128,7 @@
    "buildableWidthAtDepth": 80.0,
    "through": false,
    "padWidthSlack": 0.0,
-   "blk": "D",
-   "builder": "DRB Homes",
-   "och": false
+   "blk": "D"
   },
   {
    "i": 12,
@@ -2263,9 +2239,7 @@
    "buildableWidthAtDepth": 56.0,
    "through": false,
    "padWidthSlack": 3.6,
-   "blk": "E",
-   "builder": "DRB Homes",
-   "och": false
+   "blk": "E"
   },
   {
    "i": 13,
@@ -2376,9 +2350,7 @@
    "buildableWidthAtDepth": 0.0,
    "through": false,
    "padWidthSlack": 4.4,
-   "blk": "E",
-   "builder": "Olivia Clarke",
-   "och": true
+   "blk": "E"
   },
   {
    "i": 14,
@@ -2489,9 +2461,7 @@
    "buildableWidthAtDepth": 0.0,
    "through": false,
    "padWidthSlack": 4.4,
-   "blk": "E",
-   "builder": "DRB Homes",
-   "och": false
+   "blk": "E"
   },
   {
    "i": 15,
@@ -2602,9 +2572,7 @@
    "buildableWidthAtDepth": 0.0,
    "through": false,
    "padWidthSlack": 5.0,
-   "blk": "E",
-   "builder": "Homebound",
-   "och": false
+   "blk": "E"
   },
   {
    "i": 16,
@@ -2715,9 +2683,7 @@
    "buildableWidthAtDepth": 0.0,
    "through": false,
    "padWidthSlack": 5.6,
-   "blk": "E",
-   "builder": "DRB Homes",
-   "och": false
+   "blk": "E"
   },
   {
    "i": 17,
@@ -2828,9 +2794,7 @@
    "buildableWidthAtDepth": 0.0,
    "through": false,
    "padWidthSlack": 5.2,
-   "blk": "E",
-   "builder": "DRB Homes",
-   "och": false
+   "blk": "E"
   },
   {
    "i": 18,
@@ -2941,9 +2905,7 @@
    "buildableWidthAtDepth": 0.0,
    "through": false,
    "padWidthSlack": 4.4,
-   "blk": "E",
-   "builder": "Olivia Clarke",
-   "och": true
+   "blk": "E"
   },
   {
    "i": 19,
@@ -3054,9 +3016,7 @@
    "buildableWidthAtDepth": 0.0,
    "through": false,
    "padWidthSlack": 4.7,
-   "blk": "E",
-   "builder": "DRB Homes",
-   "och": false
+   "blk": "E"
   },
   {
    "i": 20,
@@ -3167,9 +3127,7 @@
    "buildableWidthAtDepth": 80.0,
    "through": false,
    "padWidthSlack": 5.7,
-   "blk": "E",
-   "builder": "Olivia Clarke",
-   "och": true
+   "blk": "E"
   },
   {
    "i": 21,
@@ -3280,9 +3238,7 @@
    "buildableWidthAtDepth": 80.0,
    "through": false,
    "padWidthSlack": 6.8,
-   "blk": "E",
-   "builder": "Homebound",
-   "och": false
+   "blk": "E"
   },
   {
    "i": 22,
@@ -3393,9 +3349,7 @@
    "buildableWidthAtDepth": 80.0,
    "through": false,
    "padWidthSlack": 5.6,
-   "blk": "E",
-   "builder": "DRB Homes",
-   "och": false
+   "blk": "E"
   },
   {
    "i": 23,
@@ -3506,9 +3460,7 @@
    "buildableWidthAtDepth": 80.0,
    "through": false,
    "padWidthSlack": 5.2,
-   "blk": "E",
-   "builder": "Olivia Clarke",
-   "och": true
+   "blk": "E"
   },
   {
    "i": 24,
@@ -3619,9 +3571,7 @@
    "buildableWidthAtDepth": 80.0,
    "through": false,
    "padWidthSlack": 4.7,
-   "blk": "E",
-   "builder": "DRB Homes",
-   "och": false
+   "blk": "E"
   },
   {
    "i": 25,
@@ -3732,9 +3682,7 @@
    "buildableWidthAtDepth": 0.0,
    "through": false,
    "padWidthSlack": 4.7,
-   "blk": "E",
-   "builder": "Homebound",
-   "och": false
+   "blk": "E"
   },
   {
    "i": 26,
@@ -3845,9 +3793,7 @@
    "buildableWidthAtDepth": 0.0,
    "through": false,
    "padWidthSlack": 3.6,
-   "blk": "E",
-   "builder": "Homebound",
-   "och": false
+   "blk": "E"
   },
   {
    "i": 27,
@@ -3958,9 +3904,7 @@
    "buildableWidthAtDepth": 0.0,
    "through": false,
    "padWidthSlack": 0.0,
-   "blk": "F",
-   "builder": "Homebound",
-   "och": false
+   "blk": "F"
   },
   {
    "i": 28,
@@ -4071,9 +4015,7 @@
    "buildableWidthAtDepth": 80.0,
    "through": false,
    "padWidthSlack": 0.0,
-   "blk": "F",
-   "builder": "DRB Homes",
-   "och": false
+   "blk": "F"
   },
   {
    "i": 29,
@@ -4184,9 +4126,7 @@
    "buildableWidthAtDepth": 80.0,
    "through": false,
    "padWidthSlack": 0.0,
-   "blk": "F",
-   "builder": "Olivia Clarke",
-   "och": true
+   "blk": "F"
   },
   {
    "i": 30,
@@ -4297,9 +4237,7 @@
    "buildableWidthAtDepth": 0.0,
    "through": false,
    "padWidthSlack": 0.0,
-   "blk": "F",
-   "builder": "DRB Homes",
-   "och": false
+   "blk": "F"
   },
   {
    "i": 31,
@@ -5026,9 +4964,7 @@
    "buildableWidthAtDepth": 0.0,
    "through": false,
    "padWidthSlack": 0.2,
-   "blk": "F",
-   "builder": "DRB Homes",
-   "och": false
+   "blk": "F"
   },
   {
    "i": 32,
@@ -5859,9 +5795,7 @@
    "buildableWidthAtDepth": 0.0,
    "through": false,
    "padWidthSlack": 4.8,
-   "blk": "F",
-   "builder": "Homebound",
-   "och": false
+   "blk": "F"
   },
   {
    "i": 33,
@@ -6572,9 +6506,7 @@
    "buildableWidthAtDepth": 0.0,
    "through": false,
    "padWidthSlack": 0.0,
-   "blk": "F",
-   "builder": "Olivia Clarke",
-   "och": true
+   "blk": "F"
   },
   {
    "i": 34,
@@ -7285,9 +7217,7 @@
    "buildableWidthAtDepth": 0.0,
    "through": false,
    "padWidthSlack": 0.0,
-   "blk": "F",
-   "builder": "DRB Homes",
-   "och": false
+   "blk": "F"
   },
   {
    "i": 35,
@@ -8126,10 +8056,7 @@
    "buildableWidthAtDepth": 80.0,
    "through": false,
    "padWidthSlack": 11.2,
-   "blk": "F",
-   "builder": "Perry Homes",
-   "och": false,
-   "builderConflict": "builder does not match plat product for this lot"
+   "blk": "F"
   },
   {
    "i": 36,
@@ -8808,9 +8735,7 @@
    "buildableWidthAtDepth": 80.0,
    "through": false,
    "padWidthSlack": 12.8,
-   "blk": "F",
-   "builder": "DRB Homes",
-   "och": false
+   "blk": "F"
   },
   {
    "i": 37,
@@ -8921,9 +8846,7 @@
    "buildableWidthAtDepth": 80.0,
    "through": false,
    "padWidthSlack": 6.0,
-   "blk": "F",
-   "builder": "Homebound",
-   "och": false
+   "blk": "F"
   },
   {
    "i": 38,
@@ -9034,9 +8957,7 @@
    "buildableWidthAtDepth": 80.0,
    "through": false,
    "padWidthSlack": 6.0,
-   "blk": "F",
-   "builder": "DRB Homes",
-   "och": false
+   "blk": "F"
   },
   {
    "i": 39,
@@ -9147,9 +9068,7 @@
    "buildableWidthAtDepth": 80.0,
    "through": false,
    "padWidthSlack": 6.0,
-   "blk": "F",
-   "builder": "Olivia Clarke",
-   "och": true
+   "blk": "F"
   },
   {
    "i": 40,
@@ -9260,9 +9179,7 @@
    "buildableWidthAtDepth": 80.0,
    "through": false,
    "padWidthSlack": 6.0,
-   "blk": "F",
-   "builder": "DRB Homes",
-   "och": false
+   "blk": "F"
   },
   {
    "i": 41,
@@ -9373,9 +9290,7 @@
    "buildableWidthAtDepth": 0.0,
    "through": false,
    "padWidthSlack": 1.4,
-   "blk": "G",
-   "builder": "Olivia Clarke",
-   "och": true
+   "blk": "G"
   },
   {
    "i": 42,
@@ -9486,9 +9401,7 @@
    "buildableWidthAtDepth": 80.0,
    "through": false,
    "padWidthSlack": 2.4,
-   "blk": "G",
-   "builder": "DRB Homes",
-   "och": false
+   "blk": "G"
   },
   {
    "i": 43,
@@ -9599,9 +9512,7 @@
    "buildableWidthAtDepth": 80.0,
    "through": false,
    "padWidthSlack": 2.4,
-   "blk": "G",
-   "builder": "Homebound",
-   "och": false
+   "blk": "G"
   },
   {
    "i": 44,
@@ -9712,9 +9623,7 @@
    "buildableWidthAtDepth": 0.0,
    "through": false,
    "padWidthSlack": 2.8,
-   "blk": "G",
-   "builder": "DRB Homes",
-   "och": false
+   "blk": "G"
   },
   {
    "i": 45,
@@ -9825,9 +9734,7 @@
    "buildableWidthAtDepth": 0.0,
    "through": false,
    "padWidthSlack": 2.7,
-   "blk": "G",
-   "builder": "Olivia Clarke",
-   "och": true
+   "blk": "G"
   },
   {
    "i": 46,
@@ -9938,9 +9845,7 @@
    "buildableWidthAtDepth": 0.0,
    "through": false,
    "padWidthSlack": 2.4,
-   "blk": "G",
-   "builder": "Homebound",
-   "och": false
+   "blk": "G"
   },
   {
    "i": 47,
@@ -10051,9 +9956,7 @@
    "buildableWidthAtDepth": 0.0,
    "through": false,
    "padWidthSlack": 2.4,
-   "blk": "G",
-   "builder": "DRB Homes",
-   "och": false
+   "blk": "G"
   },
   {
    "i": 48,
@@ -10164,9 +10067,7 @@
    "buildableWidthAtDepth": 0.0,
    "through": false,
    "padWidthSlack": 2.7,
-   "blk": "G",
-   "builder": "DRB Homes",
-   "och": false
+   "blk": "G"
   },
   {
    "i": 49,
@@ -10277,9 +10178,7 @@
    "buildableWidthAtDepth": 0.0,
    "through": false,
    "padWidthSlack": 3.0,
-   "blk": "G",
-   "builder": "Olivia Clarke",
-   "och": true
+   "blk": "G"
   },
   {
    "i": 50,
@@ -10390,9 +10289,7 @@
    "buildableWidthAtDepth": 0.0,
    "through": false,
    "padWidthSlack": 2.6,
-   "blk": "G",
-   "builder": "DRB Homes",
-   "och": false
+   "blk": "G"
   },
   {
    "i": 51,
@@ -10503,9 +10400,7 @@
    "buildableWidthAtDepth": 80.0,
    "through": false,
    "padWidthSlack": 2.4,
-   "blk": "G",
-   "builder": "Homebound",
-   "och": false
+   "blk": "G"
   },
   {
    "i": 52,
@@ -10616,9 +10511,7 @@
    "buildableWidthAtDepth": 80.0,
    "through": false,
    "padWidthSlack": 2.5,
-   "blk": "H",
-   "builder": "DRB Homes",
-   "och": false
+   "blk": "H"
   },
   {
    "i": 53,
@@ -10729,9 +10622,7 @@
    "buildableWidthAtDepth": 80.0,
    "through": false,
    "padWidthSlack": 2.5,
-   "blk": "H",
-   "builder": "DRB Homes",
-   "och": false
+   "blk": "H"
   },
   {
    "i": 54,
@@ -10842,9 +10733,7 @@
    "buildableWidthAtDepth": 80.0,
    "through": false,
    "padWidthSlack": 2.5,
-   "blk": "H",
-   "builder": "Homebound",
-   "och": false
+   "blk": "H"
   },
   {
    "i": 55,
@@ -10955,9 +10844,7 @@
    "buildableWidthAtDepth": 80.0,
    "through": false,
    "padWidthSlack": 2.5,
-   "blk": "H",
-   "builder": "DRB Homes",
-   "och": false
+   "blk": "H"
   },
   {
    "i": 56,
@@ -11068,9 +10955,7 @@
    "buildableWidthAtDepth": 80.0,
    "through": false,
    "padWidthSlack": 2.5,
-   "blk": "H",
-   "builder": "Olivia Clarke",
-   "och": true
+   "blk": "H"
   },
   {
    "i": 57,
@@ -11181,9 +11066,7 @@
    "buildableWidthAtDepth": 80.0,
    "through": false,
    "padWidthSlack": 2.5,
-   "blk": "H",
-   "builder": "DRB Homes",
-   "och": false
+   "blk": "H"
   },
   {
    "i": 58,
@@ -11294,9 +11177,7 @@
    "buildableWidthAtDepth": 0.0,
    "through": false,
    "padWidthSlack": 2.5,
-   "blk": "H",
-   "builder": "DRB Homes",
-   "och": false
+   "blk": "H"
   },
   {
    "i": 59,
@@ -11689,9 +11570,7 @@
    "buildableWidthAtDepth": 0.0,
    "through": false,
    "padWidthSlack": -0.1,
-   "blk": "H",
-   "builder": "Homebound",
-   "och": false
+   "blk": "H"
   },
   {
    "i": 60,
@@ -11809,9 +11688,7 @@
    "buildableWidthAtDepth": 85.0,
    "through": false,
    "padWidthSlack": 0.9,
-   "blk": "I",
-   "builder": "DRB Homes",
-   "och": false
+   "blk": "I"
   },
   {
    "i": 61,
@@ -11929,9 +11806,7 @@
    "buildableWidthAtDepth": 85.0,
    "through": false,
    "padWidthSlack": 0.9,
-   "blk": "I",
-   "builder": "Homebound",
-   "och": false
+   "blk": "I"
   },
   {
    "i": 62,
@@ -12049,9 +11924,7 @@
    "buildableWidthAtDepth": 85.0,
    "through": false,
    "padWidthSlack": 0.9,
-   "blk": "I",
-   "builder": "DRB Homes",
-   "och": false
+   "blk": "I"
   },
   {
    "i": 63,
@@ -12169,9 +12042,7 @@
    "buildableWidthAtDepth": 85.0,
    "through": false,
    "padWidthSlack": 0.9,
-   "blk": "I",
-   "builder": "Olivia Clarke",
-   "och": true
+   "blk": "I"
   },
   {
    "i": 64,
@@ -12289,9 +12160,7 @@
    "buildableWidthAtDepth": 85.0,
    "through": false,
    "padWidthSlack": 0.9,
-   "blk": "I",
-   "builder": "Homebound",
-   "och": false
+   "blk": "I"
   },
   {
    "i": 65,
@@ -12409,9 +12278,7 @@
    "buildableWidthAtDepth": 85.0,
    "through": false,
    "padWidthSlack": 0.9,
-   "blk": "I",
-   "builder": "Olivia Clarke",
-   "och": true
+   "blk": "I"
   },
   {
    "i": 66,
@@ -12529,9 +12396,7 @@
    "buildableWidthAtDepth": 85.0,
    "through": false,
    "padWidthSlack": 0.9,
-   "blk": "I",
-   "builder": "DRB Homes",
-   "och": false
+   "blk": "I"
   },
   {
    "i": 67,
@@ -12649,9 +12514,7 @@
    "buildableWidthAtDepth": 0.0,
    "through": false,
    "padWidthSlack": 0.0,
-   "blk": "I",
-   "builder": "DRB Homes",
-   "och": false
+   "blk": "I"
   },
   {
    "i": 68,
@@ -12769,9 +12632,7 @@
    "buildableWidthAtDepth": 85.0,
    "through": false,
    "padWidthSlack": 0.0,
-   "blk": "I",
-   "builder": "Homebound",
-   "och": false
+   "blk": "I"
   },
   {
    "i": 69,
@@ -12889,9 +12750,7 @@
    "buildableWidthAtDepth": 85.0,
    "through": false,
    "padWidthSlack": 0.0,
-   "blk": "I",
-   "builder": "Olivia Clarke",
-   "och": true
+   "blk": "I"
   },
   {
    "i": 70,
@@ -13009,9 +12868,7 @@
    "buildableWidthAtDepth": 85.0,
    "through": false,
    "padWidthSlack": 0.0,
-   "blk": "I",
-   "builder": "Homebound",
-   "och": false
+   "blk": "I"
   },
   {
    "i": 71,
@@ -13129,9 +12986,7 @@
    "buildableWidthAtDepth": 17.0,
    "through": false,
    "padWidthSlack": 0.0,
-   "blk": "I",
-   "builder": "DRB Homes",
-   "och": false
+   "blk": "I"
   },
   {
    "i": 72,
@@ -13249,9 +13104,7 @@
    "buildableWidthAtDepth": 85.0,
    "through": false,
    "padWidthSlack": 0.0,
-   "blk": "I",
-   "builder": "Olivia Clarke",
-   "och": true
+   "blk": "I"
   },
   {
    "i": 73,
@@ -13369,9 +13222,7 @@
    "buildableWidthAtDepth": 85.0,
    "through": false,
    "padWidthSlack": 0.0,
-   "blk": "I",
-   "builder": "DRB Homes",
-   "och": false
+   "blk": "I"
   },
   {
    "i": 74,
@@ -13489,9 +13340,7 @@
    "buildableWidthAtDepth": 0.0,
    "through": false,
    "padWidthSlack": 2.2,
-   "blk": "I",
-   "builder": "DRB Homes",
-   "och": false
+   "blk": "I"
   },
   {
    "i": 75,
@@ -14185,9 +14034,7 @@
    "buildableWidthAtDepth": 0.0,
    "through": false,
    "padWidthSlack": 5.2,
-   "blk": "I",
-   "builder": "Homebound",
-   "och": false
+   "blk": "I"
   },
   {
    "i": 76,
@@ -14305,9 +14152,7 @@
    "buildableWidthAtDepth": 0.0,
    "through": false,
    "padWidthSlack": 0.8,
-   "blk": "I",
-   "builder": "Olivia Clarke",
-   "och": true
+   "blk": "I"
   },
   {
    "i": 77,
@@ -14425,9 +14270,7 @@
    "buildableWidthAtDepth": 0.0,
    "through": false,
    "padWidthSlack": 1.0,
-   "blk": "I",
-   "builder": "DRB Homes",
-   "och": false
+   "blk": "I"
   },
   {
    "i": 78,
@@ -14545,9 +14388,7 @@
    "buildableWidthAtDepth": 0.0,
    "through": false,
    "padWidthSlack": 0.1,
-   "blk": "I",
-   "builder": "Homebound",
-   "och": false
+   "blk": "I"
   },
   {
    "i": 79,
@@ -14665,9 +14506,7 @@
    "buildableWidthAtDepth": 0.0,
    "through": false,
    "padWidthSlack": 1.6,
-   "blk": "L",
-   "builder": "Homebound",
-   "och": false
+   "blk": "L"
   },
   {
    "i": 80,
@@ -14785,9 +14624,7 @@
    "buildableWidthAtDepth": 0.0,
    "through": false,
    "padWidthSlack": 1.6,
-   "blk": "L",
-   "builder": "Olivia Clarke",
-   "och": true
+   "blk": "L"
   },
   {
    "i": 81,
@@ -14905,9 +14742,7 @@
    "buildableWidthAtDepth": 0.0,
    "through": false,
    "padWidthSlack": 1.6,
-   "blk": "L",
-   "builder": "DRB Homes",
-   "och": false
+   "blk": "L"
   },
   {
    "i": 82,
@@ -15025,9 +14860,7 @@
    "buildableWidthAtDepth": 0.0,
    "through": false,
    "padWidthSlack": 1.6,
-   "blk": "L",
-   "builder": "DRB Homes",
-   "och": false
+   "blk": "L"
   },
   {
    "i": 83,
@@ -15145,9 +14978,7 @@
    "buildableWidthAtDepth": 0.0,
    "through": false,
    "padWidthSlack": 1.6,
-   "blk": "L",
-   "builder": "Olivia Clarke",
-   "och": true
+   "blk": "L"
   },
   {
    "i": 84,
@@ -15265,9 +15096,7 @@
    "buildableWidthAtDepth": 0.0,
    "through": false,
    "padWidthSlack": 1.6,
-   "blk": "L",
-   "builder": "DRB Homes",
-   "och": false
+   "blk": "L"
   },
   {
    "i": 85,
@@ -15385,9 +15214,7 @@
    "buildableWidthAtDepth": 0.0,
    "through": false,
    "padWidthSlack": 1.6,
-   "blk": "L",
-   "builder": "Homebound",
-   "och": false
+   "blk": "L"
   },
   {
    "i": 86,
@@ -15505,9 +15332,7 @@
    "buildableWidthAtDepth": 0.0,
    "through": false,
    "padWidthSlack": 1.6,
-   "blk": "L",
-   "builder": "Homebound",
-   "och": false
+   "blk": "L"
   },
   {
    "i": 87,
@@ -15625,9 +15450,7 @@
    "buildableWidthAtDepth": 0.0,
    "through": false,
    "padWidthSlack": 1.6,
-   "blk": "L",
-   "builder": "DRB Homes",
-   "och": false
+   "blk": "L"
   },
   {
    "i": 88,
@@ -15745,9 +15568,7 @@
    "buildableWidthAtDepth": 0.0,
    "through": false,
    "padWidthSlack": 1.6,
-   "blk": "L",
-   "builder": "Olivia Clarke",
-   "och": true
+   "blk": "L"
   },
   {
    "i": 89,
@@ -15865,9 +15686,7 @@
    "buildableWidthAtDepth": 0.0,
    "through": false,
    "padWidthSlack": 1.6,
-   "blk": "L",
-   "builder": "Homebound",
-   "och": false
+   "blk": "L"
   },
   {
    "i": 90,
@@ -15985,9 +15804,7 @@
    "buildableWidthAtDepth": 0.0,
    "through": false,
    "padWidthSlack": 1.6,
-   "blk": "L",
-   "builder": "DRB Homes",
-   "och": false
+   "blk": "L"
   },
   {
    "i": 91,
@@ -16105,9 +15922,7 @@
    "buildableWidthAtDepth": 0.0,
    "through": false,
    "padWidthSlack": 1.6,
-   "blk": "L",
-   "builder": "Olivia Clarke",
-   "och": true
+   "blk": "L"
   },
   {
    "i": 92,
@@ -16225,9 +16040,7 @@
    "buildableWidthAtDepth": 85.0,
    "through": false,
    "padWidthSlack": 1.7,
-   "blk": "L",
-   "builder": "Homebound",
-   "och": false
+   "blk": "L"
   },
   {
    "i": 93,
@@ -16665,9 +16478,7 @@
    "buildableWidthAtDepth": 85.0,
    "through": false,
    "padWidthSlack": 2.4,
-   "blk": "L",
-   "builder": "DRB Homes",
-   "och": false
+   "blk": "L"
   },
   {
    "i": 94,
@@ -17179,9 +16990,7 @@
    "buildableWidthAtDepth": 85.0,
    "through": false,
    "padWidthSlack": 2.7,
-   "blk": "L",
-   "builder": "DRB Homes",
-   "och": false
+   "blk": "L"
   },
   {
    "i": 95,
@@ -17869,9 +17678,7 @@
    "buildableWidthAtDepth": 0.0,
    "through": false,
    "padWidthSlack": 4.5,
-   "blk": "L",
-   "builder": "Olivia Clarke",
-   "och": true
+   "blk": "L"
   },
   {
    "i": 96,
@@ -18269,9 +18076,7 @@
    "buildableWidthAtDepth": 0.0,
    "through": false,
    "padWidthSlack": 1.9,
-   "blk": "L",
-   "builder": "DRB Homes",
-   "och": false
+   "blk": "L"
   },
   {
    "i": 97,
@@ -18389,9 +18194,7 @@
    "buildableWidthAtDepth": 0.0,
    "through": false,
    "padWidthSlack": 1.4,
-   "blk": "L",
-   "builder": "DRB Homes",
-   "och": false
+   "blk": "L"
   },
   {
    "i": 98,
@@ -18509,9 +18312,7 @@
    "buildableWidthAtDepth": 85.0,
    "through": false,
    "padWidthSlack": 1.4,
-   "blk": "L",
-   "builder": "Homebound",
-   "och": false
+   "blk": "L"
   },
   {
    "i": 99,
@@ -18629,9 +18430,7 @@
    "buildableWidthAtDepth": 85.0,
    "through": false,
    "padWidthSlack": 1.4,
-   "blk": "L",
-   "builder": "Olivia Clarke",
-   "och": true
+   "blk": "L"
   },
   {
    "i": 100,
@@ -18749,9 +18548,7 @@
    "buildableWidthAtDepth": 85.0,
    "through": false,
    "padWidthSlack": 1.4,
-   "blk": "L",
-   "builder": "DRB Homes",
-   "och": false
+   "blk": "L"
   },
   {
    "i": 101,
@@ -18869,9 +18666,7 @@
    "buildableWidthAtDepth": 85.0,
    "through": false,
    "padWidthSlack": 1.4,
-   "blk": "L",
-   "builder": "DRB Homes",
-   "och": false
+   "blk": "L"
   },
   {
    "i": 102,
@@ -18989,9 +18784,7 @@
    "buildableWidthAtDepth": 85.0,
    "through": false,
    "padWidthSlack": 1.4,
-   "blk": "L",
-   "builder": "Olivia Clarke",
-   "och": true
+   "blk": "L"
   },
   {
    "i": 103,
@@ -19109,9 +18902,7 @@
    "buildableWidthAtDepth": 85.0,
    "through": false,
    "padWidthSlack": 1.4,
-   "blk": "L",
-   "builder": "Homebound",
-   "och": false
+   "blk": "L"
   },
   {
    "i": 104,
@@ -19229,9 +19020,7 @@
    "buildableWidthAtDepth": 85.0,
    "through": false,
    "padWidthSlack": 1.4,
-   "blk": "L",
-   "builder": "DRB Homes",
-   "och": false
+   "blk": "L"
   },
   {
    "i": 105,
@@ -19349,9 +19138,7 @@
    "buildableWidthAtDepth": 85.0,
    "through": false,
    "padWidthSlack": 1.4,
-   "blk": "L",
-   "builder": "DRB Homes",
-   "och": false
+   "blk": "L"
   },
   {
    "i": 106,
@@ -19469,9 +19256,7 @@
    "buildableWidthAtDepth": 85.0,
    "through": false,
    "padWidthSlack": 1.4,
-   "blk": "L",
-   "builder": "Olivia Clarke",
-   "och": true
+   "blk": "L"
   },
   {
    "i": 107,
@@ -19589,9 +19374,7 @@
    "buildableWidthAtDepth": 85.0,
    "through": false,
    "padWidthSlack": 1.4,
-   "blk": "L",
-   "builder": "Homebound",
-   "och": false
+   "blk": "L"
   },
   {
    "i": 108,
@@ -19709,9 +19492,7 @@
    "buildableWidthAtDepth": 85.0,
    "through": false,
    "padWidthSlack": 1.4,
-   "blk": "L",
-   "builder": "DRB Homes",
-   "och": false
+   "blk": "L"
   },
   {
    "i": 109,
@@ -19829,9 +19610,7 @@
    "buildableWidthAtDepth": 85.0,
    "through": false,
    "padWidthSlack": 1.4,
-   "blk": "L",
-   "builder": "DRB Homes",
-   "och": false
+   "blk": "L"
   },
   {
    "i": 110,
@@ -19949,9 +19728,7 @@
    "buildableWidthAtDepth": 85.0,
    "through": false,
    "padWidthSlack": 1.1,
-   "blk": "N",
-   "builder": "Homebound",
-   "och": false
+   "blk": "N"
   },
   {
    "i": 111,
@@ -20069,9 +19846,7 @@
    "buildableWidthAtDepth": 85.0,
    "through": false,
    "padWidthSlack": 1.1,
-   "blk": "N",
-   "builder": "Olivia Clarke",
-   "och": true
+   "blk": "N"
   },
   {
    "i": 112,
@@ -20189,9 +19964,7 @@
    "buildableWidthAtDepth": 85.0,
    "through": false,
    "padWidthSlack": 1.1,
-   "blk": "N",
-   "builder": "DRB Homes",
-   "och": false
+   "blk": "N"
   },
   {
    "i": 113,
@@ -20309,9 +20082,7 @@
    "buildableWidthAtDepth": 85.0,
    "through": false,
    "padWidthSlack": 1.1,
-   "blk": "N",
-   "builder": "Homebound",
-   "och": false
+   "blk": "N"
   },
   {
    "i": 114,
@@ -20429,9 +20200,7 @@
    "buildableWidthAtDepth": 85.0,
    "through": false,
    "padWidthSlack": 1.1,
-   "blk": "N",
-   "builder": "DRB Homes",
-   "och": false
+   "blk": "N"
   },
   {
    "i": 115,
@@ -20549,9 +20318,7 @@
    "buildableWidthAtDepth": 85.0,
    "through": false,
    "padWidthSlack": 1.1,
-   "blk": "N",
-   "builder": "DRB Homes",
-   "och": false
+   "blk": "N"
   },
   {
    "i": 116,
@@ -20669,9 +20436,7 @@
    "buildableWidthAtDepth": 85.0,
    "through": false,
    "padWidthSlack": 1.1,
-   "blk": "N",
-   "builder": "Homebound",
-   "och": false
+   "blk": "N"
   },
   {
    "i": 117,
@@ -20789,9 +20554,7 @@
    "buildableWidthAtDepth": 85.0,
    "through": false,
    "padWidthSlack": 1.1,
-   "blk": "N",
-   "builder": "Olivia Clarke",
-   "och": true
+   "blk": "N"
   },
   {
    "i": 118,
@@ -20909,9 +20672,7 @@
    "buildableWidthAtDepth": 85.0,
    "through": false,
    "padWidthSlack": 1.1,
-   "blk": "N",
-   "builder": "DRB Homes",
-   "och": false
+   "blk": "N"
   },
   {
    "i": 119,
@@ -21029,9 +20790,7 @@
    "buildableWidthAtDepth": 85.0,
    "through": false,
    "padWidthSlack": 1.1,
-   "blk": "N",
-   "builder": "Olivia Clarke",
-   "och": true
+   "blk": "N"
   },
   {
    "i": 120,
@@ -21149,9 +20908,7 @@
    "buildableWidthAtDepth": 0.0,
    "through": false,
    "padWidthSlack": 1.0,
-   "blk": "N",
-   "builder": "DRB Homes",
-   "och": false
+   "blk": "N"
   },
   {
    "i": 121,
@@ -21269,9 +21026,7 @@
    "buildableWidthAtDepth": 85.0,
    "through": false,
    "padWidthSlack": 1.1,
-   "blk": "N",
-   "builder": "DRB Homes",
-   "och": false
+   "blk": "N"
   },
   {
    "i": 122,
@@ -21389,9 +21144,7 @@
    "buildableWidthAtDepth": 85.0,
    "through": false,
    "padWidthSlack": 1.5,
-   "blk": "N",
-   "builder": "Homebound",
-   "och": false
+   "blk": "N"
   },
   {
    "i": 123,
@@ -21861,9 +21614,7 @@
    "buildableWidthAtDepth": 85.0,
    "through": false,
    "padWidthSlack": 0.1,
-   "blk": "N",
-   "builder": "Olivia Clarke",
-   "och": true
+   "blk": "N"
   },
   {
    "i": 124,
@@ -21981,9 +21732,7 @@
    "buildableWidthAtDepth": 85.0,
    "through": false,
    "padWidthSlack": 0.5,
-   "blk": "N",
-   "builder": "DRB Homes",
-   "och": false
+   "blk": "N"
   },
   {
    "i": 125,
@@ -22581,9 +22330,7 @@
    "buildableWidthAtDepth": 0.0,
    "through": false,
    "padWidthSlack": 0.0,
-   "blk": "O",
-   "builder": "Homebound",
-   "och": false
+   "blk": "O"
   },
   {
    "i": 126,
@@ -22701,9 +22448,7 @@
    "buildableWidthAtDepth": 0.0,
    "through": false,
    "padWidthSlack": 0.0,
-   "blk": "O",
-   "builder": "DRB Homes",
-   "och": false
+   "blk": "O"
   },
   {
    "i": 127,
@@ -22821,9 +22566,7 @@
    "buildableWidthAtDepth": 85.0,
    "through": false,
    "padWidthSlack": 0.0,
-   "blk": "O",
-   "builder": "DRB Homes",
-   "och": false
+   "blk": "O"
   },
   {
    "i": 128,
@@ -22941,9 +22684,7 @@
    "buildableWidthAtDepth": 0.0,
    "through": false,
    "padWidthSlack": 0.6,
-   "blk": "O",
-   "builder": "Olivia Clarke",
-   "och": true
+   "blk": "O"
   },
   {
    "i": 129,
@@ -23327,9 +23068,7 @@
    "buildableWidthAtDepth": 0.0,
    "through": false,
    "padWidthSlack": 1.7,
-   "blk": "O",
-   "builder": "Homebound",
-   "och": false
+   "blk": "O"
   },
   {
    "i": 130,
@@ -23695,9 +23434,7 @@
    "buildableWidthAtDepth": 0.0,
    "through": false,
    "padWidthSlack": 0.8,
-   "blk": "O",
-   "builder": "DRB Homes",
-   "och": false
+   "blk": "O"
   },
   {
    "i": 131,
@@ -24063,9 +23800,7 @@
    "buildableWidthAtDepth": 0.0,
    "through": false,
    "padWidthSlack": 0.0,
-   "blk": "O",
-   "builder": "Olivia Clarke",
-   "och": true
+   "blk": "O"
   },
   {
    "i": 132,
@@ -24183,9 +23918,7 @@
    "buildableWidthAtDepth": 0.0,
    "through": false,
    "padWidthSlack": 0.3,
-   "blk": "O",
-   "builder": "DRB Homes",
-   "och": false
+   "blk": "O"
   },
   {
    "i": 133,
@@ -24303,9 +24036,7 @@
    "buildableWidthAtDepth": 85.0,
    "through": false,
    "padWidthSlack": 1.3,
-   "blk": "O",
-   "builder": "Olivia Clarke",
-   "och": true
+   "blk": "O"
   },
   {
    "i": 134,
@@ -24423,9 +24154,7 @@
    "buildableWidthAtDepth": 85.0,
    "through": false,
    "padWidthSlack": 1.3,
-   "blk": "O",
-   "builder": "DRB Homes",
-   "och": false
+   "blk": "O"
   },
   {
    "i": 135,
@@ -24543,9 +24272,7 @@
    "buildableWidthAtDepth": 85.0,
    "through": false,
    "padWidthSlack": 1.3,
-   "blk": "O",
-   "builder": "DRB Homes",
-   "och": false
+   "blk": "O"
   },
   {
    "i": 136,
@@ -24663,9 +24390,7 @@
    "buildableWidthAtDepth": 85.0,
    "through": false,
    "padWidthSlack": 1.3,
-   "blk": "O",
-   "builder": "Homebound",
-   "och": false
+   "blk": "O"
   },
   {
    "i": 137,
@@ -24783,9 +24508,7 @@
    "buildableWidthAtDepth": 85.0,
    "through": false,
    "padWidthSlack": 1.3,
-   "blk": "O",
-   "builder": "Olivia Clarke",
-   "och": true
+   "blk": "O"
   },
   {
    "i": 138,
@@ -24903,9 +24626,7 @@
    "buildableWidthAtDepth": 85.0,
    "through": false,
    "padWidthSlack": 1.3,
-   "blk": "O",
-   "builder": "DRB Homes",
-   "och": false
+   "blk": "O"
   },
   {
    "i": 139,
@@ -25023,9 +24744,7 @@
    "buildableWidthAtDepth": 85.0,
    "through": false,
    "padWidthSlack": 1.3,
-   "blk": "O",
-   "builder": "DRB Homes",
-   "och": false
+   "blk": "O"
   },
   {
    "i": 140,
@@ -25143,9 +24862,7 @@
    "buildableWidthAtDepth": 85.0,
    "through": false,
    "padWidthSlack": 1.3,
-   "blk": "O",
-   "builder": "Homebound",
-   "och": false
+   "blk": "O"
   },
   {
    "i": 141,
@@ -25263,9 +24980,7 @@
    "buildableWidthAtDepth": 0.0,
    "through": false,
    "padWidthSlack": 1.4,
-   "blk": "O",
-   "builder": "DRB Homes",
-   "och": false
+   "blk": "O"
   },
   {
    "i": 142,
@@ -26159,9 +25874,7 @@
    "buildableWidthAtDepth": 85.0,
    "through": false,
    "padWidthSlack": 2.3,
-   "blk": "P",
-   "builder": "DRB Homes",
-   "och": false
+   "blk": "P"
   },
   {
    "i": 143,
@@ -26279,9 +25992,7 @@
    "buildableWidthAtDepth": 63.8,
    "through": false,
    "padWidthSlack": 4.0,
-   "blk": "P",
-   "builder": "DRB Homes",
-   "och": false
+   "blk": "P"
   },
   {
    "i": 144,
@@ -28103,9 +27814,7 @@
    "buildableWidthAtDepth": 85.0,
    "through": false,
    "padWidthSlack": 3.3,
-   "blk": "P",
-   "builder": "Olivia Clarke",
-   "och": true
+   "blk": "P"
   },
   {
    "i": 145,
@@ -29591,9 +29300,7 @@
    "buildableWidthAtDepth": 85.0,
    "through": false,
    "padWidthSlack": 3.6,
-   "blk": "P",
-   "builder": "DRB Homes",
-   "och": false
+   "blk": "P"
   },
   {
    "i": 146,
@@ -29711,9 +29418,7 @@
    "buildableWidthAtDepth": 85.0,
    "through": false,
    "padWidthSlack": 5.0,
-   "blk": "P",
-   "builder": "Olivia Clarke",
-   "och": true
+   "blk": "P"
   },
   {
    "i": 147,
@@ -29831,9 +29536,7 @@
    "buildableWidthAtDepth": 85.0,
    "through": false,
    "padWidthSlack": 5.0,
-   "blk": "P",
-   "builder": "DRB Homes",
-   "och": false
+   "blk": "P"
   },
   {
    "i": 148,
@@ -29951,9 +29654,7 @@
    "buildableWidthAtDepth": 85.0,
    "through": false,
    "padWidthSlack": 5.0,
-   "blk": "P",
-   "builder": "Homebound",
-   "och": false
+   "blk": "P"
   },
   {
    "i": 149,
@@ -30071,9 +29772,7 @@
    "buildableWidthAtDepth": 0.0,
    "through": false,
    "padWidthSlack": 10.0,
-   "blk": "P",
-   "builder": "Olivia Clarke",
-   "och": true
+   "blk": "P"
   },
   {
    "i": 150,
@@ -30184,9 +29883,7 @@
    "buildableWidthAtDepth": 85.0,
    "through": false,
    "padWidthSlack": 5.0,
-   "blk": "P",
-   "builder": "Olivia Clarke",
-   "och": true
+   "blk": "P"
   },
   {
    "i": 151,
@@ -30297,9 +29994,7 @@
    "buildableWidthAtDepth": 85.0,
    "through": false,
    "padWidthSlack": 0.0,
-   "blk": "P",
-   "builder": "Homebound",
-   "och": false
+   "blk": "P"
   },
   {
    "i": 152,
@@ -30922,9 +30617,7 @@
    "buildableWidthAtDepth": 85.0,
    "through": false,
    "padWidthSlack": 8.7,
-   "blk": "P",
-   "builder": "DRB Homes",
-   "och": false
+   "blk": "P"
   },
   {
    "i": 153,
@@ -31035,9 +30728,7 @@
    "buildableWidthAtDepth": 0.0,
    "through": false,
    "padWidthSlack": 0.0,
-   "blk": "Q",
-   "builder": "DRB Homes",
-   "och": false
+   "blk": "Q"
   },
   {
    "i": 154,
@@ -31148,9 +30839,7 @@
    "buildableWidthAtDepth": 85.0,
    "through": false,
    "padWidthSlack": 0.0,
-   "blk": "Q",
-   "builder": "Olivia Clarke",
-   "och": true
+   "blk": "Q"
   },
   {
    "i": 155,
@@ -31261,9 +30950,7 @@
    "buildableWidthAtDepth": 0.0,
    "through": false,
    "padWidthSlack": 0.0,
-   "blk": "Q",
-   "builder": "DRB Homes",
-   "och": false
+   "blk": "Q"
   },
   {
    "i": 156,
@@ -31374,9 +31061,7 @@
    "buildableWidthAtDepth": 85.0,
    "through": false,
    "padWidthSlack": 0.0,
-   "blk": "Q",
-   "builder": "DRB Homes",
-   "och": false
+   "blk": "Q"
   },
   {
    "i": 157,
@@ -32023,9 +31708,7 @@
    "buildableWidthAtDepth": 0.0,
    "through": false,
    "padWidthSlack": 0.4,
-   "blk": "Q",
-   "builder": "Olivia Clarke",
-   "och": true
+   "blk": "Q"
   },
   {
    "i": 158,
@@ -32586,9 +32269,7 @@
    "buildableWidthAtDepth": 0.0,
    "through": false,
    "padWidthSlack": 4.9,
-   "blk": "Q",
-   "builder": "DRB Homes",
-   "och": false
+   "blk": "Q"
   },
   {
    "i": 159,
@@ -33245,9 +32926,7 @@
    "buildableWidthAtDepth": 0.0,
    "through": false,
    "padWidthSlack": 0.2,
-   "blk": "Q",
-   "builder": "Homebound",
-   "och": false
+   "blk": "Q"
   },
   {
    "i": 160,
@@ -33358,9 +33037,7 @@
    "buildableWidthAtDepth": 85.0,
    "through": false,
    "padWidthSlack": 0.0,
-   "blk": "Q",
-   "builder": "DRB Homes",
-   "och": false
+   "blk": "Q"
   },
   {
    "i": 161,
@@ -33471,9 +33148,7 @@
    "buildableWidthAtDepth": 85.0,
    "through": false,
    "padWidthSlack": 0.0,
-   "blk": "Q",
-   "builder": "Homebound",
-   "och": false
+   "blk": "Q"
   },
   {
    "i": 162,
@@ -33584,9 +33259,7 @@
    "buildableWidthAtDepth": 12.8,
    "through": false,
    "padWidthSlack": 0.0,
-   "blk": "Q",
-   "builder": "DRB Homes",
-   "och": false
+   "blk": "Q"
   },
   {
    "i": 163,
@@ -33697,9 +33370,7 @@
    "buildableWidthAtDepth": 85.0,
    "through": false,
    "padWidthSlack": 0.0,
-   "blk": "Q",
-   "builder": "Olivia Clarke",
-   "och": true
+   "blk": "Q"
   },
   {
    "i": 164,
@@ -33810,9 +33481,7 @@
    "buildableWidthAtDepth": 85.0,
    "through": false,
    "padWidthSlack": 0.0,
-   "blk": "Q",
-   "builder": "DRB Homes",
-   "och": false
+   "blk": "Q"
   },
   {
    "i": 165,
@@ -33923,9 +33592,7 @@
    "buildableWidthAtDepth": 0.0,
    "through": false,
    "padWidthSlack": 0.0,
-   "blk": "Q",
-   "builder": "DRB Homes",
-   "och": false
+   "blk": "Q"
   },
   {
    "i": 166,
@@ -34036,9 +33703,7 @@
    "buildableWidthAtDepth": 85.0,
    "through": false,
    "padWidthSlack": 5.0,
-   "blk": "Q",
-   "builder": "Homebound",
-   "och": false
+   "blk": "Q"
   }
  ],
  "streets": [],
@@ -34049,7 +33714,7 @@
   "name": "Sherley Farms \u2014 50\u2032 front-entry",
   "shortName": "Sherley 50'",
   "product": "50",
-  "ochLots": 42,
+  "ochLots": 167,
   "frontBLvalues": [
    20,
    25,
@@ -34059,7 +33724,7 @@
   "garageBL": 25,
   "sideInterior": 5,
   "sideCorner": 15,
-  "porchEncroach": 5,
+  "porchEncroach": 10.0,
   "padNominal": "40 x 85",
   "lotNominal": "50' x 130'",
   "entry": "front",
@@ -34074,8 +33739,7 @@
    "Lot coverage is not computed at this stage.",
    "Front building lines are a developer/builder rule, stricter than PD zoning, and vary per lot. Rear, side and garage setbacks are PD zoning.",
    "Porch may project 5 feet past the front BL and must stay 5 feet off the front property line. No AC space in the porch zone.",
-   "Sherley Farms is Anna. The Heights at Uptown is Celina. The two carry different rules and are never combined.",
-   "This file holds every 50-foot lot in the community, not only OCH\u2019s. OCH builds 42 of the 167; DRB Homes builds 82 and Homebound 42. Draw them all and colour by the och flag \u2014 do not filter the file, the surrounding lots are the community context and monotony counts run along the street irrespective of builder."
+   "Sherley Farms is Anna. The Heights at Uptown is Celina. The two carry different rules and are never combined."
   ],
   "openItems": [
    "The 16 Phase 1A fifty-foot lots that carry no front-BL tick on the plat are set to a 30 ft front building line on OCH\u2019s instruction (Brandi Williams, 9 Nov 2026): C-11, D-10, D-11, E-5, E-6, E-8, E-13, F-2, F-3, F-7, F-12, G-3, G-4, G-9, H-5, H-6. The plat itself shows only 20 ft and 25 ft ticks in 1A, so this value is OCH\u2019s and should be carried onto the plat at the next revision. Each lot records its own frontBL source.",
@@ -34084,7 +33748,7 @@
    "1B pad conflict, resolved to the plat. The 1B grading plan draws and labels a 40 x 85 pad, which OCH verified against the PDF on 9 Nov 2026. Measuring those same pads against the lot lines shows the grading plan seats them 5 ft FORWARD of the plat front building line on 60 of the 90 lots (plat 25 ft -> grading 20 ft on 34 lots, plat 30 ft -> grading 25 ft on 26 lots). The two documents are each internally consistent but describe different house positions, so the depth cannot be taken without the offset: on a 130 ft lot, a 30 ft front BL plus an 85 ft pad plus a 20 ft rear BL is 135 ft and does not close. The plat set (front BL tick plus 40 x 80) is published because the front BL is the enforceable builder rule; the grading figures ride along as padAlt. Spiars should reconcile the two.",
    "Still to build for the driveway model: ROW width per street (measurable off the plat right-of-way lines), top-of-curb elevation at each lot driveway (grading plan spot elevations, now readable), and which side the driveway sits on per lot (Pad Fit Exhibit sheet 1)."
   ],
-  "updated": "2026-11-10",
+  "updated": "2026-11-09",
   "maxGrade": 12.0,
   "maxGradeSource": "City of Anna, confirmed by OCH (Brandi Williams) 2026-11-09. Anna states a 12% maximum; no lower preferred figure is known, unlike Celina which prefers 10% and approves to 12%.",
   "slab": 0.85,
@@ -34136,12 +33800,15 @@
   "baseRun": 34.5,
   "padDepth": 80.0,
   "baseRunNote": "Garage face to back of curb: 25 ft garage setback plus a 9.5 ft parkway on a 50 ft ROW street. 36.5 ft where the street is a 60 ft ROW.",
-  "buildersOnProduct": {
-   "DRB Homes": 82,
-   "Olivia Clarke": 42,
-   "Homebound": 42,
-   "Perry Homes": 1
+  "orientAuthoritative": true,
+  "orientNote": "The front line of every lot was read off the plat right-of-way geometry, so it is authoritative: the sheet uses it for both the frontage direction and which end faces the street, instead of inferring either from how squarely the lot boxes up.",
+  "porchMinFromFrontPL": 5.0,
+  "porchRule": "OCH, 9 Nov 2026: a porch may project into the front setback up to 10 ft, must be unconditioned (no A/C space), and must stay at least 5 ft off the front property line. Webber A, B and C may all encroach.",
+  "porchByPlan": {
+   "webber_a": 8.0,
+   "webber_b": 8.0,
+   "webber_c": 8.0
   },
-  "builderSource": "Lot ownership is recorded per lot in the builder field, never inferred. Source: OCH builder list supplied by Brandi Williams 10 Nov 2026, cross-checked against the plat product classification and agreeing on 417 of 418 lots subdivision-wide. 1A F-9, 2425 Milam Street, is tagged Perry Homes but classifies 50 ft on the plat and is the one unresolved disagreement."
+  "porchByPlanSource": "Webber A/B/C front projection 8.0 ft, measured from Webber E40A CAD (A-Area-Masonry), 10 Nov 2026. Encroachment confirmed allowed on all three elevations by OCH."
  }
 }
