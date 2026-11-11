@@ -146,7 +146,7 @@
 
 /* Printed in the header so you can tell at a glance which file is live.
    Bump it whenever this file changes. */
-const FINDER_BUILD='2026-11-11a';
+const FINDER_BUILD='2026-11-11c';
 
 /* `verified` means the community's lot geometry, graded pads and driveway
    grades have been checked against the engineer's sealed drawings. Only The
@@ -247,21 +247,33 @@ function porchCredit(plan,meta,lot){
 function fitOf(lot,plan,meta){
   if(plan.w==null||plan.d==null) return {state:'na',why:'this plan has never been measured'};
   const sideI=meta.sideInterior!=null?meta.sideInterior:5;
-  const fbl=meta.frontBL!=null?meta.frontBL:10, rear=meta.rearBL!=null?meta.rearBL:20;
+  /* Same rules as the fit sheet and the map, so the three never disagree:
+     the lot's own front building line; on a rear-entry lot the garage setback
+     from the alley when it is deeper than the rear building line (Sherley 45':
+     rear BL 10, garage 20); the width measured across the buildable area where
+     the lot carries it; and a 3-inch tolerance. */
+  const fbl=(lot.frontBL!=null)?lot.frontBL:(meta.frontBL!=null?meta.frontBL:10);
+  const rearBL=meta.rearBL!=null?meta.rearBL:20;
+  const rear=(meta.rearEntry!==false&&meta.garageBL!=null)?Math.max(rearBL,meta.garageBL):rearBL;
   const credit=porchCredit(plan,meta,lot);
 
-  const availW=(lot.padW!=null)?lot.padW
+  const availW=(lot.buildableWidthMin!=null)?lot.buildableWidthMin
+             :(lot.padW!=null)?lot.padW
              :(meta.buildableWidth!=null)?meta.buildableWidth
              :(lot.lw!=null)?lot.lw-sideI*2:null;
   let dm=null;
   if(lot.padD!=null)    dm=lot.padD-(plan.d-credit);
-  else if(lot.ld!=null) dm=lot.ld-(plan.d+fbl+rear-credit);
+  else if(lot.ld!=null){
+    let fset=fbl, fwd=credit;
+    if(meta.rearEntry===false&&meta.garageBL!=null){ fset=Math.max(fbl,meta.garageBL); fwd=Math.min(credit, fset-meta.garageBL); }
+    dm=lot.ld-(plan.d+fset+rear-fwd);
+  }
   const wm=(availW!=null)?availW-plan.w:null;
   if(dm==null||wm==null) return {state:'na',why:'this lot has no pad or plat dimensions recorded'};
 
-  const short=[];
-  if(dm<0) short.push(FT(Math.abs(dm))+' short on depth');
-  if(wm<0) short.push(FT(Math.abs(wm))+' short on width');
+  const short=[], TOL=0.25;
+  if(dm<-TOL) short.push(FT(Math.abs(dm))+' short on depth');
+  if(wm<-TOL) short.push(FT(Math.abs(wm))+' short on width');
   if(short.length) return {state:'no',dm:dm,wm:wm,why:short.join(' · ')};
   if(dm<2||wm<0.5){
     /* Name the dimension. "clears by 0'-1\"" was the smaller of the two
@@ -288,7 +300,9 @@ function ochLots(){
   /* Ownership is inferred from whether a lot carries an OCH address, because no
      per-lot `och` flag exists yet. Noted on the page rather than hidden, since
      it means these counts are an upper bound. */
-  return MAP.lots.filter(l=>l.type==='Residential'&&l.addr)
+  /* Sales only ever sells OCH's own lots. Where the community carries a builder
+     list (l.och), other builders' lots are left out; elsewhere, unchanged. */
+  return MAP.lots.filter(l=>l.type==='Residential'&&l.addr&&l.och!==false)
     .sort((a,b)=>String(a.addr).localeCompare(String(b.addr),undefined,{numeric:true}));
 }
 

@@ -46,6 +46,11 @@ h1,h2,h3,h4{font-family:'Space Grotesk',sans-serif;margin:0}
 .lot.sel{stroke:#111;stroke-width:3}
 .lot.dim{opacity:.13}
 .lot.exc{stroke-dasharray:3 2;stroke:#8A959C;stroke-width:.9}
+/* OCH's own lots, from the builder list on the lot record (l.och). A heavy OCH
+   Dark Green ring, so they read at any zoom and in any colour mode; other
+   builders' lots stay on the map for context, faded. */
+.lot.och{stroke:#223D40;stroke-width:2.4}
+.lot.other{fill-opacity:.32;stroke:#9AA4AA;stroke-width:.5}
 body .lot.exc:hover{stroke:#5B6B76;stroke-width:2.2}
 .curb{fill:none;stroke:#B8C2C9;stroke-width:1.1}
 .padline{fill:none;stroke:#2E4A63;stroke-width:.7;stroke-dasharray:2.5 2;opacity:.55;pointer-events:none}
@@ -164,7 +169,7 @@ let PAD_DEPTH=80.0, BASE_RUN=21.0, MAXG=10.0, SLAB=0.83, STD_STEP=0.58;
    it is a lot that needs a City sign-off, which is a commercial decision rather
    than a dead lot. Stays null where a community records no approval allowance,
    in which case maxGrade is a hard ceiling exactly as before. */
-const MAP_BUILD='2026-11-11a';   /* printed in the header, like the other pages */
+const MAP_BUILD='2026-11-11f';   /* printed in the header, like the other pages */
 let MAXG_APPROVE=null;
 /* Verified per-lot driveway grade, built from the engineer's grading plan and
    the surveyed alley elevations (see <community>-grade.json). It REPLACES the
@@ -220,7 +225,7 @@ function applyMeta(m){ if(!m)return;
   const t=document.getElementById('commName'); if(t)t.textContent=m.name||COMMUNITY;
   const s=document.getElementById('commSub');
   if(s)s.textContent='Lot map, driveway grade check & plan fit · '+(m.residentialLots||'')+' residential lots'+(m.city?' · '+m.city:'')+' · BUILD '+MAP_BUILD;
-  const r=document.getElementById('tagRun'); if(r)r.textContent='Run '+BASE_RUN+' ft';
+  const r=document.getElementById('tagRun'); if(r)r.textContent=Object.values(GRADE||{}).some(g=>g&&g.entry)?'Run per lot':'Run '+BASE_RUN+' ft';
   const g=document.getElementById('tagGrade');
   if(g)g.textContent='Max grade '+MAXG+'%'+(MAXG_APPROVE!=null?' · '+MAXG_APPROVE+'% w/ approval':'');
   const p=document.getElementById('tagPlat');
@@ -465,7 +470,10 @@ function sheetHref(l){
 }
 /* ---- lot selection: which lots OCH will actually build ---- */
 let pickMode=false, hideExcluded=false;
-const isOurs=l=>!EXC[l.i];
+/* A lot the builder list gives to another builder is never ours, whatever the
+   selection says. l.och is undefined where a community carries no builder list
+   (The Heights, Grand Oaks), so they behave exactly as before. */
+const isOurs=l=>l.och!==false && !EXC[l.i];
 const OURS=()=>RES.filter(isOurs);
 /* A community may contain far more lots than OCH owns (The Heights: 48 of 227).
    Only lots carrying an OCH address are ever assignable, so they are the honest
@@ -497,7 +505,11 @@ async function selectOchOnly(){
   drop.forEach(l=>EXC[l.i]=1); paint(); safeSide();
   for(const l of drop) await pushLot(l.i);
 }
-function excList(){ return RES.filter(l=>!isOurs(l)).map(l=>l.b+'-'+l.l).sort(); }
+/* "Excluded" means a lot someone deliberately dropped from the program. A lot
+   the builder list gives to another builder is not an exclusion — it was never
+   OCH's — so it is counted separately and kept out of this list. */
+function excList(){ return RES.filter(l=>l.och!==false&&!isOurs(l)).map(l=>l.b+'-'+l.l).sort(); }
+const otherBuilders=()=>RES.filter(l=>l.och===false);
 let RES=[]; let byId={};
 
 /* ---------- monotony ---------- */
@@ -603,9 +615,18 @@ function depthFit(l,p){
        value wins where it has one; a community-wide number is the fallback,
        which keeps The Heights and Grand Oaks working unchanged. */
     const fbl=l.frontBL!=null?l.frontBL:(M.frontBL!=null?M.frontBL:10),
-          rear=M.rearBL!=null?M.rearBL:20;
-    const need=p.d+fbl+rear-porch;
-    return {src:'lot',need:need,have:l.ld,margin:l.ld-need,porch:porch,fbl:fbl,rear:rear};
+          rearBL=M.rearBL!=null?M.rearBL:20,
+          /* On a rear-entry lot the garage faces the alley, so the house can
+             come no nearer the alley than the garage setback when that is the
+             deeper of the two (Sherley 45': rear BL 10, garage 20). */
+          rear=(rearEntryComm()&&M.garageBL!=null)?Math.max(rearBL,M.garageBL):rearBL;
+    /* Front-entry: the garage is on the front face, so the house front sits at
+       the deeper of the front line and the garage setback, and the porch can
+       only bring it forward as far as the garage setback allows. */
+    let fset=fbl, fwd=porch;
+    if(!rearEntryComm()&&M.garageBL!=null){ fset=Math.max(fbl,M.garageBL); fwd=Math.min(porch, fset-M.garageBL); }
+    const need=p.d+fset+rear-fwd;
+    return {src:'lot',need:need,have:l.ld,margin:l.ld-need,porch:fwd,fbl:fset,rear:rear};
   }
   return null;
 }
@@ -912,6 +933,9 @@ function drawLegend(){
   /* BASE_RUN is set from community meta after this table is defined,
      so substitute at render time, not at parse time. */
   t=t.replace('{RUN}', BASE_RUN);
+  /* Where each lot carries its own computed run (Sherley's grade files), a single
+     community run in the title would be wrong for most lots. */
+  if(Object.values(GRADE||{}).some(g=>g&&g.entry)) t=t.replace(/ @ [\d.]+ ft run/,' (run varies by lot)');
   if(rows===null){
     if(mode==='slope'){
       /* Bands follow the community's own design max and approval ceiling. */
@@ -937,8 +961,15 @@ function drawLegend(){
         .concat([['#A6392E','monotony conflict'],['#E8EBED','unassigned']]);
     }
   }
+  let own='';
+  if((MAP.lots||[]).some(l=>l.och!==undefined)){
+    const n=(MAP.lots||[]).filter(l=>l.och===true).length, o=(MAP.lots||[]).filter(l=>l.och===false).length;
+    own='<br><span style="display:inline-block;margin-top:6px"></span><br><b>Builder</b><br>'
+      +`<i style="background:#B9D3CB;outline:2.4px solid #223D40;outline-offset:-2px"></i>OCH lot (${n})`
+      +(o?`<br><i style="background:#D5D9DC;opacity:.45"></i>other builder (${o})`:'');
+  }
   document.getElementById('legend').innerHTML='<b>'+t+'</b>'+
-    rows.map(r=>`<i style="background:${r[0]}"></i>${r[1]}`).join('<br>');
+    rows.map(r=>`<i style="background:${r[0]}"></i>${r[1]}`).join('<br>')+own;
 }
 function cycleColor(){colorMode=(colorMode+1)%modes().length;
   document.getElementById('cmBtn').textContent='color: '+modes()[colorMode];
@@ -1026,10 +1057,15 @@ function paint(){
     p.setAttribute('fill',colorOf(l));
     p.classList.toggle('sel',sel===l.i);
     const hit=!qq||(l.b+'-'+l.l).toUpperCase().includes(qq);
-    const ex=l.type==='Residential'&&!isOurs(l);
-    p.classList.toggle('dim',!hit||(ex&&hideExcluded));
+    const other=l.och===false, och=l.och===true;
+    const ex=l.type==='Residential'&&!isOurs(l)&&!other;
+    p.classList.toggle('dim',!hit||((ex||other)&&hideExcluded));
     p.classList.toggle('exc',ex);
+    p.classList.toggle('och',och&&!EXC[l.i]);
+    p.classList.toggle('other',other);
     if(ex){p.setAttribute('fill','url(#hatch)');}
+    /* An OCH lot with nothing yet to colour it by still reads as OCH's. */
+    else if(och&&p.getAttribute('fill')===NODATA){p.setAttribute('fill','#B9D3CB');}
   });
   const gd=document.getElementById('gDrv');if(gd)gd.innerHTML='';
   if(gd)MAP.lots.forEach(l=>{
@@ -1142,7 +1178,8 @@ function renderSide(hits){
   h+=`<div style="margin:8px 0"><label style="font-size:13px;cursor:pointer">
       <input type="checkbox" ${isOurs(l)?'checked':''} onchange="toggleOwn(${l.i})" style="vertical-align:-2px;margin-right:6px">
       OCH will build this lot</label></div>`;
-  if(!isOurs(l))h+=`<div class="remedy" style="border-left-color:var(--slate)"><b>Excluded from the program.</b> Left out of all counts.</div>`;
+  if(l.och===false)h+=`<div class="remedy" style="border-left-color:var(--slate)"><b>${String(l.builder||'Another builder').replace(/</g,'&lt;')}'s lot.</b> Not OCH's — shown for context only, left out of every count.</div>`;
+  else if(!isOurs(l))h+=`<div class="remedy" style="border-left-color:var(--slate)"><b>Excluded from the program.</b> Left out of all counts.</div>`;
   if(partialOwnership()&&!l.addr)
     h+=`<div class="remedy" style="border-left-color:var(--slate)"><b>No OCH address on this lot.</b><br>
       OCH owns ${MAP.meta.ochLots} of the ${MAP.meta.residentialLots} lots here. This one carries no address in the master list, so it is shown for context and is not expected to take an OCH plan.</div>`;
@@ -1156,7 +1193,7 @@ function renderSide(hits){
      construction set, so there is no estimate. Show "—", never a fake number. */
   const slopeVal = e ? e.slope : slOf(l);
   h+=`<div class="card2" style="margin-top:12px"><div style="display:flex;justify-content:space-between;align-items:flex-end">
-      <div><div class="muted" style="font-size:11px;text-transform:uppercase;letter-spacing:.5px">Driveway slope @ ${e?e.run.toFixed(1):BASE_RUN} ft</div>
+      <div><div class="muted" style="font-size:11px;text-transform:uppercase;letter-spacing:.5px">Driveway slope @ ${e?e.run.toFixed(1):(gradeRec(l)?gradeRec(l).run.toFixed(1):BASE_RUN)} ft</div>
       <div class="big" style="color:${slopeVal==null?'var(--slate)':'var(--'+gradeVerdict(slopeVal)+')'}">${slopeVal==null?'—':slopeVal.toFixed(1)+'%'}</div>
       ${slopeVal!=null&&gradeVerdict(slopeVal)==='warn'?`<div class="muted" style="font-size:11px">over the ${MAXG}% design max, within the ${gradeCeiling()}% the City can approve</div>`:''}</div>
       </div>
@@ -1164,7 +1201,19 @@ function renderSide(hits){
   /* Front-entry communities carry apron + front-spot elevations. Rear-alley
      communities (The Heights) do not — they have pad, rear grade and drop only.
      Branch rather than assume; the fields are genuinely absent, not zero. */
-  if(!rearEntry){
+  const GR=gradeRec(l);
+  if(GR&&l.fp==null){
+    /* Communities whose elevations come from a computed grade file (Sherley)
+       rather than fields on the lot record. */
+    const front=GR.entry==='front';
+    h+=`<h3 class="sh">Elevations</h3><div class="kv">
+      <span class="k">Finished pad (FP)</span><span class="v">${fmt(GR.padFP,2)}</span>
+      <span class="k">Garage apron</span><span class="v">${fmt(GR.apron,2)}</span>
+      <span class="k">${front?'Back of sidewalk':'Alley'} at the drive</span><span class="v">${fmt(GR.alleyAtDrive,2)}</span>
+      <span class="k">Run, garage to ${front?'back of sidewalk':'alley'}</span><span class="v">${fmt(GR.run,1,' ft')}</span>
+      <span class="k">Fall</span><span class="v">${fmt(GR.rise,2,' ft')}</span></div>
+      <p class="muted" style="font-size:11px">From the grading plan. Apron = finished pad + ${(MAP.meta.apron!=null?MAP.meta.apron:0).toFixed(2)} ft (OCH standard). Confirm on the surveyed plot plan.</p>`;
+  } else if(!rearEntry){
     h+=`<h3 class="sh">Elevations</h3><div class="kv">
       <span class="k">Pad (FP)</span><span class="v">${fmt(l.fp,2)}</span>
       <span class="k">Top of slab (+${SLAB})</span><span class="v">${l.fp!=null?(l.fp+SLAB).toFixed(2):'—'}</span>
@@ -1451,7 +1500,7 @@ function overviewRecord(){
 }
 function overview(){
   if(RECORD) return overviewRecord();
-  const O=OURS(); const n=O.length; const exn=RES.length-n;
+  const O=OURS(); const n=O.length; const othN=otherBuilders().length; const exn=RES.length-n-othN;
   const assigned=Object.keys(A).length;
   const conf=O.filter(l=>A[l.i]&&monoConflict(l.i,A[l.i]).length);
   const asg=O.filter(l=>A[l.i]);
@@ -1500,8 +1549,12 @@ function overview(){
   h+=`<h3 class="sh">Lots OCH will build</h3>
    <p style="font-size:13px">Turn on <b>select lots</b> in the map controls, then click any lot to drop it from the program. Excluded lots draw hatched and are left out of every count above.</p>
    <div class="kv"><span class="k">In the program</span><span class="v">${n}</span>
+   ${othN?`<span class="k">Other builders' lots</span><span class="v">${othN}</span>`:''}
    <span class="k">Excluded</span><span class="v">${exn}</span></div>`;
-  if(partialOwnership()){
+  if(othN){
+    h+=`<div class="remedy" style="border-left-color:#223D40"><b>OCH owns ${RES.length-othN} of the ${RES.length} lots here</b>, from the builder list.
+      They are ringed in dark green on the map. The other ${othN} belong to other builders — drawn faded for context, never counted and never offered a plan.</div>`;
+  } else if(partialOwnership()){
     const addressed=RES.filter(hasOchAddress).length;
     h+=`<div class="remedy" style="border-left-color:var(--warn)"><b>OCH owns ${MAP.meta.ochLots} of the ${MAP.meta.residentialLots} lots here.</b><br>
       ${addressed} lots carry an OCH address; the rest belong to other builders and can never take an OCH plan.
@@ -1511,7 +1564,7 @@ function overview(){
   if(exn){h+=`<div class="card2" style="margin-top:8px"><div class="muted" style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Excluded lots</div>
     <div style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;line-height:1.7">${excList().join(' · ')}</div>
     <div style="margin-top:8px"><a href="#" onclick="copyExc();return false" class="muted">copy list</a> · <a href="#" onclick="includeAll();return false" class="muted">reset all</a></div></div>`;}
-  else h+=`<p class="muted" style="margin-top:6px">No lots excluded yet — all ${RES.length} are counted.</p>`;
+  else h+=`<p class="muted" style="margin-top:6px">No lots excluded yet — all ${n} ${otherBuilders().length?'OCH lots are':'are'} counted.</p>`;
   h+=`<h3 class="sh">How a lot is judged</h3>`;
   if(REAR){
     const M=MAP.meta||{};
