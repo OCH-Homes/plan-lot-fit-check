@@ -180,7 +180,7 @@
 
 /* Printed in the footer so you can tell at a glance which file is actually
    live on the site. Bump it whenever this file changes. */
-const SHEET_BUILD='2026-11-11h';
+const SHEET_BUILD='2026-11-11i';
 /* Per-lot driveway grade, keyed block-lot. Empty where not measured. */
 let GRADE={};
 
@@ -936,11 +936,12 @@ function draw(){
     const inLot=(x,y)=>{ let c=false;
       for(let i=0,j=QN-1;i<QN;j=i++){ const xi=QP[i][0],yi=QP[i][1],xj=QP[j][0],yj=QP[j][1];
         if(((yi>y)!==(yj>y))&&(x<(xj-xi)*(y-yi)/((yj-yi)||1e-12)+xi)) c=!c; } return c; };
-    const FE=[], RE=[];
+    const FE=[], RE=[], SL=[], SR=[];
     for(let i=0;i<QN;i++){ const a=QP[i], b=QP[(i+1)%QN]; const dx=b[0]-a[0], dy=b[1]-a[1], l=Math.hypot(dx,dy);
       if(l<1e-9) continue; let nx=dy/l, ny=-dx/l;
       if(inLot((a[0]+b[0])/2+nx*0.4,(a[1]+b[1])/2+ny*0.4)){nx=-nx;ny=-ny;}
-      if(ny>0&&Math.abs(ny)>=Math.abs(nx)) FE.push([a,b]); else if(ny<0&&Math.abs(ny)>=Math.abs(nx)) RE.push([a,b]); }
+      if(ny>0&&Math.abs(ny)>=Math.abs(nx)) FE.push([a,b]); else if(ny<0&&Math.abs(ny)>=Math.abs(nx)) RE.push([a,b]);
+      else (nx<0?SL:SR).push([a,b]); }
     const segD=(x,y,a,b)=>{ const vx=b[0]-a[0], vy=b[1]-a[1], L2=vx*vx+vy*vy||1e-12;
       const t=Math.max(0,Math.min(1,((x-a[0])*vx+(y-a[1])*vy)/L2)); return Math.hypot(x-a[0]-vx*t,y-a[1]-vy*t); };
     const dTo=(E,x,y)=>{ let m=Infinity; for(const e of E) m=Math.min(m,segD(x,y,e[0],e[1])); return m; };
@@ -1231,7 +1232,16 @@ function draw(){
          the moved position, where a wedge lot is narrower than at the line. On
          irregular corner lots it lines the house up with the front curve
          rather than the side lines, so it is not trusted at rest. */
-      if(SHIFT>0 && !REAR_IS_ALLEY && LOT.padW==null && O && O.pts && O.pts.length>2){
+      /* Sherley (and any community whose lot orientation is authoritative): the
+         outline check runs at EVERY position, not only once slid, and the house
+         is then DRAWN where that check says it fits — centred between the two
+         side building lines at its own depth. Before this, the drawing sat the
+         house in the middle of the drawing's bounding box while the verdict
+         assumed it could slide sideways to fit, so on a lot that narrows to the
+         street (1B O-8) the sheet said FITS while the drawing showed the house
+         over the side line. */
+      let cxAdj=0, pinL=null, pinR=null;
+      if((SHIFT>0 || M.orientAuthoritative) && LOT.padW==null && O && O.pts && O.pts.length>2 && (M.orientAuthoritative || !REAR_IS_ALLEY)){
         /* Check the house's ACTUAL OUTLINE, as placed, against the lot: every
            point along the outline must sit inside the side building lines at
            that depth. A solid plan-width box over-states the house on a plan
@@ -1240,11 +1250,15 @@ function draw(){
            house could shift in either direction and still clear both side
            yards — so 0 means it just fits. */
         const P=O.pts, np=P.length;
-        const xsAt=y=>{ const xs=[];
-          for(let i=0;i<np;i++){ const u=P[i], v=P[(i+1)%np];
-            if(u[1]===v[1]) continue;
-            if((u[1]-y)*(v[1]-y)<=0) xs.push(u[0]+(v[0]-u[0])*(y-u[1])/(v[1]-u[1])); }
-          return xs.length>=2 ? [Math.min(...xs),Math.max(...xs)] : null; };
+        /* SIDE property lines only. Crossing the whole outline meant that where
+           the street line runs at a slant (R-37, F-7 fully forward) the porch
+           was measured against the FRONT property line as if it were a side
+           yard — the porch is allowed in the front setback. */
+        const cr=(E,y)=>{ const xs=[]; for(const [u,v] of E){ if(u[1]===v[1]) continue;
+            if((u[1]-y)*(v[1]-y)<=0) xs.push(u[0]+(v[0]-u[0])*(y-u[1])/(v[1]-u[1])); } return xs; };
+        const xsAt=y=>{ const l=cr(SL,y), r=cr(SR,y);
+          if(!l.length&&!r.length) return null;
+          return [l.length?Math.max(...l):-Infinity, r.length?Math.min(...r):Infinity]; };
         const fpl=(fp&&fp.pts&&fp.pts.length>3)?fp:null;
         const fay0=!!(fpl&&fpl.frontAtY0), mir=(GAR==='L');
         const W0=fpl?fpl.w:plan.w, D0=fpl?fpl.d:plan.d;
@@ -1258,12 +1272,18 @@ function draw(){
           for(let k=0;k<=steps;k++){
             const x=a[0]+(b[0]-a[0])*k/steps, y=a[1]+(b[1]-a[1])*k/steps;
             const e=xsAt(y); if(!e) continue;
-            leftC=Math.min(leftC, (x-e[0])-sideI);
-            rightC=Math.min(rightC, (e[1]-x)-sideI);
+            if((x-e[0])-sideI<leftC){ leftC=(x-e[0])-sideI; pinL={x:x,y:y,lx:e[0]}; }
+            if((e[1]-x)-sideI<rightC){ rightC=(e[1]-x)-sideI; pinR={x:x,y:y,lx:e[1]}; }
           }
         }
-        if(isFinite(leftC)&&isFinite(rightC))
-          wm = leftC + rightC - (LOT.corner ? (sideC-sideI) : 0);
+        if(isFinite(leftC)&&isFinite(rightC)){
+          const cL = CORN.indexOf('left')>=0 ? sideC-sideI : 0,
+                cR = CORN.indexOf('right')>=0 ? sideC-sideI : 0;
+          const extra = (cL||cR) ? 0 : (LOT.corner ? (sideC-sideI) : 0);
+          wm = leftC + rightC - cL - cR - extra;
+          /* slide sideways so the slack is shared equally */
+          cxAdj = ((rightC-cR)-(leftC-cL))/2;
+        }
       }
       /* The margin is NOT penalised by the clamp. dm is computed from padD, the
          pad's DEPTH, and the depth model already assumes a home seated on the
@@ -1273,7 +1293,7 @@ function draw(){
          implies, which is a placement discrepancy in the pad geometry, not lost
          buildable depth. Docking dm would have turned a built house's +0.5'
          into -10.3'. Flagged in the notes instead. */
-      const cx = (aL+aR)/2;
+      const cx = (aL+aR)/2 + cxAdj;
 
       let houseL,houseR,houseFrontY;
       if(fp&&fp.pts&&fp.pts.length>3){
@@ -1360,9 +1380,18 @@ function draw(){
       /* side clearances, house to lot line */
       /* measured to the lot line itself at the house front, not to the edge of
          the drawing's bounding box — on a wedge those differ by feet */
+      if(pinL&&pinR){
+        /* the tightest point on each side, where the house actually comes
+           closest to the lot line — not across the front, where on a plan
+           that steps back the house may not even be */
+        const xl=pinL.x+cxAdj, xr=pinR.x+cxAdj;
+        s+=dimH(X(pinL.lx),X(xl),Y(pinL.y)+15,FT(xl-pinL.lx),Y(pinL.y));
+        s+=dimH(X(xr),X(pinR.lx),Y(pinR.y)+15,FT(pinR.lx-xr),Y(pinR.y));
+      } else {
       const hc=hCross(houseFrontY-0.01), sL=hc?hc[0]:minx, sR=hc?hc[1]:maxx;
       if(houseL-sL>1.5) s+=dimH(X(sL),X(houseL),Y(houseFrontY)+15,FT(houseL-sL),Y(houseFrontY));
       if(sR-houseR>1.5) s+=dimH(X(houseR),X(sR),Y(houseFrontY)+15,FT(sR-houseR),Y(houseFrontY));
+      }
       /* front face to front lot line */
       const fAt = SQ ? frontAt(houseL+2) : frontY;
       if(fAt-houseFrontY>1.5)
@@ -1541,7 +1570,9 @@ function draw(){
         lkS?(GAR===lkS?' · locked by OCH':' · OVERRIDE, locked '+(lkS==='L'?'left':'right')):''}</span></div>
       <div><span>HOUSE </span><b>${plan?FT(plan.w)+' × '+FT(plan.d):'—'}</b></div>
       <div><span>LOT </span><b>${F(LOT.lw)} × ${F(LOT.ld)}</b></div>
-      <div><span>PAD </span><b>${LOT.padW!=null?FT(LOT.padW)+' × '+FT(LOT.padD):'not graded'}</b></div>
+      <div><span>PAD </span><b>${LOT.padW!=null?FT(LOT.padW)+' × '+FT(LOT.padD)
+          :(LOT.pad&&LOT.pad.w!=null)?FT(LOT.pad.w)+' × '+FT(LOT.pad.d)+(LOT.padAlt&&LOT.padAlt.d!==LOT.pad.d?' (plat) · '+FT(LOT.padAlt.w)+' × '+FT(LOT.padAlt.d)+' (grading plan)':'')
+          :'not graded'}</b></div>
       <!-- The front building line varies lot by lot in some communities, and a
            reader who assumes the community figure gets it wrong. Print this
            lot's own value on every sheet, and say plainly that it varies. -->
