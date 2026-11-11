@@ -180,7 +180,7 @@
 
 /* Printed in the footer so you can tell at a glance which file is actually
    live on the site. Bump it whenever this file changes. */
-const SHEET_BUILD='2026-11-11g';
+const SHEET_BUILD='2026-11-11h';
 /* Per-lot driveway grade, keyed block-lot. Empty where not measured. */
 let GRADE={};
 
@@ -473,7 +473,7 @@ function resolveFront(lot,orient,frontBL,rearBL){
 /* Rotate the lot so the frontage is horizontal with the street at the bottom
    and the alley at the top. Returns the angle too, so a north arrow can be
    drawn correctly on a sheet whose orientation is no longer the map's. */
-function orientLot(lot,orient,frontSeg){
+function orientLot(lot,orient,frontSeg,square){
   const fr=frontSeg||orient.front, o=centroid(lot.pts);
   const v=sub(fr[1],fr[0]);
   let a=-Math.atan2(v[1],v[0]);
@@ -481,7 +481,34 @@ function orientLot(lot,orient,frontSeg){
   let f=fr.map(p=>rot(p,a,o));
   if(mid(f)[1] < centroid(pts)[1]){ a+=Math.PI;
     pts=lot.pts.map(p=>rot(p,a,o)); f=fr.map(p=>rot(p,a,o)); }
-  return {pts:pts, front:f, angle:a, origin:o};
+  let squared=0;
+  if(square){
+    /* SQUARE THE HOUSE TO THE LOT, NOT TO THE FRONT CHORD. Turning the front
+       chord level is right on a rectangular lot, but on a skewed or wedge lot
+       whose side lines both lean one way (Q-5, 2717 Lair Road) it stands the
+       house square to the street while the side lines run off at 10-25
+       degrees, so the fit cannot be judged by eye. Turn the lot once more so
+       the bisector of its two side lines is vertical: a rectangle does not
+       move, a wedge comes out symmetric, and a lot on a curve with radial sides
+       ends with the house on the radial through its middle. */
+    const side=pts=>{ const n=pts.length, c=centroid(pts); const g={L:[0,0],R:[0,0]};
+      for(let i=0;i<n;i++){ const u=pts[i], v=pts[(i+1)%n];
+        let dx=v[0]-u[0], dy=v[1]-u[1]; const l=Math.hypot(dx,dy);
+        if(l<3||Math.abs(dy)<Math.abs(dx)*1.5) continue;     /* mostly front-to-back only */
+        if(dy>0){dx=-dx;dy=-dy;}                               /* point toward the rear */
+        const k=((u[0]+v[0])/2<c[0])?'L':'R';
+        g[k][0]+=Math.atan2(dx,-dy)*l; g[k][1]+=l; }
+      return g; };
+    const g=side(pts);
+    if(g.L[1]>=25&&g.R[1]>=25){
+      const t=(g.L[0]/g.L[1]+g.R[0]/g.R[1])/2;               /* bisector lean, radians */
+      if(Math.abs(t)>1.5*Math.PI/180&&Math.abs(t)<35*Math.PI/180){
+        a-=t; squared=t;
+        pts=lot.pts.map(p=>rot(p,a,o)); f=fr.map(p=>rot(p,a,o));
+      }
+    }
+  }
+  return {pts:pts, front:f, angle:a, origin:o, squared:squared};
 }
 
 /* The overhead door position. footprints.json now carries it explicitly per plan
@@ -882,7 +909,7 @@ function draw(){
       + 'orientation data to restore it.</div>';
 
   if(or&&!drawBlocked){
-    const O=orientLot(LOT,or,FR.front);
+    const O=orientLot(LOT,or,FR.front,!!M.orientAuthoritative);
     const xs=O.pts.map(p=>p[0]), ys=O.pts.map(p=>p[1]);
     const minx=Math.min(...xs), maxx=Math.max(...xs),
           miny=Math.min(...ys), maxy=Math.max(...ys);
@@ -897,6 +924,47 @@ function draw(){
     const X=x=>ox+(x-minx)*sc, Y=y=>oy+(y-miny)*sc, S=v=>v*sc;
 
     const frontY=maxy, rearY=miny;
+    /* ---- measuring against the real lot lines ----
+       Once a lot has been squared to its side lines (orientLot, Sherley) the
+       street is no longer level on the page, so "the bottom of the drawing less
+       the setback" is not where the building line is. These read the lot
+       outline itself: which edges face the street and which the rear, how far a
+       point is from them, and where a vertical line crosses the lot. Used only
+       when the lot was squared; every other lot behaves exactly as before. */
+    const SQ = !!(O.squared);
+    const QP=O.pts, QN=QP.length;
+    const inLot=(x,y)=>{ let c=false;
+      for(let i=0,j=QN-1;i<QN;j=i++){ const xi=QP[i][0],yi=QP[i][1],xj=QP[j][0],yj=QP[j][1];
+        if(((yi>y)!==(yj>y))&&(x<(xj-xi)*(y-yi)/((yj-yi)||1e-12)+xi)) c=!c; } return c; };
+    const FE=[], RE=[];
+    for(let i=0;i<QN;i++){ const a=QP[i], b=QP[(i+1)%QN]; const dx=b[0]-a[0], dy=b[1]-a[1], l=Math.hypot(dx,dy);
+      if(l<1e-9) continue; let nx=dy/l, ny=-dx/l;
+      if(inLot((a[0]+b[0])/2+nx*0.4,(a[1]+b[1])/2+ny*0.4)){nx=-nx;ny=-ny;}
+      if(ny>0&&Math.abs(ny)>=Math.abs(nx)) FE.push([a,b]); else if(ny<0&&Math.abs(ny)>=Math.abs(nx)) RE.push([a,b]); }
+    const segD=(x,y,a,b)=>{ const vx=b[0]-a[0], vy=b[1]-a[1], L2=vx*vx+vy*vy||1e-12;
+      const t=Math.max(0,Math.min(1,((x-a[0])*vx+(y-a[1])*vy)/L2)); return Math.hypot(x-a[0]-vx*t,y-a[1]-vy*t); };
+    const dTo=(E,x,y)=>{ let m=Infinity; for(const e of E) m=Math.min(m,segD(x,y,e[0],e[1])); return m; };
+    const vCross=x=>{ const ys=[]; for(let i=0;i<QN;i++){ const u=QP[i], v=QP[(i+1)%QN];
+        if((u[0]-x)*(v[0]-x)<=0 && u[0]!==v[0]) ys.push(u[1]+(v[1]-u[1])*(x-u[0])/(v[0]-u[0])); }
+      return ys.length?[Math.min(...ys),Math.max(...ys)]:null; };
+    const hCross=y=>{ const xs=[]; for(let i=0;i<QN;i++){ const u=QP[i], v=QP[(i+1)%QN];
+        if((u[1]-y)*(v[1]-y)<=0 && u[1]!==v[1]) xs.push(u[0]+(v[0]-u[0])*(y-u[1])/(v[1]-u[1])); }
+      return xs.length?[Math.min(...xs),Math.max(...xs)]:null; };
+    const frontAt=x=>{ const c=vCross(x); return c?c[1]:frontY; };
+    /* Furthest toward the street a straight edge from L to R can sit while
+       staying d clear of every street-facing lot line. */
+    const seatFront=(L,R,d)=>{ let best=Infinity; const n=Math.max(2,Math.ceil((R-L)));
+      for(let k=0;k<=n;k++){ const x=L+(R-L)*k/n, c=vCross(x); if(!c) continue;
+        let lo=c[0], hi=c[1]; if(dTo(FE,x,lo)<d){ best=Math.min(best,lo); continue; }
+        for(let it=0;it<40;it++){ const m=(lo+hi)/2; if(dTo(FE,x,m)>=d) lo=m; else hi=m; }
+        best=Math.min(best,lo); }
+      return isFinite(best)?best:(frontY-d); };
+    const seatRear=(L,R,d)=>{ let best=-Infinity; const n=Math.max(2,Math.ceil((R-L)));
+      for(let k=0;k<=n;k++){ const x=L+(R-L)*k/n, c=vCross(x); if(!c) continue;
+        let lo=c[0], hi=c[1]; if(dTo(RE,x,hi)<d){ best=Math.max(best,hi); continue; }
+        for(let it=0;it<40;it++){ const m=(lo+hi)/2; if(dTo(RE,x,m)>=d) hi=m; else lo=m; }
+        best=Math.max(best,hi); }
+      return isFinite(best)?best:(rearY+d); };
     const poly=O.pts.map(p=>X(p[0])+','+Y(p[1])).join(' ');
 
     /* meet, not slice: the whole drawing is scaled uniformly into whatever box
@@ -1125,9 +1193,13 @@ function draw(){
          costs comes straight off the margin below so the verdict can never be
          flattered by a pad that reaches past the line. `rear` is read from the
          community meta — 20' at The Heights, whatever each community defines. */
-      const aL = padL!=null?padL:(minx+lotW/2-plan.w/2);
-      const aR = padR!=null?padR:(minx+lotW/2+plan.w/2);
-      const blT = rearY+rearSeat;
+      /* On a squared lot, centre the house between the side lines at about its
+         own mid-depth rather than on the drawing's bounding box. */
+      let cx0 = minx+lotW/2;
+      if(SQ&&padL==null){ const hc=hCross(frontY-fbl-plan.d/2); if(hc) cx0=(hc[0]+hc[1])/2; }
+      const aL = padL!=null?padL:(cx0-plan.w/2);
+      const aR = padR!=null?padR:(cx0+plan.w/2);
+      const blT = SQ ? seatRear(aL,aR,rearSeat) : rearY+rearSeat;
       let aT;
       if(REAR_IS_ALLEY){
         /* Rear-entry: the home is pushed back against the rear building line so
@@ -1144,7 +1216,7 @@ function draw(){
            the rear line, as the rear-entry rule does, put it at the wrong end
            of the lot. The slider then moves it BACK toward the rear, and the
            rear building line is still the hard stop. */
-        aT = (frontY - restFront) - plan.d + Math.max(0, Math.min(MAXSHIFT, SHIFT));
+        aT = (SQ ? seatFront(aL,aR,restFront) : (frontY - restFront)) - plan.d + Math.max(0, Math.min(MAXSHIFT, SHIFT));
         if(aT < blT){ rearClamp = blT-aT; aT = blT; }
       }
       /* WIDTH WHERE THE HOUSE ACTUALLY SITS. Without an engineer's pad, the
@@ -1177,7 +1249,7 @@ function draw(){
         const fay0=!!(fpl&&fpl.frontAtY0), mir=(GAR==='L');
         const W0=fpl?fpl.w:plan.w, D0=fpl?fpl.d:plan.d;
         const shape=fpl?fpl.pts:[[0,0],[W0,0],[W0,D0],[0,D0]];
-        const cxL=((padL!=null?padL:(minx+lotW/2-plan.w/2))+(padR!=null?padR:(minx+lotW/2+plan.w/2)))/2;
+        const cxL=(aL+aR)/2;
         const toW=q=>[ cxL-W0/2+(fpl&&mir?(W0-q[0]):q[0]), fay0?(aT+D0-q[1]):(aT+q[1]) ];
         let leftC=Infinity, rightC=Infinity;
         for(let i=0;i<shape.length;i++){
@@ -1238,7 +1310,7 @@ function draw(){
         /* The garage face, in page terms: the alley end on a rear-entry plan,
            the street end on a front-entry one. */
         const garY = FAY0 ? (aT+fp.d-GINSET) : aT;
-        const apronTo = FAY0 ? frontY : rearY;
+        let apronTo = FAY0 ? frontY : rearY;
         s+=`<polygon points="${fp.pts.map(p=>px(p[0])+','+py(p[1])).join(' ')}"
               fill="none" stroke="#000" stroke-width="1.35" stroke-linejoin="round"/>`;
         houseL=cx-fp.w/2; houseR=cx+fp.w/2; houseFrontY=aT+fp.d;
@@ -1249,6 +1321,7 @@ function draw(){
           doorFound=true;
           const gl=mirror?(fp.w-g.hi):g.lo, gh=mirror?(fp.w-g.lo):g.hi;
           const gx1=X(cx-fp.w/2+gl), gx2=X(cx-fp.w/2+gh);
+          if(SQ&&FAY0) apronTo=frontAt(cx-fp.w/2+(gl+gh)/2);
           /* door shown as a heavy segment on the garage face */
           s+=`<line x1="${gx1}" y1="${Y(garY)}" x2="${gx2}" y2="${Y(garY)}" stroke="#000" stroke-width="3.4"/>`;
           /* apron, door to the alley or to the street */
@@ -1274,8 +1347,10 @@ function draw(){
         s+=`<rect x="${hx}" y="${hy}" width="${hw}" height="${hd}" fill="none" stroke="#000" stroke-width="1.35"/>`;
         houseL=cx-plan.w/2; houseR=cx+plan.w/2; houseFrontY=aT+plan.d;
         const gw=hw*0.46, gx=(GAR==='L')?hx+hw*0.05:hx+hw-gw-hw*0.05;
-        s+=`<line x1="${gx}" y1="${hy}" x2="${gx+gw}" y2="${hy}" stroke="#000" stroke-width="3.4"/>`;
-        s+=note(gx+gw/2,hy-6,'GARAGE (INDICATIVE)');
+        /* front-entry: the garage is on the street face, not the rear */
+        const gy=REAR_IS_ALLEY?hy:hy+hd;
+        s+=`<line x1="${gx}" y1="${gy}" x2="${gx+gw}" y2="${gy}" stroke="#000" stroke-width="3.4"/>`;
+        s+=note(gx+gw/2,REAR_IS_ALLEY?gy-6:gy+12,'GARAGE (INDICATIVE)');
       }
 
       /* --- dimensions --- */
@@ -1283,16 +1358,29 @@ function draw(){
       s+=dimH(X(houseL),X(houseR),dimTop,FT(plan.w),Y(rearY));
       s+=dimV(Y(aT),Y(houseFrontY),X(maxx)+30,FT(plan.d),X(maxx));
       /* side clearances, house to lot line */
-      if(houseL-minx>1.5) s+=dimH(X(minx),X(houseL),Y(houseFrontY)+15,FT(houseL-minx),Y(houseFrontY));
-      if(maxx-houseR>1.5) s+=dimH(X(houseR),X(maxx),Y(houseFrontY)+15,FT(maxx-houseR),Y(houseFrontY));
+      /* measured to the lot line itself at the house front, not to the edge of
+         the drawing's bounding box — on a wedge those differ by feet */
+      const hc=hCross(houseFrontY-0.01), sL=hc?hc[0]:minx, sR=hc?hc[1]:maxx;
+      if(houseL-sL>1.5) s+=dimH(X(sL),X(houseL),Y(houseFrontY)+15,FT(houseL-sL),Y(houseFrontY));
+      if(sR-houseR>1.5) s+=dimH(X(houseR),X(sR),Y(houseFrontY)+15,FT(sR-houseR),Y(houseFrontY));
       /* front face to front lot line */
-      if(frontY-houseFrontY>1.5)
-        s+=dimV(Y(houseFrontY),Y(frontY),X(minx)-18,FT(frontY-houseFrontY),X(minx));
+      const fAt = SQ ? frontAt(houseL+2) : frontY;
+      if(fAt-houseFrontY>1.5)
+        s+=dimV(Y(houseFrontY),Y(fAt),X(minx)-18,FT(fAt-houseFrontY),X(minx));
     }
 
     /* --- overall lot dimensions, outermost --- */
-    s+=dimH(X(minx),X(maxx),Y(frontY)+30,FT(lotW),Y(frontY));
-    s+=dimV(Y(rearY),Y(frontY),X(maxx)+52,FT(lotD),X(maxx));
+    if(SQ){
+      /* The lot has been turned square to its side lines, so its bounding box
+         is not its size. Label the platted frontage and depth instead. */
+      const fx=FE.flatMap(e=>[e[0][0],e[1][0]]);
+      const fl=fx.length?Math.min(...fx):minx, fr=fx.length?Math.max(...fx):maxx;
+      s+=dimH(X(fl),X(fr),Y(frontY)+30,(LOT.lw!=null?LOT.lw.toFixed(1)+"' FRONTAGE":FT(fr-fl)),Y(frontY));
+      s+=dimV(Y(rearY),Y(frontY),X(maxx)+52,(LOT.ld!=null?LOT.ld.toFixed(1)+"' DEPTH":FT(lotD)),X(maxx));
+    } else {
+      s+=dimH(X(minx),X(maxx),Y(frontY)+30,FT(lotW),Y(frontY));
+      s+=dimV(Y(rearY),Y(frontY),X(maxx)+52,FT(lotD),X(maxx));
+    }
 
     /* --- edge labels --- */
     /* Front-entry communities have a rear property line, not an alley. Labelling
