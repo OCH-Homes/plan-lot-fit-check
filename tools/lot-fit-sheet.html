@@ -180,7 +180,7 @@
 
 /* Printed in the footer so you can tell at a glance which file is actually
    live on the site. Bump it whenever this file changes. */
-const SHEET_BUILD='2026-11-11f';
+const SHEET_BUILD='2026-11-11g';
 /* Per-lot driveway grade, keyed block-lot. Empty where not measured. */
 let GRADE={};
 
@@ -230,6 +230,25 @@ function applyLock(){
    line. This community's rear rule is a drive of 3' or of 20' and over, so a
    longer drive stays compliant. */
 let SHIFT=0, MAXSHIFT=0;
+/* Where the garage door actually sits, measured back from the house front.
+   On a front-entry outline drawn with the front at y=0 the garage face is NOT
+   necessarily at y=0: the Webber's covered entry stands 10 ft ahead of its
+   garage. Read it from the outline itself, at the centre of the door opening:
+   the nearest horizontal edge of the outline spanning that point is the
+   garage face. No outline or no door on file gives 0, i.e. the old assumption
+   that the garage is flush with the front, which is the conservative one. */
+function garageInset(fp){
+  if(!fp||!fp.frontAtY0||!fp.door||!Array.isArray(fp.pts)||fp.pts.length<3) return 0;
+  const xc=(fp.door.lo+fp.door.hi)/2, P=fp.pts;
+  let best=null;
+  for(let i=0;i<P.length;i++){
+    const a=P[i], b=P[(i+1)%P.length];
+    if(Math.abs(a[1]-b[1])>1e-6) continue;
+    if(xc<Math.min(a[0],b[0])-1e-6||xc>Math.max(a[0],b[0])+1e-6) continue;
+    if(best==null||a[1]<best) best=a[1];
+  }
+  return (best!=null&&best>0&&best<(fp.d||1e9)/2)?best:0;
+}
 function setShift(v){ SHIFT=Math.max(0,Math.min(MAXSHIFT,parseFloat(v)||0)); draw(); }
 
 /* =====================================================================
@@ -707,6 +726,12 @@ function draw(){
      deeper of the front building line and the garage setback — on a 20 ft line
      with a 25 ft garage setback, at 25 ft. */
   const frontSeat = (!REAR_IS_ALLEY && GBL!=null) ? Math.max(fbl, GBL) : fbl;
+  /* The plan outline is needed BEFORE the fit figures now, because on a
+     front-entry plan where the garage sits behind the front face it decides
+     how far forward the house may come. */
+  const FP0 = (function(){ if(!plan||!FOOT) return null;
+    const fam=(pname.split(' ')[0]||'').toLowerCase(); return FOOT[pid]||FOOT[fam]||null; })();
+  const GINSET = REAR_IS_ALLEY ? 0 : garageInset(FP0);
   const maxg=M.maxGrade!=null?M.maxGrade:10;
   const ceil=M.maxGradeApproval!=null?M.maxGradeApproval:maxg;
 
@@ -780,29 +805,30 @@ function draw(){
   const porchRoom = Math.max(0, fbl - porchOffPL);
   const credit = porchKnown ? Math.min(projection, porchMax, porchRoom) : 0;
 
+  /* FRONT-ENTRY SEATING — three positions, in feet back from the front
+     property line:
+       garMin    the nearest the GARAGE face may come: the deeper of the front
+                 building line and the garage setback. The garage is enclosed
+                 space; it never enters the front setback.
+       restFront the house front at rest: on the front building line, or
+                 further back if the garage would otherwise cross garMin.
+       minFront  the house front fully forward: the porch may cross the front
+                 line by the porch credit, but never so far that the garage
+                 (GINSET behind the front) crosses garMin.
+     F-7 Webber B (plot plan): front BL 30, garage setback 25, garage 10 ft
+     behind the covered entry -> garMin 30, rest 30, fully forward 20, with
+     the garage on the 30 ft line exactly as the surveyor drew it. */
+  const garMin    = (!REAR_IS_ALLEY && GBL!=null) ? Math.max(fbl, GBL) : fbl;
+  const restFront = Math.max(fbl, garMin - GINSET);
+  const minFront  = Math.min(restFront, Math.max(fbl - credit, garMin - GINSET));
   if(plan){
     if(LOT.padD!=null)      dm=LOT.padD-(plan.d-credit);
     else if(LOT.ld!=null){
-      /* Front-entry: the porch can only bring the house forward as far as the
-         garage setback lets the garage come, so that is the credit that counts. */
-      const fwd = REAR_IS_ALLEY ? credit : Math.min(credit, Math.max(0, frontSeat-(GBL!=null?GBL:frontSeat)));
-      const fset = REAR_IS_ALLEY ? fbl : frontSeat;
-      dm=LOT.ld-(plan.d+fset+rearSeat-fwd);
+      dm = REAR_IS_ALLEY ? LOT.ld-(plan.d+fbl+rearSeat-credit)
+                         : LOT.ld-(plan.d+minFront+rearSeat);
     }
-    /* Rear-entry: forward travel is the depth this plan does not use.
-       Front-entry: the home sits on the front building line, and the only way
-       it can come forward is by its PORCH entering the front setback — so the
-       travel is exactly the porch credit, never the spare depth. */
     if(REAR_IS_ALLEY) MAXSHIFT = (dm!=null && dm>0) ? Math.round(dm*2)/2 : 0;
-    else {
-      /* On a front-entry plan the garage is on the front face, and the garage
-         has its own setback (25 ft on Sherley's 50 ft lots, per the Spiars Pad
-         Fit Exhibit). So the home comes forward by the porch allowance OR until
-         the garage face reaches the garage setback, whichever is less. */
-      const gbl = GBL;
-      const garRoom = (gbl!=null) ? Math.max(0, frontSeat - gbl) : Infinity;
-      MAXSHIFT = Math.floor(Math.min(credit, garRoom)*2)/2;
-    }
+    else MAXSHIFT = Math.floor((restFront-minFront)*2)/2;
     if(SHIFT>MAXSHIFT) SHIFT=MAXSHIFT;
     (function(){
       const sl=document.getElementById('shiftSl'), lb=document.getElementById('shiftLbl'),
@@ -1118,7 +1144,7 @@ function draw(){
            the rear line, as the rear-entry rule does, put it at the wrong end
            of the lot. The slider then moves it BACK toward the rear, and the
            rear building line is still the hard stop. */
-        aT = (frontY - frontSeat) - plan.d + Math.max(0, Math.min(MAXSHIFT, SHIFT));
+        aT = (frontY - restFront) - plan.d + Math.max(0, Math.min(MAXSHIFT, SHIFT));
         if(aT < blT){ rearClamp = blT-aT; aT = blT; }
       }
       /* WIDTH WHERE THE HOUSE ACTUALLY SITS. Without an engineer's pad, the
@@ -1211,7 +1237,7 @@ function draw(){
         const py=v=>Y(FAY0 ? (aT+fp.d-v) : (aT+v));
         /* The garage face, in page terms: the alley end on a rear-entry plan,
            the street end on a front-entry one. */
-        const garY = FAY0 ? (aT+fp.d) : aT;
+        const garY = FAY0 ? (aT+fp.d-GINSET) : aT;
         const apronTo = FAY0 ? frontY : rearY;
         s+=`<polygon points="${fp.pts.map(p=>px(p[0])+','+py(p[1])).join(' ')}"
               fill="none" stroke="#000" stroke-width="1.35" stroke-linejoin="round"/>`;
@@ -1401,7 +1427,7 @@ function draw(){
      showing the rear-line numbers while the drawing showed the home somewhere
      else was contradicting itself. */
   const hShift = Math.max(0, Math.min(MAXSHIFT, SHIFT));
-  const hRun = Ghdr ? (Ghdr.entry==='front' ? Ghdr.run-hShift : Ghdr.run+hShift) : null;
+  const hRun = Ghdr ? (Ghdr.entry==='front' ? Ghdr.run+(restFront-hShift+GINSET-garMin) : Ghdr.run+hShift) : null;
   const slopeVal = Ghdr ? (Ghdr.rise/hRun*100) : null;
   const slopeTxt = slopeVal==null ? 'not measured'
     : slopeVal<=maxg ? slopeVal.toFixed(1)+'%'
@@ -1455,7 +1481,10 @@ function draw(){
       /* Rear entry: moving the home toward the street lengthens the drive to the
          alley. Front entry: moving it toward the street SHORTENS the drive. */
       const FRONT = G.entry==='front';
-      const sRun  = FRONT ? G.run - shift : G.run + shift;
+      /* The grade file measures the drive with the garage on garMin. The garage
+         actually sits GINSET behind the house front, which is restFront less
+         the slider travel. */
+      const sRun  = FRONT ? G.run + (restFront - shift + GINSET - garMin) : G.run + shift;
       const sSlope= sRun>0 ? G.rise/sRun*100 : G.slopePct;
       const over = sSlope>ceil, warn = sSlope>maxg;
       /* Garage drop is recomputed against the CURRENT run, not the rear-line
@@ -1483,9 +1512,13 @@ function draw(){
                  : (warn ? `Within the ${ceil}% the City will approve; ${dropIn(maxg/100)}" of extra drop would bring it under ${maxg}%.`
                          : `No dropped garage needed.`)}
           ${M.apron!=null?`Apron is the finished pad + ${M.apron.toFixed(2)}', OCH standard. Calculated from the grading plan — confirm on the surveyed plot plan.`:`Assumes the standard 0.84' step-down from top of slab to apron.`}
-          ${FRONT ? (shift>0.1
-              ? `<br><b>Home sited ${F(shift)} forward</b> — the porch into the front setback. That shortens the drive, so the slope is steeper than the ${G.slopePct.toFixed(1)}% it reads with the house on its line.`
-              : '')
+          ${FRONT ? (()=>{
+              const rRun=G.run+(restFront+GINSET-garMin), fRun=G.run+(minFront+GINSET-garMin);
+              const at=r=>(G.rise/r*100).toFixed(1)+'%';
+              return MAXSHIFT>0.1
+                ? `<br>Garage ${FT(restFront-shift+GINSET)} back from the street${shift>0.1?`, with the home ${F(shift)} forward`:''}. With the house front on its line the drive is ${rRun.toFixed(1)}' at ${at(rRun)}; fully forward (garage on the ${FT(garMin)} line) it is ${fRun.toFixed(1)}' at ${at(fRun)}.`
+                : `<br>Garage ${FT(restFront+GINSET)} back from the street.`;
+            })()
           : shift>0.1
             ? `<br><b>Home sited ${F(shift)} forward</b> of the rear of the pad, of the ${F(MAXSHIFT)}
                this plan allows. On the rear building line it reads ${G.slopePct.toFixed(1)}% and needs
@@ -1513,8 +1546,7 @@ function draw(){
         : `<b>The ${porch}' porch encroachment is the community default and has not yet been confirmed for this elevation.</b> Only a projecting porch earns it — living space never can — so this figure may be generous by up to ${porch}'.`}
       ${frontNote&&!(M.orientAuthoritative)?`<b>This lot's recorded frontage disagrees with the plat.</b> ${esc(frontNote)} Worth fixing in the orientation data so the map agrees. `:''}
       ${DRAWN&&REAR_IS_ALLEY?`<b>The rear of the house is held at the rear edge of the engineer's graded pad</b>, which on some lots sits further from the alley than the ${rear}' building line. It is never placed closer to the alley than that line.`:''}
-      ${DRAWN&&!REAR_IS_ALLEY&&frontSeat>fbl?`<b>The house front sits at ${FT(frontSeat)}, not on the ${FT(fbl)} front building line,</b> because the garage is on the front face and the garage setback is ${FT(frontSeat)}. `:''}
-      ${DRAWN&&!REAR_IS_ALLEY?`<b>The house starts at ${FT(frontSeat)} from the street</b> and can come forward only as far as its porch may enter the front setback — ${credit>0?FT(MAXSHIFT)+' on this plan and lot'+(MAXSHIFT<credit?`, held there because the garage, on the front face, may come no closer than the ${FT(SBP.garageBL!=null?SBP.garageBL:M.garageBL)} garage setback (the porch alone would allow ${FT(credit)})`:''):'none, because no porch figure is on file for this plan'}. Porch up to ${FT(porchMax)}, unconditioned, at least ${FT(porchOffPL)} off the front property line. The ${rear}' rear building line is the hard stop behind it.`:''}
+      ${DRAWN&&!REAR_IS_ALLEY?`<b>The house front starts on the ${FT(restFront)} line${restFront>fbl?` (behind the ${FT(fbl)} front building line, because the garage may come no closer than ${FT(garMin)})`:''}.</b> ${GINSET>0?`The garage face is ${FT(GINSET)} behind the house front on this plan, read from its outline. `:'No outline with a garage door is on file for this plan, so the garage is taken as flush with the house front. '}The slider brings the house forward ${FT(MAXSHIFT)}${MAXSHIFT>0?` — the porch into the front setback, up to ${FT(credit)} on this lot, and never the garage past ${FT(garMin)}`:credit>0?'':', because no porch figure is on file for this plan'}. Fully forward the house front is at ${FT(minFront)} and the garage at ${FT(minFront+GINSET)}. Porch up to ${FT(porchMax)}, unconditioned, at least ${FT(porchOffPL)} off the front property line. The ${rear}' rear building line is the hard stop behind it.`:''}
       ${DRAWN&&rearClamp>0?`<b>The drawn pad outline on this lot sits ${rearClamp.toFixed(1)}' nearer the alley than that line</b>, so the home is held at the line rather than at the pad edge. The depth margin above is unaffected — it is figured from the pad's ${F(LOT.padD)} depth, which already seats the home on the building line. Worth checking the pad geometry for this lot. `:''}
       ${LOT.pad?`<b>The graded pad is the engineer's</b>, from the grading drawing — not derived from setbacks.`
                :`No graded pad was recorded for this lot, so the home is measured against the setback envelope.`}

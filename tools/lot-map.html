@@ -169,7 +169,7 @@ let PAD_DEPTH=80.0, BASE_RUN=21.0, MAXG=10.0, SLAB=0.83, STD_STEP=0.58;
    it is a lot that needs a City sign-off, which is a commercial decision rather
    than a dead lot. Stays null where a community records no approval allowance,
    in which case maxGrade is a hard ceiling exactly as before. */
-const MAP_BUILD='2026-11-11f';   /* printed in the header, like the other pages */
+const MAP_BUILD='2026-11-11g';   /* printed in the header, like the other pages */
 let MAXG_APPROVE=null;
 /* Verified per-lot driveway grade, built from the engineer's grading plan and
    the surveyed alley elevations (see <community>-grade.json). It REPLACES the
@@ -602,6 +602,32 @@ function porchCredit(p,l){
   const fbl=(l&&l.frontBL!=null)?l.frontBL:(M.frontBL!=null?M.frontBL:10);
   return Math.min(proj,cap,Math.max(0,fbl-off));
 }
+/* Garage face behind the house front, read from the plan outline at the door
+   centre (front-entry outlines drawn with the front at y=0). Same function as
+   lot-fit-sheet.html. 0 when no outline or door is on file. */
+function garageInset(fp){
+  if(!fp||!fp.frontAtY0||!fp.door||!Array.isArray(fp.pts)||fp.pts.length<3) return 0;
+  const xc=(fp.door.lo+fp.door.hi)/2, P=fp.pts; let best=null;
+  for(let i=0;i<P.length;i++){ const a=P[i], b=P[(i+1)%P.length];
+    if(Math.abs(a[1]-b[1])>1e-6) continue;
+    if(xc<Math.min(a[0],b[0])-1e-6||xc>Math.max(a[0],b[0])+1e-6) continue;
+    if(best==null||a[1]<best) best=a[1]; }
+  return (best!=null&&best>0&&best<(fp.d||1e9)/2)?best:0;
+}
+function planInset(p){
+  if(!p||!FOOTP) return 0;
+  const fam=String(p.name||p.n||'').split(' ')[0].toLowerCase();
+  return garageInset(FOOTP[p.id]||FOOTP[fam]);
+}
+/* Front-entry depth used, fully forward: the garage may come no closer than the
+   deeper of the front building line and the garage setback; the porch may cross
+   the front line by its credit; and the porch is planInset ahead of the garage. */
+function frontUse(fbl,gbl,credit,inset){
+  const garMin=(gbl!=null)?Math.max(fbl,gbl):fbl;
+  const rest=Math.max(fbl,garMin-inset);
+  return Math.min(rest, Math.max(fbl-credit, garMin-inset));
+}
+let FOOTP=null;
 function depthFit(l,p){
   if(!l||!p||p.d==null)return null;
   const M=MAP.meta||{};
@@ -623,9 +649,9 @@ function depthFit(l,p){
     /* Front-entry: the garage is on the front face, so the house front sits at
        the deeper of the front line and the garage setback, and the porch can
        only bring it forward as far as the garage setback allows. */
-    let fset=fbl, fwd=porch;
-    if(!rearEntryComm()&&M.garageBL!=null){ fset=Math.max(fbl,M.garageBL); fwd=Math.min(porch, fset-M.garageBL); }
-    const need=p.d+fset+rear-fwd;
+    let fset=fbl, fwd=porch, use=fbl-porch;
+    if(!rearEntryComm()){ use=frontUse(fbl,M.garageBL,porch,planInset(p)); fwd=Math.max(0,fbl-use); }
+    const need=p.d+use+rear;
     return {src:'lot',need:need,have:l.ld,margin:l.ld-need,porch:fwd,fbl:fset,rear:rear};
   }
   return null;
@@ -1690,6 +1716,9 @@ async function boot(){
     const sw=await fetch('../data/'+COMMUNITY+'-swing.json',{cache:'no-store'})
             .then(x=>x.ok?x.json():null).catch(()=>null);
     SWING=(sw&&sw.locks)||{}; SWINGMETA=(sw&&sw.meta)||{};
+    /* Optional: plan outlines, for where the garage sits on a front-entry plan. */
+    if(!rearEntryComm()) FOOTP=await fetch('../data/footprints.json',{cache:'no-store'})
+      .then(x=>x.ok?x.json():null).catch(()=>null).then(j=>(j&&j.plans)||null);
   }catch(e){
     document.getElementById('commName').textContent='Lot data not found';
     document.getElementById('commSub').textContent=e.message;

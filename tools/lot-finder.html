@@ -146,7 +146,7 @@
 
 /* Printed in the header so you can tell at a glance which file is live.
    Bump it whenever this file changes. */
-const FINDER_BUILD='2026-11-11c';
+const FINDER_BUILD='2026-11-11d';
 
 /* `verified` means the community's lot geometry, graded pads and driveway
    grades have been checked against the engineer's sealed drawings. Only The
@@ -232,6 +232,32 @@ function slopeWith(G,dm){
 }
 
 /* ---------- fit, identical in spirit to the sheet ---------- */
+/* Garage face behind the house front, read from the plan outline at the door
+   centre (front-entry outlines drawn with the front at y=0). Same function as
+   lot-fit-sheet.html. 0 when no outline or door is on file. */
+function garageInset(fp){
+  if(!fp||!fp.frontAtY0||!fp.door||!Array.isArray(fp.pts)||fp.pts.length<3) return 0;
+  const xc=(fp.door.lo+fp.door.hi)/2, P=fp.pts; let best=null;
+  for(let i=0;i<P.length;i++){ const a=P[i], b=P[(i+1)%P.length];
+    if(Math.abs(a[1]-b[1])>1e-6) continue;
+    if(xc<Math.min(a[0],b[0])-1e-6||xc>Math.max(a[0],b[0])+1e-6) continue;
+    if(best==null||a[1]<best) best=a[1]; }
+  return (best!=null&&best>0&&best<(fp.d||1e9)/2)?best:0;
+}
+function planInset(p){
+  if(!p||!FOOTP) return 0;
+  const fam=String(p.name||p.n||'').split(' ')[0].toLowerCase();
+  return garageInset(FOOTP[p.id]||FOOTP[fam]);
+}
+/* Front-entry depth used, fully forward: the garage may come no closer than the
+   deeper of the front building line and the garage setback; the porch may cross
+   the front line by its credit; and the porch is planInset ahead of the garage. */
+function frontUse(fbl,gbl,credit,inset){
+  const garMin=(gbl!=null)?Math.max(fbl,gbl):fbl;
+  const rest=Math.max(fbl,garMin-inset);
+  return Math.min(rest, Math.max(fbl-credit, garMin-inset));
+}
+let FOOTP=null;
 function porchCredit(plan,meta,lot){
   /* A porch may project up to `porchEncroach`, must be unconditioned, and must
      stay `porchMinFromFrontPL` clear of the front property line — so the
@@ -264,9 +290,9 @@ function fitOf(lot,plan,meta){
   let dm=null;
   if(lot.padD!=null)    dm=lot.padD-(plan.d-credit);
   else if(lot.ld!=null){
-    let fset=fbl, fwd=credit;
-    if(meta.rearEntry===false&&meta.garageBL!=null){ fset=Math.max(fbl,meta.garageBL); fwd=Math.min(credit, fset-meta.garageBL); }
-    dm=lot.ld-(plan.d+fset+rear-fwd);
+    let use=fbl-credit;
+    if(meta.rearEntry===false) use=frontUse(fbl,meta.garageBL,credit,planInset(plan));
+    dm=lot.ld-(plan.d+use+rear);
   }
   const wm=(availW!=null)?availW-plan.w:null;
   if(dm==null||wm==null) return {state:'na',why:'this lot has no pad or plat dimensions recorded'};
@@ -336,7 +362,7 @@ async function pickCommunity(id){
   COMM=id;
   $('app').innerHTML='<div class="panel">Loading…</div>';
   try{
-    const [m,p,st,gr,sw]=await Promise.all([
+    const [m,p,st,gr,sw,fpj]=await Promise.all([
       /* cache:'no-store' on EVERY data fetch, matching lot-map.html. Without it
          the browser serves a stale copy of a data file after it has been
          replaced on the site, and a hard refresh does not always reach it —
@@ -350,9 +376,11 @@ async function pickCommunity(id){
       fetch('../data/'+id+'-grade.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).catch(()=>null),
       /* Garage swing lock. Optional — a community without the file simply has
          no locks, exactly as before. */
-      fetch('../data/'+id+'-swing.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).catch(()=>null)
+      fetch('../data/'+id+'-swing.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).catch(()=>null),
+      /* Plan outlines, for where the garage sits on a front-entry plan. Optional. */
+      fetch('../data/footprints.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).catch(()=>null)
     ]);
-    MAP=m; MAP.meta=MAP.meta||{}; PLANS=p.plans||[]; STATUS=(st&&st.lots)||{}; GRADE=gr||{};
+    MAP=m; MAP.meta=MAP.meta||{}; PLANS=p.plans||[]; FOOTP=(fpj&&fpj.plans)||null; STATUS=(st&&st.lots)||{}; GRADE=gr||{};
     SWING=(sw&&sw.locks)||{}; SWINGMETA=(sw&&sw.meta)||{};
     const sp=STANDARDS_PATCH[id]||{};
     Object.keys(sp).forEach(k=>{MAP.meta[k]=sp[k];});
