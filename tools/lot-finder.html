@@ -146,7 +146,7 @@
 
 /* Printed in the header so you can tell at a glance which file is live.
    Bump it whenever this file changes. */
-const FINDER_BUILD='2026-11-09g';
+const FINDER_BUILD='2026-11-11a';
 
 /* `verified` means the community's lot geometry, graded pads and driveway
    grades have been checked against the engineer's sealed drawings. Only The
@@ -237,11 +237,12 @@ function porchCredit(plan,meta,lot){
      stay `porchMinFromFrontPL` clear of the front property line — so the
      allowance depends on the lot's own front building line. No credit at all
      for an elevation whose porch has not been verified. */
-  if(plan.porch==null) return 0;
+  const proj=(meta.porchByPlan&&plan.id&&meta.porchByPlan[plan.id]!=null)?meta.porchByPlan[plan.id]:plan.porch;
+  if(proj==null) return 0;
   const cap=meta.porchEncroach!=null?meta.porchEncroach:5;
   const off=meta.porchMinFromFrontPL!=null?meta.porchMinFromFrontPL:0;
   const fbl=(lot&&lot.frontBL!=null)?lot.frontBL:(meta.frontBL!=null?meta.frontBL:10);
-  return Math.min(plan.porch, cap, Math.max(0,fbl-off));
+  return Math.min(proj, cap, Math.max(0,fbl-off));
 }
 function fitOf(lot,plan,meta){
   if(plan.w==null||plan.d==null) return {state:'na',why:'this plan has never been measured'};

@@ -164,7 +164,7 @@ let PAD_DEPTH=80.0, BASE_RUN=21.0, MAXG=10.0, SLAB=0.83, STD_STEP=0.58;
    it is a lot that needs a City sign-off, which is a commercial decision rather
    than a dead lot. Stays null where a community records no approval allowance,
    in which case maxGrade is a hard ceiling exactly as before. */
-const MAP_BUILD='2026-11-10f';   /* printed in the header, like the other pages */
+const MAP_BUILD='2026-11-11a';   /* printed in the header, like the other pages */
 let MAXG_APPROVE=null;
 /* Verified per-lot driveway grade, built from the engineer's grading plan and
    the surveyed alley elevations (see <community>-grade.json). It REPLACES the
@@ -569,15 +569,31 @@ function monoConflict(i,pid){
    the change to plans whose porch has actually been confirmed — today only
    Holland, confirmed by Brandi 13 Oct 2026 as unable to encroach. The rest are
    under review; see claude/porch-encroachment-per-plan.md. */
-function porchCredit(p){
+/* ONE RULE, the same in the map, the sheet and the finder:
+     credit = min( this elevation's porch, porchEncroach, frontBL - porchMinFromFrontPL )
+   The porch figure comes from the community's own porchByPlan where it has one,
+   else the plan library. An elevation with NO verified porch gets no credit —
+   this map used to hand it the full community cap, which is why it and the
+   fit sheet disagreed. */
+function porchCredit(p,l){
   const M=MAP.meta||{};
+  const proj=(p&&p.id&&M.porchByPlan&&M.porchByPlan[p.id]!=null)?M.porchByPlan[p.id]
+            :(p&&p.porch!=null)?p.porch:null;
   const cap=M.porchEncroach!=null?M.porchEncroach:5;
-  return (p&&p.porch!=null) ? Math.min(p.porch,cap) : cap;
+  /* Communities that have not adopted the off-the-property-line rule keep the
+     behaviour they have always had: an unverified porch gets the community
+     cap. Only a community that declares porchMinFromFrontPL (Sherley) gets the
+     strict no-figure-no-credit rule. Grand Oaks and The Heights are untouched. */
+  if(M.porchMinFromFrontPL==null) return (proj==null)?cap:Math.min(proj,cap);
+  if(proj==null) return 0;
+  const off=M.porchMinFromFrontPL;
+  const fbl=(l&&l.frontBL!=null)?l.frontBL:(M.frontBL!=null?M.frontBL:10);
+  return Math.min(proj,cap,Math.max(0,fbl-off));
 }
 function depthFit(l,p){
   if(!l||!p||p.d==null)return null;
   const M=MAP.meta||{};
-  const porch=porchCredit(p);
+  const porch=porchCredit(p,l);
   if(l.padD!=null){
     const need=p.d-porch;
     return {src:'pad',need:need,have:l.padD,margin:l.padD-need,porch:porch};

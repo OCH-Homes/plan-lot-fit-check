@@ -180,7 +180,7 @@
 
 /* Printed in the footer so you can tell at a glance which file is actually
    live on the site. Bump it whenever this file changes. */
-const SHEET_BUILD='2026-11-10i';
+const SHEET_BUILD='2026-11-11e';
 /* Per-lot driveway grade, keyed block-lot. Empty where not measured. */
 let GRADE={};
 
@@ -739,7 +739,10 @@ function draw(){
      share one floor plan but NOT one porch (A and B project 7', C only 4'), so a
      porch attached to the footprint would sit at the wrong level and Addison C
      would silently inherit A's. See claude/porch-encroachment-per-plan.md. */
-  const projection = (PORCH && pid && PORCH[pid]!=null) ? PORCH[pid] : null;
+  /* A community may carry its own verified porch figures (meta.porchByPlan);
+     they win over the shared footprints file. */
+  const projection = (pid && M.porchByPlan && M.porchByPlan[pid]!=null) ? M.porchByPlan[pid]
+                   : (PORCH && pid && PORCH[pid]!=null) ? PORCH[pid] : null;
   const porchKnown = projection!=null;
   /* An UNKNOWN porch gets NO credit, not the full allowance.
      Until 2026-11-09 this fell back to the community cap, which meant an
@@ -769,8 +772,20 @@ function draw(){
   if(plan){
     if(LOT.padD!=null)      dm=LOT.padD-(plan.d-credit);
     else if(LOT.ld!=null)   dm=LOT.ld-(plan.d+fbl+rear-credit);
-    /* Forward travel is exactly the depth this plan does not use. */
-    MAXSHIFT = (dm!=null && dm>0) ? Math.round(dm*2)/2 : 0;
+    /* Rear-entry: forward travel is the depth this plan does not use.
+       Front-entry: the home sits on the front building line, and the only way
+       it can come forward is by its PORCH entering the front setback — so the
+       travel is exactly the porch credit, never the spare depth. */
+    if(REAR_IS_ALLEY) MAXSHIFT = (dm!=null && dm>0) ? Math.round(dm*2)/2 : 0;
+    else {
+      /* On a front-entry plan the garage is on the front face, and the garage
+         has its own setback (25 ft on Sherley's 50 ft lots, per the Spiars Pad
+         Fit Exhibit). So the home comes forward by the porch allowance OR until
+         the garage face reaches the garage setback, whichever is less. */
+      const gbl = (SBP.garageBL!=null?SBP.garageBL:M.garageBL);
+      const garRoom = (gbl!=null) ? Math.max(0, fbl - gbl) : Infinity;
+      MAXSHIFT = Math.floor(Math.min(credit, garRoom)*2)/2;
+    }
     if(SHIFT>MAXSHIFT) SHIFT=MAXSHIFT;
     (function(){
       const sl=document.getElementById('shiftSl'), lb=document.getElementById('shiftLbl'),
@@ -781,8 +796,8 @@ function draw(){
          the street on a rear-entry lot, back from the street on a front-entry
          one. Saying "forward" on both would be wrong on half of them. */
       const lab=document.getElementById('shiftLabel');
-      if(lab) lab.textContent = (MAP&&MAP.meta&&MAP.meta.rearEntry===false)
-        ? 'Move home back from the street' : 'Move home forward';
+      if(lab) lab.textContent = REAR_IS_ALLEY ? 'Move home forward'
+        : 'Move home forward — porch into the front setback';
       sl.max=MAXSHIFT; sl.value=SHIFT; lb.textContent=F(SHIFT)+' of '+F(MAXSHIFT);
     })();
   }
@@ -1086,8 +1101,54 @@ function draw(){
            the rear line, as the rear-entry rule does, put it at the wrong end
            of the lot. The slider then moves it BACK toward the rear, and the
            rear building line is still the hard stop. */
-        aT = (frontY - fbl) - plan.d - Math.max(0, Math.min(MAXSHIFT, SHIFT));
+        aT = (frontY - fbl) - plan.d + Math.max(0, Math.min(MAXSHIFT, SHIFT));
         if(aT < blT){ rearClamp = blT-aT; aT = blT; }
+      }
+      /* WIDTH WHERE THE HOUSE ACTUALLY SITS. Without an engineer's pad, the
+         width is read off the lot polygon across the depth the house occupies
+         at its current position, less the side yards. On a wedge or curved
+         lot that changes as the house slides, so a figure measured once at the
+         building line was wrong the moment the slider moved. A real graded pad
+         (The Heights) still wins and is left alone. */
+      /* Only when the house has been slid off its seat. At rest the measured
+         buildable width already on the lot record is the answer (it fits all
+         167 fifty-foot lots for Webber B); this outline check exists to answer
+         the moved position, where a wedge lot is narrower than at the line. On
+         irregular corner lots it lines the house up with the front curve
+         rather than the side lines, so it is not trusted at rest. */
+      if(SHIFT>0 && !REAR_IS_ALLEY && LOT.padW==null && O && O.pts && O.pts.length>2){
+        /* Check the house's ACTUAL OUTLINE, as placed, against the lot: every
+           point along the outline must sit inside the side building lines at
+           that depth. A solid plan-width box over-states the house on a plan
+           that steps in at the front, which is exactly where a wedge lot is
+           narrowest. The result is the total side-to-side slack — how far the
+           house could shift in either direction and still clear both side
+           yards — so 0 means it just fits. */
+        const P=O.pts, np=P.length;
+        const xsAt=y=>{ const xs=[];
+          for(let i=0;i<np;i++){ const u=P[i], v=P[(i+1)%np];
+            if(u[1]===v[1]) continue;
+            if((u[1]-y)*(v[1]-y)<=0) xs.push(u[0]+(v[0]-u[0])*(y-u[1])/(v[1]-u[1])); }
+          return xs.length>=2 ? [Math.min(...xs),Math.max(...xs)] : null; };
+        const fpl=(fp&&fp.pts&&fp.pts.length>3)?fp:null;
+        const fay0=!!(fpl&&fpl.frontAtY0), mir=(GAR==='L');
+        const W0=fpl?fpl.w:plan.w, D0=fpl?fpl.d:plan.d;
+        const shape=fpl?fpl.pts:[[0,0],[W0,0],[W0,D0],[0,D0]];
+        const cxL=((padL!=null?padL:(minx+lotW/2-plan.w/2))+(padR!=null?padR:(minx+lotW/2+plan.w/2)))/2;
+        const toW=q=>[ cxL-W0/2+(fpl&&mir?(W0-q[0]):q[0]), fay0?(aT+D0-q[1]):(aT+q[1]) ];
+        let leftC=Infinity, rightC=Infinity;
+        for(let i=0;i<shape.length;i++){
+          const a=toW(shape[i]), b=toW(shape[(i+1)%shape.length]);
+          const steps=Math.max(1,Math.ceil(Math.hypot(b[0]-a[0],b[1]-a[1])/2));
+          for(let k=0;k<=steps;k++){
+            const x=a[0]+(b[0]-a[0])*k/steps, y=a[1]+(b[1]-a[1])*k/steps;
+            const e=xsAt(y); if(!e) continue;
+            leftC=Math.min(leftC, (x-e[0])-sideI);
+            rightC=Math.min(rightC, (e[1]-x)-sideI);
+          }
+        }
+        if(isFinite(leftC)&&isFinite(rightC))
+          wm = leftC + rightC - (LOT.corner ? (sideC-sideI) : 0);
       }
       /* The margin is NOT penalised by the clamp. dm is computed from padD, the
          pad's DEPTH, and the depth model already assumes a home seated on the
@@ -1416,19 +1477,19 @@ function draw(){
 
     <div class="notes">
       ${DRAWN?`<b>Lot line and setbacks</b> are to scale from the recorded plat and the City-approved
-      setbacks: ${fbl}' front, ${rear}' rear to alley, ${sideI}' sides, with a ${porch}' porch
+      setbacks: ${fbl}' front, ${rear}' rear${REAR_IS_ALLEY?' to alley':''}, ${sideI}' sides, with a ${porch}' porch
       encroachment allowed into the front building line.`
       :`<b>The setbacks used for the figures above</b> are the City-approved ones: ${fbl}' front,
-      ${rear}' rear to alley, ${sideI}' sides, with a ${porch}' porch encroachment allowed into the
+      ${rear}' rear${REAR_IS_ALLEY?' to alley':''}, ${sideI}' sides, with a ${porch}' porch encroachment allowed into the
       front building line.`}
       ${porchKnown
         ? (credit>0
             ? `<b>This elevation's porch projects, so it takes a ${credit.toFixed(1)}' encroachment</b> into the front building line — capped at the City's ${porch}'.`
             : `<b>This elevation has no encroaching porch</b>, so it takes no front encroachment. Living space may never project into the front building line.`)
         : `<b>The ${porch}' porch encroachment is the community default and has not yet been confirmed for this elevation.</b> Only a projecting porch earns it — living space never can — so this figure may be generous by up to ${porch}'.`}
-      ${frontNote?`<b>This lot's recorded frontage disagrees with the plat.</b> ${esc(frontNote)} Worth fixing in the orientation data so the map agrees. `:''}
+      ${frontNote&&!(M.orientAuthoritative)?`<b>This lot's recorded frontage disagrees with the plat.</b> ${esc(frontNote)} Worth fixing in the orientation data so the map agrees. `:''}
       ${DRAWN&&REAR_IS_ALLEY?`<b>The rear of the house is held at the rear edge of the engineer's graded pad</b>, which on some lots sits further from the alley than the ${rear}' building line. It is never placed closer to the alley than that line.`:''}
-      ${DRAWN&&!REAR_IS_ALLEY?`<b>The front of the house is held on the ${FT(fbl)} front building line</b>, because the driveway runs from the garage to the street and every foot the house moves back is a foot of driveway. The ${rear}' rear building line is the hard stop behind it.`:''}
+      ${DRAWN&&!REAR_IS_ALLEY?`<b>The house starts on the ${FT(fbl)} front building line</b> and can come forward only as far as its porch may enter the front setback — ${credit>0?FT(MAXSHIFT)+' on this plan and lot'+(MAXSHIFT<credit?`, held there because the garage, on the front face, may come no closer than the ${FT(SBP.garageBL!=null?SBP.garageBL:M.garageBL)} garage setback (the porch alone would allow ${FT(credit)})`:''):'none, because no porch figure is on file for this plan'}. Porch up to ${FT(porchMax)}, unconditioned, at least ${FT(porchOffPL)} off the front property line. The ${rear}' rear building line is the hard stop behind it.`:''}
       ${DRAWN&&rearClamp>0?`<b>The drawn pad outline on this lot sits ${rearClamp.toFixed(1)}' nearer the alley than that line</b>, so the home is held at the line rather than at the pad edge. The depth margin above is unaffected — it is figured from the pad's ${F(LOT.padD)} depth, which already seats the home on the building line. Worth checking the pad geometry for this lot. `:''}
       ${LOT.pad?`<b>The graded pad is the engineer's</b>, from the grading drawing — not derived from setbacks.`
                :`No graded pad was recorded for this lot, so the home is measured against the setback envelope.`}
