@@ -34140,10 +34140,10 @@
   "porchRule": "OCH, 9 Nov 2026: a porch may project into the front setback up to 10 ft, must be unconditioned (no A/C space), and must stay at least 5 ft off the front property line. Webber A, B and C may all encroach.",
   "porchByPlan": {
    "webber_a": 8.0,
-   "webber_b": 8.0,
+   "webber_b": 10.0,
    "webber_c": 8.0
   },
-  "porchByPlanSource": "Webber A/B/C front projection 8.0 ft, measured from Webber E40A CAD (A-Area-Masonry), 10 Nov 2026. Encroachment confirmed allowed on all three elevations by OCH.",
+  "porchByPlanSource": "Webber B 10.0 ft: covered entry ahead of the garage on the F-7 model plot plan (garage apron on the 30 ft B.L., entry 10 ft forward), which matches the 10 ft garage inset in the Webber CAD outline. Webber A and C 8.0 ft, measured from Webber E40A CAD (A-Area-Masonry), 10 Nov 2026, not yet checked against a plot plan. Encroachment confirmed allowed on all three elevations by OCH.",
   "builderSource": "OCH builder list, 10 Nov 2026 (data/sherley-builders.json). OCH 42, DRB 82, Homebound 42, Perry 1 (1A F-9 \u2014 conflicts with its 50 ft plat classification, unresolved). Flag, never filter: every lot stays in the file.",
   "gradeMethod": "Front entry. Slope runs from the garage apron (finished pad + 0.05 ft, OCH standard) to the back of the 5 ft sidewalk inside the lot line. The garage face sits at the deeper of the front building line and the 25 ft garage setback. Grade at the back of the walk = the grading plan's spot grades on the front line + 5 ft at 2% walk cross-slope. Checked on the model lot, 1A F-7, 2417 Milam: 7.0% against the surveyed plot plan's 6.83%, apron 684.25 exactly.",
   "gradeSource": "Sherley Farms Phase 1A/1B/1C grading plans; computed 11 Nov 2026"
